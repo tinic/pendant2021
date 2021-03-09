@@ -460,7 +460,7 @@ static void  write_qh(UDEV_T *udev, EP_INFO_T *ep, QH_T *qh)
         /*
          *  Backtrace device tree until the USB 2.0 hub found
          */
-        HUB_DEV_T   *hub;
+        HUB_DEV_T   *hub = 0;
         int         port_num;
 
         port_num = udev->port_num;
@@ -497,10 +497,10 @@ static void  write_qtd_bptr(qTD_T *qtd, uint32_t buff_addr, int xfer_len)
 
 static int ehci_ctrl_xfer(UTR_T *utr)
 {
-    UDEV_T     *udev;
-    QH_T       *qh;
-    qTD_T      *qtd_setup, *qtd_data, *qtd_status;
-    uint32_t   token;
+    UDEV_T     *udev = 0;
+    QH_T       *qh = 0;
+    qTD_T      *qtd_setup = 0, *qtd_data = 0, *qtd_status = 0;
+    uint32_t   token = 0;
     int        is_new_qh = 0;
 
     udev = utr->udev;
@@ -916,9 +916,9 @@ static int visit_qtd(qTD_T *qtd)
 
 static void scan_asynchronous_list()
 {
-    QH_T    *qh, *qh_tmp;
-    qTD_T   *q_pre, *qtd, *qtd_tmp;
-    UTR_T   *utr;
+    QH_T    *qh = 0, *qh_tmp = 0;
+    qTD_T   *q_pre = 0, *qtd = 0, *qtd_tmp = 0;
+    UTR_T   *utr = 0;
 
     qh =  QH_PTR(_H_qh->HLink);
     while (qh != _H_qh)

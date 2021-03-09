@@ -60,9 +60,9 @@ static int can_update_spt(int sampl_pt, int tseg, int *tseg1, int *tseg2);
   */
 static uint32_t LockIF(CAN_T *tCAN)
 {
-    uint32_t u32CanNo;
-    uint32_t u32FreeIfNo;
-    uint32_t u32IntMask;
+    uint32_t u32CanNo = 0;
+    uint32_t u32FreeIfNo = 0;
+    uint32_t u32IntMask = 0;
 
 #if defined(CAN1)
     if(tCAN == CAN0)
@@ -165,8 +165,8 @@ static uint32_t LockIF_TL(CAN_T *tCAN)
   */
 static void ReleaseIF(CAN_T *tCAN, uint32_t u32IfNo)
 {
-    uint32_t u32IntMask;
-    uint32_t u32CanNo;
+    uint32_t u32IntMask = 0;
+    uint32_t u32CanNo = 0;
 
     if(u32IfNo >= 2ul)
     {

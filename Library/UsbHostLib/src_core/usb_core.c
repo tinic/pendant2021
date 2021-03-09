@@ -489,8 +489,8 @@ void  dump_config_descriptor(DESC_CONF_T *desc)
  */
 int usbh_set_address(UDEV_T *udev)
 {
-    uint32_t  read_len;
-    int       dev_num, ret;
+    uint32_t  read_len = 0;
+    int       dev_num = 0, ret = 0;
 
     if (udev->dev_num != 0)
         return USBH_ERR_SET_DEV_ADDR;
@@ -521,8 +521,8 @@ int usbh_set_address(UDEV_T *udev)
  */
 int usbh_set_configuration(UDEV_T *udev, uint8_t conf_val)
 {
-    uint32_t  read_len;
-    int       ret;
+    uint32_t  read_len = 0;
+    int       ret = 0;
 
     /* Current configuration is the same. Do nothing. */
     if (udev->cur_conf == conf_val)
@@ -556,8 +556,8 @@ int usbh_set_configuration(UDEV_T *udev, uint8_t conf_val)
 int usbh_set_interface(IFACE_T *iface, uint16_t alt_setting)
 {
     ALT_IFACE_T  *aif = NULL;
-    uint32_t     xfer_len;
-    int          i, ret;
+    uint32_t     xfer_len = 0;
+    int          i = 0, ret = 0;
 
     for (i = 0; i < iface->num_alt; i++)
     {
@@ -587,8 +587,8 @@ int usbh_set_interface(IFACE_T *iface, uint16_t alt_setting)
  */
 int usbh_get_device_descriptor(UDEV_T *udev, DESC_DEV_T *desc_buff)
 {
-    uint32_t  read_len;
-    int       ret, retry;
+    uint32_t  read_len = 0;
+    int       ret = 0, retry = 0;
     int       timeout = 10;
 
     for (retry = 0; retry < 3; retry++)
@@ -691,9 +691,9 @@ int usbh_clear_halt(UDEV_T *udev, uint16_t ep_addr)
 
 static int  usbh_parse_endpoint(ALT_IFACE_T *alt, int ep_idx, uint8_t *desc_buff, int len)
 {
-    DESC_EP_T    *ep_desc;
+    DESC_EP_T    *ep_desc = 0;
     int          parsed_len = 0;
-    int          pksz;
+    int          pksz = 0;
 
     while (len > 0)
     {
@@ -739,11 +739,11 @@ static int  usbh_parse_endpoint(ALT_IFACE_T *alt, int ep_idx, uint8_t *desc_buff
   */
 static int  usbh_parse_interface(UDEV_T *udev, uint8_t *desc_buff, int len)
 {
-    int         i, matched, parsed_len = 0;
-    DESC_HDR_T  *hdr;
-    DESC_IF_T   *if_desc;
+    int         i = 0, matched = 0, parsed_len = 0;
+    DESC_HDR_T  *hdr = 0;
+    DESC_IF_T   *if_desc = 0;
     IFACE_T     *iface = NULL;
-    int         ret;
+    int         ret = 0;
 
     iface = usbh_alloc_mem(sizeof(*iface)); /* create an interface                        */
     if (iface == NULL)
@@ -893,7 +893,7 @@ err_out:
 static int  usbh_parse_configuration(UDEV_T *udev, uint8_t *desc_buff)
 {
     DESC_CONF_T  *config = (DESC_CONF_T *)desc_buff;
-    DESC_HDR_T   *hdr;
+    DESC_HDR_T   *hdr = 0;
     int    i, ret, len;
 
     len = config->wTotalLength;

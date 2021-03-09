@@ -703,7 +703,7 @@ err_out:
 int usbh_uac_stop_audio_in(UAC_DEV_T *uac)
 {
     AS_IF_T      *asif = &uac->asif_in;
-    int          i, ret;
+    int          i = 0, ret = 0;
 
     asif->flag_streaming = 0;
 
@@ -798,12 +798,12 @@ int usbh_uac_start_audio_out(UAC_DEV_T *uac, UAC_CB_FUNC *func)
     UDEV_T       *udev = uac->udev;
     AS_IF_T      *asif = &uac->asif_out;
     IFACE_T      *iface = uac->asif_out.iface;
-    ALT_IFACE_T  *aif;
-    EP_INFO_T    *ep;
-    UTR_T        *utr;
-    uint8_t      *buff;
-    uint8_t      bAlternateSetting;
-    int          i, j, ret;
+    ALT_IFACE_T  *aif = 0;
+    EP_INFO_T    *ep = 0;
+    UTR_T        *utr = 0;
+    uint8_t      *buff = 0;
+    uint8_t      bAlternateSetting = 0;
+    int          i = 0, j = 0, ret = 0;
 
     if (!uac || !func || !iface)
         return UAC_RET_DEV_NOT_FOUND;

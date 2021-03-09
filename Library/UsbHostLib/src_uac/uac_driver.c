@@ -80,10 +80,10 @@ static int  uac_probe(IFACE_T *iface)
 {
     UDEV_T       *udev = iface->udev;
     ALT_IFACE_T  *aif = iface->aif;
-    DESC_IF_T    *ifd;
-    UAC_DEV_T    *uac, *p;
-    uint8_t      bAlternateSetting;
-    int          ret;
+    DESC_IF_T    *ifd = 0;
+    UAC_DEV_T    *uac = 0, *p = 0;
+    uint8_t      bAlternateSetting = 0;
+    int          ret = 0;
 
     ifd = aif->ifd;
 
