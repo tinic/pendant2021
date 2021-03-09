@@ -549,6 +549,8 @@ static void SendChar(int ch)
 #endif
 }
 
+#if !defined (__GNUC__) || defined(__ARMCC_VERSION)
+
 /**
  * @brief    Routine to get a char
  *
@@ -594,6 +596,7 @@ static char GetChar(void)
 #endif
 #endif
 }
+#endif
 
 /**
  * @brief    Check any char input from UART
