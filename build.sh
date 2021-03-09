@@ -1,6 +1,5 @@
 #!/bin/sh
 set -e
-gcc --version | awk '/gcc/ && ($3+0)<10.2{print "GCC must be version 10.2 or higher."; exit 1}'
 build_type="Ninja"
 rm -rf pendant2021_*
 mkdir -p pendant2021_bootloader_dgb
