@@ -71,11 +71,6 @@ include_directories(Library/UsbHostLib/src_msc)
 include_directories(Library/UsbHostLib/src_uac)
 include_directories(Library/StdDriver/inc)
 
-file(GLOB_RECURSE DSP0_SRC ${PROJECT_SOURCE_DIR}/Library/CMSIS/DSP_Lib/Source/CommonTables/*.c)
-file(GLOB_RECURSE DSP1_SRC ${PROJECT_SOURCE_DIR}/Library/CMSIS/DSP_Lib/Source/SupportFunctions/*.c)
-file(GLOB_RECURSE DSP2_SRC ${PROJECT_SOURCE_DIR}/Library/CMSIS/DSP_Lib/Source/FastMathFunctions/*.c)
-file(GLOB_RECURSE DSP3_SRC ${PROJECT_SOURCE_DIR}/Library/CMSIS/DSP_Lib/Source/BasicMathFunctions/*.c)
-
 file(GLOB_RECURSE STDDRV_SRC ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/*.c)
 
 file(GLOB_RECURSE USB_CORE_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_core/*.c)
@@ -98,11 +93,6 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/msc.c
     ${PROJECT_SOURCE_DIR}/emfat.c
     ${PROJECT_SOURCE_DIR}/main.c
-    ${DSP0_SRC}
-    ${DSP1_SRC}
-    ${DSP2_SRC}
-    ${DSP3_SRC}
-    ${DSP3_SRC}
     ${STDDRV_SRC}
     ${USB_CORE_SRC}
 #    ${USB_CDC_SRC}
