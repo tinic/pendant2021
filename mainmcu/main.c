@@ -24,6 +24,35 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "M480.h"
 
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <stdio.h>
+#include <signal.h>
+#include <time.h>
+#include <sys/time.h>
+#include <sys/times.h>
+
+__attribute__((used)) int _lseek(int file, int ptr, int dir)
+{
+    return 0;
+}
+
+__attribute__((used)) int _isatty(int file)
+{
+    return 0;
+}
+
+__attribute__((used)) int _close(int fildes)
+{
+    return 0;
+}
+
+__attribute__((used)) int _fstat(int fildes, struct stat* st)
+{
+    return -1;
+}
+
 #ifdef BOOTLOADER
 extern void bootloader_entry(void);
 #else  // #ifdef BOOTLOADER

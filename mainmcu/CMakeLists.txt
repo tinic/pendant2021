@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 
 # M48x M480 M482 M482ZGCAE
 
-
 if(BOOTLOADER)
     project(pendant2021-mainfirmware-bootloader C CXX ASM)
     set(MAINCPU_DEFINITIONS BOOTLOADER)
@@ -33,8 +32,9 @@ set(CXX_FLAGS
     -Wdouble-promotion
     -Wshadow 
     -Wfloat-conversion 
+    -Wno-volatile
     -Wformat=2 
-    -std=c++17 
+    -std=c++20 
     -fno-rtti 
     -fno-exceptions)
 
@@ -49,7 +49,7 @@ set(LD_FLAGS
     -lc
     -lm
     -lnosys
-    -Wl,-Map=${PROJECT_NAME}.map,--cref
+    -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map,--cref
     -Wl,--gc-sections)
 
 set(DEBUG_FLAGS
@@ -60,8 +60,8 @@ set(RELEASE_FLAGS
 
 set(DEFINITIONS ARM_MATH_CM4 __FPU_PRESENT ${MAINCPU_DEFINITIONS})
 
-set(HEX_FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.hex)
-set(BIN_FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.bin)
+set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
+set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
 
 include_directories(.)
 include_directories(Library/CMSIS/Include)

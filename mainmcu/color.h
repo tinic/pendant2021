@@ -40,7 +40,7 @@ namespace color {
         T b;
         T a;
 
-        constexpr rgba() :
+        consteval rgba() :
             r(0),
             g(0),
             b(0),
@@ -54,21 +54,21 @@ namespace color {
             a(from.a) {
         }
 
-        constexpr explicit rgba(T _r, T _g, T _b) :
+        constexpr rgba(T _r, T _g, T _b) :
             r(_r),
             g(_g),
             b(_b),
             a(0) {
         }
 
-        constexpr explicit rgba(T _r, T _g, T _b, T _a) :
+        constexpr rgba(T _r, T _g, T _b, T _a) :
             r(_r),
             g(_g),
             b(_b),
             a(_a) {
         }
 
-        constexpr explicit rgba(const vector::float4 &from) {
+        constexpr rgba(const vector::float4 &from) {
             r = clamp_to_type(from.x);
             g = clamp_to_type(from.y);
             b = clamp_to_type(from.z);
@@ -124,7 +124,7 @@ namespace color {
 
     class gradient {
     public:
-        constexpr gradient(const vector::float4 stops[], const size_t n) {
+        consteval gradient(const vector::float4 stops[], const size_t n) {
             for (size_t c = 0; c < colors_n; c++) {
                 float f = static_cast<float>(c) / static_cast<float>(colors_n - 1); 
                 vector::float4 a = stops[0];
@@ -158,22 +158,22 @@ namespace color {
 
     class convert {
     public:
-        constexpr float constexpr_pow(const float x, const float p) const {
+        consteval float consteval_pow(const float x, const float p) const {
             return ::exp2f(p * ::log2f(x));
         }
 
-        constexpr convert() : sRGB2lRGB() {
+        consteval convert() : sRGB2lRGB() {
             for (size_t c = 0; c < 256; c++) {
                 float v = float(c) / 255.0f;
                 if (v > 0.04045f) {
-                    sRGB2lRGB[c] = constexpr_pow( (v + 0.055f) / 1.055f, 2.4f);
+                    sRGB2lRGB[c] = consteval_pow( (v + 0.055f) / 1.055f, 2.4f);
                 } else {
                     sRGB2lRGB[c] = v * ( 25.0f / 323.0f );
                 };
             }
         }
 
-        constexpr vector::float4 sRGB2CIELUV(const rgba<uint8_t> &in) const  {
+        consteval vector::float4 sRGB2CIELUV(const rgba<uint8_t> &in) const  {
             float r = sRGB2lRGB[in.r];
             float g = sRGB2lRGB[in.g];
             float b = sRGB2lRGB[in.b];
@@ -185,7 +185,7 @@ namespace color {
             const float wu = 0.197839825f;
             const float wv = 0.468336303f;
 
-            float l = ( Y <= 0.008856452f ) ? ( 9.03296296296f * Y) : ( 1.16f * constexpr_pow(Y, 1.0f / 3.0f) - 0.16f);
+            float l = ( Y <= 0.008856452f ) ? ( 9.03296296296f * Y) : ( 1.16f * consteval_pow(Y, 1.0f / 3.0f) - 0.16f);
             float d = X + 15.f * Y + 3.0f * Z;
             float di = 1.0f / d;
 
@@ -200,6 +200,9 @@ namespace color {
         float sRGB2lRGB[256];
     };
 
+    consteval vector::float4 srgb8_stop(const rgba<uint8_t> &color, float stop) {
+        return vector::float4(convert().sRGB2CIELUV(color), stop);
+    }
 }
 
 #endif  // #ifndef _COLOR_H_

@@ -21,12 +21,24 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./pendant.h"
+#include "./color.h"
 
 #include "M480.h"
 
 #ifndef BOOTLOADER
 
+static constexpr vector::float4 gradient_rainbow_data[] = {
+    color::srgb8_stop({0xff,0x00,0x00}, 0.00f),
+    color::srgb8_stop({0xff,0xff,0x00}, 0.16f),
+    color::srgb8_stop({0x00,0xff,0x00}, 0.33f),
+    color::srgb8_stop({0x00,0xff,0xff}, 0.50f),
+    color::srgb8_stop({0x00,0x00,0xff}, 0.66f),
+    color::srgb8_stop({0xff,0x00,0xff}, 0.83f),
+    color::srgb8_stop({0xff,0x00,0x00}, 1.00f)};
+static constexpr color::gradient gradient_rainbow(gradient_rainbow_data,7);
+
 Pendant &Pendant::instance() {
+    
     static Pendant pendant;
     if (!pendant.initialized) {
         pendant.initialized = true;

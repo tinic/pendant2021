@@ -647,7 +647,7 @@ int IsDebugFifoEmpty(void)
  * @details     Check if message finished (FIFO empty of debug port)
  */
 
-void _ttywrch(int ch)
+__attribute__((used)) void _ttywrch(int ch)
 {
     SendChar(ch);
     return;
@@ -672,7 +672,7 @@ void _ttywrch(int ch)
  *
  */
 
-int fputc(int ch, FILE *stream)
+__attribute__((used)) int fputc(int ch, FILE *stream)
 {
     SendChar(ch);
     return ch;
@@ -680,7 +680,7 @@ int fputc(int ch, FILE *stream)
 
 #if defined (__GNUC__) && !defined(__ARMCC_VERSION)
 
-int _write (int fd, char *ptr, int len)
+__attribute__((used)) int _write (int fd, char *ptr, int len)
 {
     int i = len;
 
@@ -700,7 +700,7 @@ int _write (int fd, char *ptr, int len)
     return len;
 }
 
-int _read (int fd, char *ptr, int len)
+__attribute__((used)) int _read (int fd, char *ptr, int len)
 {
 
     while((DEBUG_PORT->FIFOSTS & UART_FIFOSTS_RXEMPTY_Msk) != 0);
@@ -722,7 +722,7 @@ int _read (int fd, char *ptr, int len)
  *
  */
 
-int fgetc(FILE *stream)
+__attribute__((used)) int fgetc(FILE *stream)
 {
     return (GetChar());
 }
@@ -742,7 +742,7 @@ int fgetc(FILE *stream)
  *
  */
 
-int ferror(FILE *stream)
+__attribute__((used)) int ferror(FILE *stream)
 {
     return EOF;
 }
