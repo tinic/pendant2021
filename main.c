@@ -155,12 +155,7 @@ static void SYS_Init(void)
     CLK_EnableModuleClock(USCI0_MODULE); 
     CLK_EnableModuleClock(USCI1_MODULE);
 
-    CLK_EnableModuleClock(USBD_MODULE);
-    CLK_SetModuleClock(USBD_MODULE, CLK_CLKSEL0_USBSEL_RC48M, CLK_CLKDIV0_USB(1));
-
     CLK_EnableSysTick(CLK_CLKSEL0_STCLKSEL_HIRC_DIV2, 0);
-
-    SystemCoreClockUpdate();
 
     // SW1
     GPIO_SetMode(PF, BIT2, GPIO_MODE_INPUT);
@@ -183,12 +178,21 @@ static void SYS_Init(void)
     // OLED_RESET
     GPIO_SetMode(PB, BIT9, GPIO_MODE_OUTPUT);
 
+    // >>>>>> USB ----------------------------------
+
     /* select HSUSBD */
     SYS->USBPHY &= ~SYS_USBPHY_HSUSBROLE_Msk;    
     /* Enable USB PHY */
     SYS->USBPHY = (SYS->USBPHY & ~(SYS_USBPHY_HSUSBROLE_Msk | SYS_USBPHY_HSUSBACT_Msk)) | SYS_USBPHY_HSUSBEN_Msk;
     delay_us(20);
     SYS->USBPHY |= SYS_USBPHY_HSUSBACT_Msk;
+
+    CLK_EnableModuleClock(USBD_MODULE);
+    CLK_SetModuleClock(USBD_MODULE, CLK_CLKSEL0_USBSEL_RC48M, CLK_CLKDIV0_USB(1));
+
+    // <<<<<< USB ----------------------------------
+
+    SystemCoreClockUpdate();
 
     SYS_LockReg();
 }
@@ -212,6 +216,8 @@ static void SYS_DeInit(void)
 int main(void)
 {
     SYS_Init();
+
+    UART_Open(UART0, 115200);
 
 #if defined(BOOTLOADER)
 
