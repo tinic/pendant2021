@@ -93,6 +93,10 @@ add_executable(${PROJECT_NAME}.elf
     ${NUVOTON1_SRC}
     ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/GCC/startup_M480.S)
 
+if(CMAKE_CXX_COMPILER_VERSION LESS "10.2")
+    message(FATAL_ERROR "GCC must be version 10.2 or higher.")
+endif(CMAKE_CXX_COMPILER_VERSION LESS "10.2")
+
 target_compile_definitions(${PROJECT_NAME}.elf PRIVATE ${DEFINITIONS})
 target_compile_options(${PROJECT_NAME}.elf PRIVATE ${CC_FLAGS})
 target_link_options(${PROJECT_NAME}.elf PRIVATE ${LD_FLAGS})
