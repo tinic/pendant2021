@@ -1,11 +1,25 @@
-/***************************************************************************//**
- * @file     MassStorage.c
- * @brief    M480 HSUSBD driver Sample file
- * @version  V1.00
- *
- * @copyright (C) 2016 Nuvoton Technology Corp. All rights reserved.
- ******************************************************************************/
+/*
+Copyright 2021 Tinic Uro
 
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 #include "M480.h"
 #include "usb.h"
 #include "hsusbd.h"
@@ -27,17 +41,30 @@ static emfat_t emfat;
 #define CMA { CMA_TIME, CMA_TIME, CMA_TIME }
 
 static void firmware_read_proc(uint8_t *data, int size, uint32_t offset, size_t userdata)  {
-    (void)data;
-    (void)size;
-    (void)offset;
-    (void)userdata;
+    for (uint32_t c = 0; c < size; c += 4) {
+        uint32_t d = FMC_Read(FIRMWARE_ADDR + FIRMWARE_START + offset);
+        data[0] = ( d >>  0 ) & 0xFF;
+        data[1] = ( d >>  8 ) & 0xFF;
+        data[2] = ( d >> 16 ) & 0xFF;
+        data[3] = ( d >> 24 ) & 0xFF;
+        data += 4;
+    }
 }
 
 static void firmware_write_proc(const uint8_t *data, int size, uint32_t offset, size_t userdata)  {
-    (void)data;
-    (void)size;
-    (void)offset;
-    (void)userdata;
+    if (offset == 0) {
+        for (uint32_t c = 0; c < FIRMWARE_SIZE; c += FMC_FLASH_PAGE_SIZE) {
+            FMC_Erase(FIRMWARE_ADDR + FIRMWARE_START + c);
+        }
+    }
+    for (uint32_t c = 0; c < size; c += 4) {
+        uint32_t d = ( data[0] <<  0 ) |
+                     ( data[1] <<  8 ) |
+                     ( data[2] << 16 ) |
+                     ( data[3] << 24 );
+        FMC_Write(FIRMWARE_ADDR + FIRMWARE_START + offset + c, d);
+        data += 4;
+    }
 }
 
 static emfat_entry_t emfat_entries[] = {
@@ -67,8 +94,8 @@ static uint8_t g_au8SenseKey[4] = {0};
 
 static uint32_t g_u32MSCMaxLun = 0;
 static uint32_t g_u32LbaAddress = 0;
-static uint32_t g_u32MassBase = (uintptr_t)(massStorageBuffer);
-static uint32_t g_u32StorageBase = (uintptr_t)(diskSectorBuffer);
+static uint32_t g_u32MassBase = (uint32_t)(massStorageBuffer);
+static uint32_t g_u32StorageBase = (uint32_t)(diskSectorBuffer);
 
 static uint32_t g_u32EpMaxPacketSize = 0;
 static uint32_t g_u32CbwSize = 0;
@@ -163,7 +190,7 @@ void USBD20_IRQHandler(void)
 
             if (HSUSBD->OPER & 0x04)  /* high speed */
                 MSC_InitForHighSpeed();
-            else                    /* full speed */
+            else                      /* full speed */
                 MSC_InitForFullSpeed();
             HSUSBD_ENABLE_CEP_INT(HSUSBD_CEPINTEN_SETUPPKIEN_Msk);
             HSUSBD_SET_ADDR(0);

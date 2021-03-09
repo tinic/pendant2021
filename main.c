@@ -215,14 +215,16 @@ int main(void)
 
 #if defined(BOOTLOADER)
 
+    FMC_Open();
+
     if (PF2 != 0) {        
         SYS_DeInit();
+        
+        FMC_SetVectorPageAddr(FIRMWARE_ADDR + FIRMWARE_START);
 
-        __set_MSP(*(volatile uint32_t *)(FIRMWARE_ADDR + FIRMWARE_START));
-        void (*SysMemBootJump)(void);
-        SysMemBootJump = (void (*)(void)) (*((volatile uint32_t *)(FIRMWARE_ADDR + FIRMWARE_START + 4)));
-        SysMemBootJump();
-        while( 1 ) {}
+        SYS_ResetCPU();
+
+        for (;;) { }
     }
 
     bootloader_entry();
