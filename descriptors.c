@@ -13,9 +13,8 @@
 
 #include "msc.h"
 
-/*----------------------------------------------------------------------------*/
 /*!<USB Device Descriptor */
-uint8_t gu8DeviceDescriptor[] __attribute__((aligned(4))) =
+static uint8_t gu8DeviceDescriptor[] __attribute__((aligned(4))) =
 {
     LEN_DEVICE,     /* bLength */
     DESC_DEVICE,    /* bDescriptorType */
@@ -38,7 +37,7 @@ uint8_t gu8DeviceDescriptor[] __attribute__((aligned(4))) =
 };
 
 /*!<USB Qualifier Descriptor */
-uint8_t gu8QualifierDescriptor[] __attribute__((aligned(4))) =
+static uint8_t gu8QualifierDescriptor[] __attribute__((aligned(4))) =
 {
     LEN_QUALIFIER,  /* bLength */
     DESC_QUALIFIER, /* bDescriptorType */
@@ -52,7 +51,7 @@ uint8_t gu8QualifierDescriptor[] __attribute__((aligned(4))) =
 };
 
 /*!<USB Configure Descriptor */
-uint8_t gu8ConfigDescriptor[] __attribute__((aligned(4))) =
+static uint8_t gu8ConfigDescriptor[] __attribute__((aligned(4))) =
 {
     LEN_CONFIG,     /* bLength */
     DESC_CONFIG,    /* bDescriptorType */
@@ -71,7 +70,7 @@ uint8_t gu8ConfigDescriptor[] __attribute__((aligned(4))) =
     0x00,           /* bAlternateSetting */
     0x02,           /* bNumEndpoints */
     0x08,           /* bInterfaceClass */
-    0x05,           /* bInterfaceSubClass */
+    0x06,           /* bInterfaceSubClass */
     0x50,           /* bInterfaceProtocol */
     0x00,           /* iInterface */
 
@@ -97,7 +96,7 @@ uint8_t gu8ConfigDescriptor[] __attribute__((aligned(4))) =
 };
 
 /*!<USB Other Speed Configure Descriptor */
-uint8_t gu8OtherConfigDescriptorHS[] __attribute__((aligned(4))) =
+static uint8_t gu8OtherConfigDescriptorHS[] __attribute__((aligned(4))) =
 {
     LEN_CONFIG,         /* bLength */
     DESC_OTHERSPEED,    /* bDescriptorType */
@@ -116,7 +115,7 @@ uint8_t gu8OtherConfigDescriptorHS[] __attribute__((aligned(4))) =
     0x00,           /* bAlternateSetting */
     0x02,           /* bNumEndpoints */
     0x08,           /* bInterfaceClass */
-    0x05,           /* bInterfaceSubClass */
+    0x06,           /* bInterfaceSubClass */
     0x50,           /* bInterfaceProtocol */
     0x00,           /* iInterface */
 
@@ -141,7 +140,7 @@ uint8_t gu8OtherConfigDescriptorHS[] __attribute__((aligned(4))) =
     0x00,       /* bInterval */
 };
 
-uint8_t gu8ConfigDescriptorFS[] __attribute__((aligned(4))) =
+static uint8_t gu8ConfigDescriptorFS[] __attribute__((aligned(4))) =
 {
     LEN_CONFIG,     /* bLength */
     DESC_CONFIG,    /* bDescriptorType */
@@ -160,7 +159,7 @@ uint8_t gu8ConfigDescriptorFS[] __attribute__((aligned(4))) =
     0x00,           /* bAlternateSetting */
     0x02,           /* bNumEndpoints */
     0x08,           /* bInterfaceClass */
-    0x05,           /* bInterfaceSubClass */
+    0x06,           /* bInterfaceSubClass */
     0x50,           /* bInterfaceProtocol */
     0x00,           /* iInterface */
 
@@ -185,7 +184,7 @@ uint8_t gu8ConfigDescriptorFS[] __attribute__((aligned(4))) =
     0x00        /* bInterval */
 };
 
-uint8_t gu8OtherConfigDescriptorFS[] __attribute__((aligned(4))) =
+static uint8_t gu8OtherConfigDescriptorFS[] __attribute__((aligned(4))) =
 {
     LEN_CONFIG,         /* bLength */
     DESC_OTHERSPEED,    /* bDescriptorType */
@@ -204,7 +203,7 @@ uint8_t gu8OtherConfigDescriptorFS[] __attribute__((aligned(4))) =
     0x00,           /* bAlternateSetting */
     0x02,           /* bNumEndpoints */
     0x08,           /* bInterfaceClass */
-    0x05,           /* bInterfaceSubClass */
+    0x06,           /* bInterfaceSubClass */
     0x50,           /* bInterfaceProtocol */
     0x00,           /* iInterface */
 
@@ -229,10 +228,8 @@ uint8_t gu8OtherConfigDescriptorFS[] __attribute__((aligned(4))) =
     0x00        /* bInterval */
 };
 
-
-
 /*!<USB Language String Descriptor */
-uint8_t gu8StringLang[4] __attribute__((aligned(4))) =
+static uint8_t gu8StringLang[4] __attribute__((aligned(4))) =
 {
     4,              /* bLength */
     DESC_STRING,    /* bDescriptorType */
@@ -240,7 +237,7 @@ uint8_t gu8StringLang[4] __attribute__((aligned(4))) =
 };
 
 /*!<USB Vendor String Descriptor */
-uint8_t gu8VendorStringDesc[] __attribute__((aligned(4))) =
+static uint8_t gu8VendorStringDesc[] __attribute__((aligned(4))) =
 {
     16,
     DESC_STRING,
@@ -248,21 +245,21 @@ uint8_t gu8VendorStringDesc[] __attribute__((aligned(4))) =
 };
 
 /*!<USB Product String Descriptor */
-uint8_t gu8ProductStringDesc[] __attribute__((aligned(4))) =
+static uint8_t gu8ProductStringDesc[] __attribute__((aligned(4))) =
 {
     22,             /* bLength          */
     DESC_STRING,    /* bDescriptorType  */
     'U', 0, 'S', 0, 'B', 0, ' ', 0, 'D', 0, 'e', 0, 'v', 0, 'i', 0, 'c', 0, 'e', 0
 };
 
-uint8_t gu8StringSerial[] __attribute__((aligned(4))) =
+static uint8_t gu8StringSerial[] __attribute__((aligned(4))) =
 {
     26,             // bLength
     DESC_STRING,    // bDescriptorType
     'A', 0, '0', 0, '0', 0, '0', 0, '2', 0, '0', 0, '1', 0, '4', 0, '1', 0, '1', 0, '0', 0, '4', 0
 };
 
-uint8_t *gpu8UsbString[4] =
+static uint8_t *gpu8UsbString[4] =
 {
     gu8StringLang,
     gu8VendorStringDesc,
@@ -270,21 +267,21 @@ uint8_t *gpu8UsbString[4] =
     gu8StringSerial,
 };
 
-uint8_t *gu8UsbHidReport[3] =
+static uint8_t *gu8UsbHidReport[3] =
 {
     NULL,
     NULL,
     NULL,
 };
 
-uint32_t gu32UsbHidReportLen[3] =
+static uint32_t gu32UsbHidReportLen[3] =
 {
     0,
     0,
     0,
 };
 
-uint32_t gu32ConfigHidDescIdx[3] =
+static uint32_t gu32ConfigHidDescIdx[3] =
 {
     0,
     0,

@@ -26,24 +26,21 @@ static emfat_t emfat;
 #define CMA_TIME EMFAT_ENCODE_CMA_TIME(9,7,2020,12,0,0)
 #define CMA { CMA_TIME, CMA_TIME, CMA_TIME }
 
-static void firmware_read_proc(uint8_t *data, int size, uint32_t offset, size_t userdata) 
-{
+static void firmware_read_proc(uint8_t *data, int size, uint32_t offset, size_t userdata)  {
     (void)data;
     (void)size;
     (void)offset;
     (void)userdata;
 }
 
-static void firmware_write_proc(const uint8_t *data, int size, uint32_t offset, size_t userdata) 
-{
+static void firmware_write_proc(const uint8_t *data, int size, uint32_t offset, size_t userdata)  {
     (void)data;
     (void)size;
     (void)offset;
     (void)userdata;
 }
 
-static emfat_entry_t emfat_entries[] =
-{
+static emfat_entry_t emfat_entries[] = {
     // name           dir    lvl offset  size             max_size        user  time  read                write
     { "",             true,  0,  0,      0,               0,              0,    CMA,  NULL,               NULL,                { 0, 0, 0, 0, NULL, NULL, NULL } }, // root
     { "firmware.bin", false, 1,  0,      FIRMWARE_SIZE,   FIRMWARE_SIZE,  0,    CMA,  firmware_read_proc, firmware_write_proc, { 0, 0, 0, 0, NULL, NULL, NULL } }, // firmware.bin
