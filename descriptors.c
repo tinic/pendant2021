@@ -24,6 +24,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "msc.h"
 
+#define MSC_SCLASS_RBC            0x01   /* Typically, flash devices      */
+#define MSC_SCLASS_8020           0x02   /* CD-ROM                        */
+#define MSC_SCLASS_QIC            0x03   /* QIC-157 Tapes                 */
+#define MSC_SCLASS_UFI            0x04   /* Floppy                        */
+#define MSC_SCLASS_8070           0x05   /* Removable media               */
+#define MSC_SCLASS_SCSI           0x06   /* Transparent                   */
+
 /*!<USB Device Descriptor */
 static uint8_t gu8DeviceDescriptor[] __attribute__((aligned(4))) =
 {
@@ -81,7 +88,7 @@ static uint8_t gu8ConfigDescriptor[] __attribute__((aligned(4))) =
     0x00,           /* bAlternateSetting */
     0x02,           /* bNumEndpoints */
     0x08,           /* bInterfaceClass */
-    0x06,           /* bInterfaceSubClass */
+    MSC_SCLASS_8070,/* bInterfaceSubClass */
     0x50,           /* bInterfaceProtocol */
     0x00,           /* iInterface */
 
@@ -126,7 +133,7 @@ static uint8_t gu8OtherConfigDescriptorHS[] __attribute__((aligned(4))) =
     0x00,           /* bAlternateSetting */
     0x02,           /* bNumEndpoints */
     0x08,           /* bInterfaceClass */
-    0x06,           /* bInterfaceSubClass */
+    MSC_SCLASS_8070,/* bInterfaceSubClass */
     0x50,           /* bInterfaceProtocol */
     0x00,           /* iInterface */
 
@@ -170,7 +177,7 @@ static uint8_t gu8ConfigDescriptorFS[] __attribute__((aligned(4))) =
     0x00,           /* bAlternateSetting */
     0x02,           /* bNumEndpoints */
     0x08,           /* bInterfaceClass */
-    0x06,           /* bInterfaceSubClass */
+    MSC_SCLASS_8070,/* bInterfaceSubClass */
     0x50,           /* bInterfaceProtocol */
     0x00,           /* iInterface */
 
@@ -214,7 +221,7 @@ static uint8_t gu8OtherConfigDescriptorFS[] __attribute__((aligned(4))) =
     0x00,           /* bAlternateSetting */
     0x02,           /* bNumEndpoints */
     0x08,           /* bInterfaceClass */
-    0x06,           /* bInterfaceSubClass */
+    MSC_SCLASS_8070,/* bInterfaceSubClass */
     0x50,           /* bInterfaceProtocol */
     0x00,           /* iInterface */
 
