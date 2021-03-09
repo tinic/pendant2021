@@ -20,7 +20,20 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef _MAIN_H_
-#define _MAIN_H_
+#ifndef _PENDANT_H_
+#define _PENDANT_H_
 
-#endif  // #ifndef _MAIN_H_
+extern "C" void pendant_entry(void);
+
+class Pendant {
+public:
+    static Pendant &instance();
+    
+    void Run();
+
+private:
+    bool initialized = false;
+    void init();
+};
+
+#endif  // #ifndef _PENDANT_H_

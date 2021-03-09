@@ -20,7 +20,28 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef _MAIN_H_
-#define _MAIN_H_
+#include "./pendant.h"
 
-#endif  // #ifndef _MAIN_H_
+#include "M480.h"
+
+Pendant &Pendant::instance() {
+    static Pendant pendant;
+    if (!pendant.initialized) {
+        pendant.initialized = true;
+        pendant.init();
+    }
+    return pendant;
+}
+
+void Pendant::init() { 
+}
+
+void Pendant::Run() {
+    while (1) {
+        __WFI();
+    }
+}
+
+void pendant_entry(void) {
+    Pendant::instance().Run();
+}

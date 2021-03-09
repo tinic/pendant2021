@@ -156,6 +156,8 @@ __STATIC_INLINE int32_t OPA_Calibration(OPA_T *opa,
     uint32_t u32CALResult;
     int32_t i32Ret = 0L;
 
+    (void)u32ClockSel;
+
     (opa)->CALCTL = (((opa)->CALCTL) & ~(OPA_CALCTL_CALCLK0_Msk << (u32OpaNum << 1)));
     (opa)->CALCTL = (((opa)->CALCTL) & ~(OPA_CALCTL_CALRVS0_Msk << (u32OpaNum))) | (((u32RefVol) << OPA_CALCTL_CALRVS0_Pos) << (u32OpaNum));
     (opa)->CALCTL |= (OPA_CALCTL_CALTRG0_Msk << (u32OpaNum));

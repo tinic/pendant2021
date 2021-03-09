@@ -79,6 +79,10 @@ file(GLOB_RECURSE NUVOTON0_SRC ${CMAKE_SOURCE_DIR}/Library/Device/Nuvoton/GCC/*.
 file(GLOB_RECURSE NUVOTON1_SRC ${CMAKE_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/*.c)
 
 add_executable(${PROJECT_NAME}.elf 
+    ${CMAKE_SOURCE_DIR}/color.cpp
+    ${CMAKE_SOURCE_DIR}/model.cpp
+    ${CMAKE_SOURCE_DIR}/timeline.cpp
+    ${CMAKE_SOURCE_DIR}/pendant.cpp
     ${CMAKE_SOURCE_DIR}/main.c
     ${DSP0_SRC}
     ${DSP1_SRC}

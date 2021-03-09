@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Tinic Uro
+Copyright 2020 Tinic Uro
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
@@ -20,7 +20,16 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef _MAIN_H_
-#define _MAIN_H_
+#include "./model.h"
 
-#endif  // #ifndef _MAIN_H_
+Model &Model::instance() {
+    static Model model;
+    if (!model.initialized) {
+        model.initialized = true;
+        model.init();
+    }
+    return model;
+}
+
+void Model::init() {
+}
