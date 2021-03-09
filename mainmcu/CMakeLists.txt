@@ -30,7 +30,7 @@ set(CXX_FLAGS
     -fno-exceptions)
 
 set(LD_FLAGS
-    -T${CMAKE_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/GCC/gcc_arm_128k.ld
+    -T${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/GCC/gcc_arm_128k.ld
     -flto
     -mcpu=cortex-m4
     -mthumb
@@ -62,28 +62,28 @@ include_directories(Library/UsbHostLib/src_msc)
 include_directories(Library/UsbHostLib/src_uac)
 include_directories(Library/StdDriver/inc)
 
-file(GLOB_RECURSE DSP0_SRC ${CMAKE_SOURCE_DIR}/Library/CMSIS/DSP_Lib/Source/CommonTables/*.c)
-file(GLOB_RECURSE DSP1_SRC ${CMAKE_SOURCE_DIR}/Library/CMSIS/DSP_Lib/Source/SupportFunctions/*.c)
-file(GLOB_RECURSE DSP2_SRC ${CMAKE_SOURCE_DIR}/Library/CMSIS/DSP_Lib/Source/FastMathFunctions/*.c)
-file(GLOB_RECURSE DSP3_SRC ${CMAKE_SOURCE_DIR}/Library/CMSIS/DSP_Lib/Source/BasicMathFunctions/*.c)
+file(GLOB_RECURSE DSP0_SRC ${PROJECT_SOURCE_DIR}/Library/CMSIS/DSP_Lib/Source/CommonTables/*.c)
+file(GLOB_RECURSE DSP1_SRC ${PROJECT_SOURCE_DIR}/Library/CMSIS/DSP_Lib/Source/SupportFunctions/*.c)
+file(GLOB_RECURSE DSP2_SRC ${PROJECT_SOURCE_DIR}/Library/CMSIS/DSP_Lib/Source/FastMathFunctions/*.c)
+file(GLOB_RECURSE DSP3_SRC ${PROJECT_SOURCE_DIR}/Library/CMSIS/DSP_Lib/Source/BasicMathFunctions/*.c)
 
-file(GLOB_RECURSE STDDRV_SRC ${CMAKE_SOURCE_DIR}/Library/StdDriver/src/*.c)
+file(GLOB_RECURSE STDDRV_SRC ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/*.c)
 
-file(GLOB_RECURSE USB_CORE_SRC ${CMAKE_SOURCE_DIR}/Library/UsbHostLib/src_core/*.c)
-file(GLOB_RECURSE USB_CDC_SRC ${CMAKE_SOURCE_DIR}/Library/UsbHostLib/src_cdc/*.c)
-file(GLOB_RECURSE USB_MSC_SRC ${CMAKE_SOURCE_DIR}/Library/UsbHostLib/src_msc/*.c)
-file(GLOB_RECURSE USB_UAC_SRC ${CMAKE_SOURCE_DIR}/Library/UsbHostLib/src_uac/*.c)
-file(GLOB_RECURSE USB_HID_SRC ${CMAKE_SOURCE_DIR}/Library/UsbHostLib/src_hid/*.c)
+file(GLOB_RECURSE USB_CORE_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_core/*.c)
+file(GLOB_RECURSE USB_CDC_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_cdc/*.c)
+file(GLOB_RECURSE USB_MSC_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_msc/*.c)
+file(GLOB_RECURSE USB_UAC_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_uac/*.c)
+file(GLOB_RECURSE USB_HID_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_hid/*.c)
 
-file(GLOB_RECURSE NUVOTON0_SRC ${CMAKE_SOURCE_DIR}/Library/Device/Nuvoton/GCC/*.c)
-file(GLOB_RECURSE NUVOTON1_SRC ${CMAKE_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/*.c)
+file(GLOB_RECURSE NUVOTON0_SRC ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/GCC/*.c)
+file(GLOB_RECURSE NUVOTON1_SRC ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/*.c)
 
 add_executable(${PROJECT_NAME}.elf 
-    ${CMAKE_SOURCE_DIR}/color.cpp
-    ${CMAKE_SOURCE_DIR}/model.cpp
-    ${CMAKE_SOURCE_DIR}/timeline.cpp
-    ${CMAKE_SOURCE_DIR}/pendant.cpp
-    ${CMAKE_SOURCE_DIR}/main.c
+    ${PROJECT_SOURCE_DIR}/color.cpp
+    ${PROJECT_SOURCE_DIR}/model.cpp
+    ${PROJECT_SOURCE_DIR}/timeline.cpp
+    ${PROJECT_SOURCE_DIR}/pendant.cpp
+    ${PROJECT_SOURCE_DIR}/main.c
     ${DSP0_SRC}
     ${DSP1_SRC}
     ${DSP2_SRC}
@@ -97,7 +97,7 @@ add_executable(${PROJECT_NAME}.elf
 #    ${USB_HID_SRC}
     ${NUVOTON0_SRC}
     ${NUVOTON1_SRC}
-    ${CMAKE_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/GCC/startup_M480.S)
+    ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/GCC/startup_M480.S)
 
 target_compile_definitions(${PROJECT_NAME}.elf PRIVATE ${DEFINITIONS})
 target_compile_options(${PROJECT_NAME}.elf PRIVATE ${CC_FLAGS})
