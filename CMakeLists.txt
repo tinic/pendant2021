@@ -72,13 +72,8 @@ include_directories(Library/UsbHostLib/src_uac)
 include_directories(Library/StdDriver/inc)
 
 file(GLOB_RECURSE STDDRV_SRC ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/*.c)
-
 file(GLOB_RECURSE USB_CORE_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_core/*.c)
-file(GLOB_RECURSE USB_CDC_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_cdc/*.c)
-file(GLOB_RECURSE USB_MSC_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_msc/*.c)
 file(GLOB_RECURSE USB_UAC_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_uac/*.c)
-file(GLOB_RECURSE USB_HID_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_hid/*.c)
-
 file(GLOB_RECURSE NUVOTON0_SRC ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/GCC/*.c)
 file(GLOB_RECURSE NUVOTON1_SRC ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/*.c)
 
@@ -95,10 +90,7 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/main.c
     ${STDDRV_SRC}
     ${USB_CORE_SRC}
-#    ${USB_CDC_SRC}
-#    ${USB_MSC_SRC}
     ${USB_UAC_SRC}
-#    ${USB_HID_SRC}
     ${NUVOTON0_SRC}
     ${NUVOTON1_SRC}
     ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/GCC/startup_M480.S)
