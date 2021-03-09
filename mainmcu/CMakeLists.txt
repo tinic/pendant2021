@@ -2,7 +2,16 @@ cmake_minimum_required(VERSION 3.10)
 
 # M48x M480 M482 M482ZGCAE
 
-project(pendant2021-mainfirmware C CXX ASM)
+
+if(BOOTLOADER)
+    project(pendant2021-mainfirmware-bootloader C CXX ASM)
+    set(MAINCPU_DEFINITIONS BOOTLOADER)
+    set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_bootloader.ld)
+else(BOOTLOADER)
+    project(pendant2021-mainfirmware-bootloaded C CXX ASM)
+    set(MAINCPU_DEFINITIONS BOOTLOADED)
+    set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_bootloaded.ld)
+endif(BOOTLOADER)
 
 set(CC_FLAGS
     -flto
@@ -30,7 +39,7 @@ set(CXX_FLAGS
     -fno-exceptions)
 
 set(LD_FLAGS
-    -T${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/GCC/gcc_arm_128k.ld
+    -T${MAINMCU_LD_SCRIPT}
     -flto
     -mcpu=cortex-m4
     -mthumb
@@ -49,7 +58,7 @@ set(DEBUG_FLAGS
 set(RELEASE_FLAGS   
     -Os)
 
-set(DEFINITIONS ARM_MATH_CM4 __FPU_PRESENT)
+set(DEFINITIONS ARM_MATH_CM4 __FPU_PRESENT ${MAINCPU_DEFINITIONS})
 
 set(HEX_FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.hex)
 set(BIN_FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.bin)

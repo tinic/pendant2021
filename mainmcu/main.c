@@ -26,7 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern void pendant_entry(void);
 
-void SYS_Init(void)
+static void SYS_Init(void)
 {
     SYS_UnlockReg();
 
@@ -106,12 +106,10 @@ void SYS_Init(void)
     CLK_EnableModuleClock(USCI0_MODULE); 
     CLK_EnableModuleClock(USCI1_MODULE);
 
-    CLK_EnableModuleClock(TRNG_MODULE); // 12 Mhz
-
-    CLK_EnableSysTick(CLK_CLKSEL0_STCLKSEL_HIRC_DIV2, 0);
-
     CLK_EnableModuleClock(USBD_MODULE);
     CLK_SetModuleClock(USBD_MODULE, CLK_CLKSEL0_USBSEL_RC48M, CLK_CLKDIV0_USB(1));
+
+    CLK_EnableSysTick(CLK_CLKSEL0_STCLKSEL_HIRC_DIV2, 0);
 
     SystemCoreClockUpdate();
 
@@ -139,14 +137,50 @@ void SYS_Init(void)
     SYS_LockReg();
 }
 
+static void SYS_DeInit(void)
+{
+    CLK_DisableSysTick();
+    CLK_DisableModuleClock(USBD_MODULE);
+    CLK_DisableModuleClock(USCI1_MODULE);
+    CLK_DisableModuleClock(USCI0_MODULE);
+    CLK_DisableModuleClock(TRNG_MODULE);
+    CLK_DisableModuleClock(PDMA_MODULE);
+    CLK_DisableModuleClock(I2C0_MODULE);
+    CLK_DisableModuleClock(ISP_MODULE);
+    CLK_DisableModuleClock(FMCIDLE_MODULE);
+    CLK_DisableModuleClock(SPI1_MODULE);
+    CLK_DisableModuleClock(SPI0_MODULE);
+    CLK_DisableModuleClock(UART0_MODULE);
+}
+
 int main(void)
 {
+#if defined(BOOTLOADER)
+
+#define FIRMWARE_SIZE (480*1024)
+#define FIRMWARE_START (32*1024)
+#define FIRMWARE_ADDR (0x00000000)
+    SYS_Init();
+
+    SYS_DeInit();
+
+    __set_MSP(*(volatile uint32_t *)(FIRMWARE_ADDR + FIRMWARE_START));
+    void (*SysMemBootJump)(void);
+    SysMemBootJump = (void (*)(void)) (*((volatile uint32_t *)(FIRMWARE_ADDR + FIRMWARE_START + 4)));
+    SysMemBootJump();
+    while( 1 ) {}
+
+#else  // #if defined(BOOTLOADER)
+
     SYS_Init();
 
     pendant_entry();
+#endif  // #if defined(BOOTLOADER)
 
     for (;;) {
     }
+
+    SYS_DeInit();
 
     return 0;
 }
