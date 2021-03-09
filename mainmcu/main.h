@@ -23,4 +23,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
+#ifdef BOOTLOADER
+
+#define FIRMWARE_SIZE (480*1024)
+#define FIRMWARE_START (32*1024)
+#define FIRMWARE_ADDR (0x00000000)
+
+#endif  // #ifdef BOOTLOADER
+
 #endif  // #ifndef _MAIN_H_

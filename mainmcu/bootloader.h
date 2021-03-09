@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Tinic Uro
+Copyright 2020 Tinic Uro
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
@@ -20,32 +20,24 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "./pendant.h"
+#ifndef _BOOTLOADER_H_
+#define _BOOTLOADER_H_
 
-#include "M480.h"
+#ifdef BOOTLOADER
 
-#ifndef BOOTLOADER
+extern "C" void bootloader_entry(void);
 
-Pendant &Pendant::instance() {
-    static Pendant pendant;
-    if (!pendant.initialized) {
-        pendant.initialized = true;
-        pendant.init();
-    }
-    return pendant;
-}
+class Bootloader {
+public:
+    static Bootloader &instance();
+    
+    void Run();
 
-void Pendant::init() { 
-}
+private:
+    bool initialized = false;
+    void init();
+};
 
-void Pendant::Run() {
-    while (1) {
-        __WFI();
-    }
-}
+#endif  // #ifdef BOOTLOADER
 
-void pendant_entry(void) {
-    Pendant::instance().Run();
-}
-
-#endif  // #ifndef BOOTLOADER
+#endif  // #ifndef _BOOTLOADER_H_

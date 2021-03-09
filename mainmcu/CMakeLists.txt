@@ -92,6 +92,8 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/model.cpp
     ${PROJECT_SOURCE_DIR}/timeline.cpp
     ${PROJECT_SOURCE_DIR}/pendant.cpp
+    ${PROJECT_SOURCE_DIR}/bootloader.cpp
+    ${PROJECT_SOURCE_DIR}/emfat.c
     ${PROJECT_SOURCE_DIR}/main.c
     ${DSP0_SRC}
     ${DSP1_SRC}

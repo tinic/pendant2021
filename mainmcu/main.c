@@ -24,7 +24,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "M480.h"
 
+#ifdef BOOTLOADER
+extern void bootloader_entry(void);
+#else  // #ifdef BOOTLOADER
 extern void pendant_entry(void);
+#endif  // #ifdef BOOTLOADER
 
 static void SYS_Init(void)
 {
@@ -155,26 +159,26 @@ static void SYS_DeInit(void)
 
 int main(void)
 {
-#if defined(BOOTLOADER)
-
-#define FIRMWARE_SIZE (480*1024)
-#define FIRMWARE_START (32*1024)
-#define FIRMWARE_ADDR (0x00000000)
     SYS_Init();
 
-    SYS_DeInit();
+#if defined(BOOTLOADER)
 
-    __set_MSP(*(volatile uint32_t *)(FIRMWARE_ADDR + FIRMWARE_START));
-    void (*SysMemBootJump)(void);
-    SysMemBootJump = (void (*)(void)) (*((volatile uint32_t *)(FIRMWARE_ADDR + FIRMWARE_START + 4)));
-    SysMemBootJump();
-    while( 1 ) {}
+    if (PF2 != 0) {        
+        SYS_DeInit();
+
+        __set_MSP(*(volatile uint32_t *)(FIRMWARE_ADDR + FIRMWARE_START));
+        void (*SysMemBootJump)(void);
+        SysMemBootJump = (void (*)(void)) (*((volatile uint32_t *)(FIRMWARE_ADDR + FIRMWARE_START + 4)));
+        SysMemBootJump();
+        while( 1 ) {}
+    }
+
+    bootloader_entry();
 
 #else  // #if defined(BOOTLOADER)
 
-    SYS_Init();
-
     pendant_entry();
+
 #endif  // #if defined(BOOTLOADER)
 
     for (;;) {

@@ -23,6 +23,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _PENDANT_H_
 #define _PENDANT_H_
 
+#ifndef BOOTLOADER
+
 extern "C" void pendant_entry(void);
 
 class Pendant {
@@ -35,5 +37,7 @@ private:
     bool initialized = false;
     void init();
 };
+
+#endif  // #ifndef BOOTLOADER
 
 #endif  // #ifndef _PENDANT_H_
