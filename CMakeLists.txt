@@ -93,6 +93,8 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/timeline.cpp
     ${PROJECT_SOURCE_DIR}/pendant.cpp
     ${PROJECT_SOURCE_DIR}/bootloader.cpp
+    ${PROJECT_SOURCE_DIR}/descriptors.c
+    ${PROJECT_SOURCE_DIR}/msc.c
     ${PROJECT_SOURCE_DIR}/emfat.c
     ${PROJECT_SOURCE_DIR}/main.c
     ${DSP0_SRC}
@@ -104,7 +106,7 @@ add_executable(${PROJECT_NAME}.elf
     ${USB_CORE_SRC}
 #    ${USB_CDC_SRC}
 #    ${USB_MSC_SRC}
-#    ${USB_UAC_SRC}
+    ${USB_UAC_SRC}
 #    ${USB_HID_SRC}
     ${NUVOTON0_SRC}
     ${NUVOTON1_SRC}

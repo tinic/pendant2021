@@ -53,6 +53,22 @@ __attribute__((used)) int _fstat(int fildes, struct stat* st)
     return -1;
 }
 
+void delay_us(int usec)
+{
+    /*
+     *  Configure Timer0, clock source from XTL_12M. Prescale 12
+     */
+    /* TIMER0 clock from HXT */
+    CLK->CLKSEL1 = (CLK->CLKSEL1 & (~CLK_CLKSEL1_TMR0SEL_Msk)) | CLK_CLKSEL1_TMR0SEL_HXT;
+    CLK->APBCLK0 |= CLK_APBCLK0_TMR0CKEN_Msk;
+    TIMER0->CTL = 0;        /* disable timer */
+    TIMER0->INTSTS = (TIMER_INTSTS_TIF_Msk | TIMER_INTSTS_TWKF_Msk);   /* write 1 to clear for safety */
+    TIMER0->CMP = usec;
+    TIMER0->CTL = (11 << TIMER_CTL_PSC_Pos) | TIMER_ONESHOT_MODE | TIMER_CTL_CNTEN_Msk;
+
+    while (!TIMER0->INTSTS);
+}
+
 #ifdef BOOTLOADER
 extern void bootloader_entry(void);
 #else  // #ifdef BOOTLOADER
@@ -166,6 +182,13 @@ static void SYS_Init(void)
     GPIO_SetMode(PB, BIT1, GPIO_MODE_OUTPUT);
     // OLED_RESET
     GPIO_SetMode(PB, BIT9, GPIO_MODE_OUTPUT);
+
+    /* select HSUSBD */
+    SYS->USBPHY &= ~SYS_USBPHY_HSUSBROLE_Msk;    
+    /* Enable USB PHY */
+    SYS->USBPHY = (SYS->USBPHY & ~(SYS_USBPHY_HSUSBROLE_Msk | SYS_USBPHY_HSUSBACT_Msk)) | SYS_USBPHY_HSUSBEN_Msk;
+    delay_us(20);
+    SYS->USBPHY |= SYS_USBPHY_HSUSBACT_Msk;
 
     SYS_LockReg();
 }
