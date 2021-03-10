@@ -42,7 +42,7 @@ private:
     static constexpr size_t bytesPerColor = ( 48 * bitsPerComponent ) / 8;
 
     std::array<std::array<uint8_t, circleLedsN * bytesPerColor>, 2> circleLedsDMABuf;
-    std::array<uint8_t, birdLedsN * bytesPerColor * 2> birdsLedsDMABuf;
+    std::array<std::array<uint8_t, birdLedsN * bytesPerColor>, 2> birdsLedsDMABuf;
 
     void transfer();
     void prepare();
