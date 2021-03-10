@@ -76,6 +76,7 @@ file(GLOB_RECURSE NUVOTON0_SRC ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/GCC/
 file(GLOB_RECURSE NUVOTON1_SRC ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/*.c)
 
 add_executable(${PROJECT_NAME}.elf 
+    ${PROJECT_SOURCE_DIR}/i2cmanager.cpp
     ${PROJECT_SOURCE_DIR}/leds.cpp
     ${PROJECT_SOURCE_DIR}/color.cpp
     ${PROJECT_SOURCE_DIR}/model.cpp
