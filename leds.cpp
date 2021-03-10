@@ -72,6 +72,7 @@ void Leds::init() {
 }
 
 void Leds::prepare() {
+    static color::convert converter;
 
     auto convert_to_one_wire = [] (uint8_t *p, uint16_t v) {
         for (uint32_t c = 0; c < 16; c++) {
@@ -83,8 +84,6 @@ void Leds::prepare() {
         }
         return p;
     };
-
-    static color::convert converter;
 
     uint8_t *ptr0 = circleLedsDMABuf[0].data();
     uint8_t *ptr1 = circleLedsDMABuf[1].data();
@@ -100,18 +99,33 @@ void Leds::prepare() {
         ptr1 = convert_to_one_wire(ptr1, pixel1.b);
     }
 
-    uint8_t *ptr2 = birdsLedsDMABuf.data();
+    auto convert_two_to_one_wire = [] (uint16_t *p, uint16_t v0, uint16_t v1) {
+        for (uint32_t c = 0; c < 16; c++) {
+            uint16_t b0 = 0;
+            if ( ((1<<(15-c)) & v0) != 0 ) {
+                b0 = 0b0101010101000000;
+            } else {
+                b0 = 0b0100000000000000;
+            }
+            uint16_t b1 = 0;
+            if ( ((1<<(15-c)) & v1) != 0 ) {
+                b1 = 0b1010101010000000;
+            } else {
+                b1 = 0b1000000000000000;
+            }
+            *p++ = b0 | b1;
+        }
+        return p;
+    };
+
+    uint16_t *ptr2 = reinterpret_cast<uint16_t *>(birdsLedsDMABuf.data());
     for (size_t c = 0; c < birdLedsN; c++) {
         color::rgba<uint16_t> pixel2(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[0][c])).fix_for_ws2816());
         color::rgba<uint16_t> pixel3(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[1][c])).fix_for_ws2816());
 
-        // TODO interleave bits
-        ptr2 = convert_to_one_wire(ptr2, pixel2.g);
-        ptr2 = convert_to_one_wire(ptr2, pixel2.r);
-        ptr2 = convert_to_one_wire(ptr2, pixel2.b);
-        ptr2 = convert_to_one_wire(ptr2, pixel3.g);
-        ptr2 = convert_to_one_wire(ptr2, pixel3.r);
-        ptr2 = convert_to_one_wire(ptr2, pixel3.b);
+        ptr2 = convert_two_to_one_wire(ptr2, pixel2.g, pixel3.g);
+        ptr2 = convert_two_to_one_wire(ptr2, pixel2.r, pixel3.r);
+        ptr2 = convert_two_to_one_wire(ptr2, pixel2.b, pixel3.b);
     }
 }
 
