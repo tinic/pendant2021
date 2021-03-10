@@ -71,20 +71,6 @@ include_directories(Library/UsbHostLib/src_msc)
 include_directories(Library/UsbHostLib/src_uac)
 include_directories(Library/StdDriver/inc)
 
-file(GLOB_RECURSE STDDRV_SRC 
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/clk.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/fmc.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/gpio.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/i2c.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/pdma.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/retarget.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/rtc.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/spi.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/sys.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/timer.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/uart.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/usci_spi.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/hsusbd.c)
 file(GLOB_RECURSE USB_CORE_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_core/*.c)
 file(GLOB_RECURSE NUVOTON0_SRC ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/GCC/*.c)
 file(GLOB_RECURSE NUVOTON1_SRC ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/*.c)
@@ -100,7 +86,19 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/msc.c
     ${PROJECT_SOURCE_DIR}/emfat.c
     ${PROJECT_SOURCE_DIR}/main.c
-    ${STDDRV_SRC}
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/clk.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/fmc.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/gpio.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/i2c.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/pdma.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/retarget.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/rtc.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/spi.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/sys.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/timer.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/uart.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/usci_spi.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/hsusbd.c
     ${USB_CORE_SRC}
     ${NUVOTON0_SRC}
     ${NUVOTON1_SRC}
