@@ -25,6 +25,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "./color.h"
 
+#include <numbers>
+#include <cmath>
+
 class Leds {
 public:
     static constexpr size_t circleLedsN = 32;
@@ -33,6 +36,38 @@ public:
     static Leds &instance();
 
     void apply() { transfer(); }
+
+    static struct Map {
+        
+        consteval Map() : map() {
+            float i = - float(std::numbers::pi) * 0.5f;
+            float j = 0;
+            for (size_t c = 0; c < circleLedsN; c++) {
+                map[c].x =  cosf(i);
+                map[c].y = -sinf(i);
+                map[c].z = j;
+                map[c].w = i;
+                i += 2.0f * float(std::numbers::pi) / float(circleLedsN);
+                j += 1.0f / float(circleLedsN);
+            }
+            map[circleLedsN + 0] = vector::float4(  0.0f,  12.0f, 0.0f, 0.0f ) * (1.0f / 25.0f);
+            map[circleLedsN + 1] = vector::float4(-11.0f,   5.0f, 0.0f, 0.0f ) * (1.0f / 25.0f);
+            map[circleLedsN + 2] = vector::float4( -7.0f,   0.0f, 0.0f, 0.0f ) * (1.0f / 25.0f);
+            map[circleLedsN + 3] = vector::float4(  0.0f,   0.0f, 0.0f, 0.0f ) * (1.0f / 25.0f);
+            map[circleLedsN + 4] = vector::float4(  7.0f,   0.0f, 0.0f, 0.0f ) * (1.0f / 25.0f);
+            map[circleLedsN + 5] = vector::float4( 11.0f,   5.0f, 0.0f, 0.0f ) * (1.0f / 25.0f);
+            map[circleLedsN + 6] = vector::float4(  0.0f,  -8.0f, 0.0f, 0.0f ) * (1.0f / 25.0f);
+            map[circleLedsN + 7] = vector::float4(  0.0f,- 16.0f, 0.0f, 0.0f ) * (1.0f / 25.0f);
+        }
+
+        vector::float4 get(size_t index) const {
+            index %= circleLedsN + birdLedsN;
+            return map[index];
+        }
+
+    private:
+        vector::float4 map[circleLedsN + birdLedsN];
+    } map;
 
 private:
     std::array<std::array<vector::float4, circleLedsN>, 2> circleLeds;
