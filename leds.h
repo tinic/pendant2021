@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Tinic Uro
+Copyright 2020 Tinic Uro
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
@@ -20,47 +20,35 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "./pendant.h"
+#ifndef LEDS_H_
+#define LEDS_H_
+
 #include "./color.h"
-#include "./leds.h"
 
-#include "M480.h"
+class Leds {
+public:
+    static constexpr size_t circleLedsN = 32;
+    static constexpr size_t birdLedsN = 8;
 
-#ifndef BOOTLOADER
+    static Leds &instance();
 
-static constexpr vector::float4 gradient_rainbow_data[] = {
-    color::srgb8_stop({0xff,0x00,0x00}, 0.00f),
-    color::srgb8_stop({0xff,0xff,0x00}, 0.16f),
-    color::srgb8_stop({0x00,0xff,0x00}, 0.33f),
-    color::srgb8_stop({0x00,0xff,0xff}, 0.50f),
-    color::srgb8_stop({0x00,0x00,0xff}, 0.66f),
-    color::srgb8_stop({0xff,0x00,0xff}, 0.83f),
-    color::srgb8_stop({0xff,0x00,0x00}, 1.00f)};
-static constexpr color::gradient gradient_rainbow(gradient_rainbow_data,7);
+    void apply() { transfer(); }
 
-Pendant &Pendant::instance() {
-    
-    static Pendant pendant;
-    if (!pendant.initialized) {
-        pendant.initialized = true;
-        pendant.init();
-    }
-    return pendant;
-}
+private:
+    std::array<std::array<vector::float4, circleLedsN>, 2> circleLeds;
+    std::array<std::array<vector::float4, birdLedsN>, 2> birdLeds;
 
-void Pendant::init() { 
-    Leds::instance();
-}
+    static constexpr size_t bitsPerComponent = 8;
+    static constexpr size_t bytesPerColor = ( 48 * bitsPerComponent ) / 8;
 
-void Pendant::Run() {
-    while (1) {
-        Leds::instance().apply();
-        __WFI();
-    }
-}
+    std::array<std::array<uint8_t, circleLedsN * bytesPerColor>, 2> circleLedsDMABuf;
+    std::array<uint8_t, birdLedsN * bytesPerColor * 2> birdsLedsDMABuf;
 
-void pendant_entry(void) {
-    Pendant::instance().Run();
-}
+    void transfer();
+    void prepare();
 
-#endif  // #ifndef BOOTLOADER
+    void init();
+    bool initialized = false;
+};
+
+#endif /* LEDS_H_ */
