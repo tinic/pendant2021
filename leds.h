@@ -30,8 +30,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Leds {
 public:
+    static constexpr size_t sidesN = 2;
     static constexpr size_t circleLedsN = 32;
     static constexpr size_t birdLedsN = 8;
+    static constexpr size_t ledsN = ( circleLedsN + birdLedsN ) * sidesN;
 
     static Leds &instance();
 
@@ -58,6 +60,9 @@ public:
             map[circleLedsN + 5] = vector::float4( 11.0f,   5.0f, 0.0f, 0.0f ) * (1.0f / 25.0f);
             map[circleLedsN + 6] = vector::float4(  0.0f,  -8.0f, 0.0f, 0.0f ) * (1.0f / 25.0f);
             map[circleLedsN + 7] = vector::float4(  0.0f,- 16.0f, 0.0f, 0.0f ) * (1.0f / 25.0f);
+            for (size_t c = circleLedsN; c < (circleLedsN + birdLedsN); c++) {
+                map[c].w = sqrtf(map[c].x * map[c].x + map[c].y * map[c].y);
+            }
         }
 
         vector::float4 get(size_t index) const {
@@ -65,19 +70,84 @@ public:
             return map[index];
         }
 
+        vector::float4 getCircle(size_t index) const {
+            index %= circleLedsN;
+            return map[index];
+        }
+
+        vector::float4 getBird(size_t index) const {
+            index %= birdLedsN;
+            return map[circleLedsN + index];
+        }
+
     private:
         vector::float4 map[circleLedsN + birdLedsN];
     } map;
 
+    void black() {
+        for (size_t c = 0; c < ledsN; c++) {
+            set(c, color::srgb8({0x00,0x00,0x00}, 1.0f));
+        }
+    }
+
+    void white() {
+        for (size_t c = 0; c < ledsN; c++) {
+            set(c, color::srgb8({0xFF,0xFF,0xFF}, 1.0f));
+        }
+    }
+
+    void half() {
+        for (size_t c = 0; c < ledsN; c++) {
+            set(c, color::srgb8({0x7F,0x7F,0x7F}, 1.0f));
+        }
+    }
+
+    void set(size_t index, const vector::float4 &c) {
+        get(index) = c;
+    }
+
+    vector::float4 &get(size_t index) {
+        index %= 2 * ( circleLedsN + birdLedsN );
+        if (index >= 2 * circleLedsN + birdLedsN) {
+            return birdLeds[1][index - (2 * circleLedsN + birdLedsN)];
+        } else if (index >= 2 * circleLedsN) {
+            return birdLeds[0][index - (2 * circleLedsN)];
+        } else if (index >= circleLedsN) {
+            return circleLeds[1][index - circleLedsN];
+        } else {
+            return circleLeds[0][index];
+        }
+    }
+
+    void setCircle(size_t side, size_t index, const vector::float4 &c) {
+        getCircle(side, index) = c;
+    }
+
+    vector::float4 &getCircle(size_t side, size_t index) {
+        side %= sidesN;
+        index %= circleLedsN;
+        return circleLeds[side][index];
+    }
+
+    void setBird(size_t side, size_t index, const vector::float4 &c) {
+        getBird(side, index) = c;
+    }
+
+    vector::float4 &getBird(size_t side, size_t index) {
+        side %= sidesN;
+        index %= birdLedsN;
+        return birdLeds[side][index];
+    }
+
 private:
-    std::array<std::array<vector::float4, circleLedsN>, 2> circleLeds;
-    std::array<std::array<vector::float4, birdLedsN>, 2> birdLeds;
+    std::array<std::array<vector::float4, circleLedsN>, sidesN> circleLeds;
+    std::array<std::array<vector::float4, birdLedsN>, sidesN> birdLeds;
 
-    static constexpr size_t bitsPerComponent = 8;
-    static constexpr size_t bytesPerColor = ( 48 * bitsPerComponent ) / 8;
+    static constexpr size_t bitsPerComponent = 16;
+    static constexpr size_t bytesPerColor = bitsPerComponent * 3;
 
-    std::array<std::array<uint8_t, circleLedsN * bytesPerColor>, 2> circleLedsDMABuf;
-    std::array<std::array<uint8_t, birdLedsN * bytesPerColor>, 2> birdsLedsDMABuf;
+    std::array<std::array<uint8_t, circleLedsN * bytesPerColor>, sidesN> circleLedsDMABuf;
+    std::array<std::array<uint8_t, birdLedsN * bytesPerColor>, sidesN> birdsLedsDMABuf;
 
     void transfer();
     void prepare();

@@ -200,6 +200,10 @@ namespace color {
         float sRGB2lRGB[256];
     };
 
+    consteval vector::float4 srgb8(const rgba<uint8_t> &color, float alpha = 1.0f) {
+        return vector::float4(convert().sRGB2CIELUV(color), alpha);
+    }
+
     consteval vector::float4 srgb8_stop(const rgba<uint8_t> &color, float stop) {
         return vector::float4(convert().sRGB2CIELUV(color), stop);
     }

@@ -40,6 +40,8 @@ Leds &Leds::instance() {
 }
 
 void Leds::init() {
+    black();
+
     SPI_Open(SPI0, SPI_MASTER, SPI_MODE_0, 32, 12000000);
     SPI_Open(SPI1, SPI_MASTER, SPI_MODE_0, 32, 12000000);
     USPI_Open(USPI0, USPI_MASTER, USPI_MODE_0, 16, 12000000);
@@ -106,7 +108,7 @@ void Leds::prepare() {
 
     uint8_t *ptr2 = birdsLedsDMABuf[0].data();
     uint8_t *ptr3 = birdsLedsDMABuf[1].data();
-    for (size_t c = 0; c < circleLedsN; c++) {
+    for (size_t c = 0; c < birdLedsN; c++) {
         color::rgba<uint16_t> pixel0(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[0][c])).fix_for_ws2816());
         color::rgba<uint16_t> pixel1(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[1][c])).fix_for_ws2816());
 
