@@ -39,9 +39,6 @@ Leds &Leds::instance() {
     return leds;
 }
 
-#define TEST_COUNT 256
-uint8_t test_data[256];
-
 void Leds::init() {
     SPI_Open(SPI0, SPI_MASTER, SPI_MODE_0, 32, 12000000);
     SPI_Open(SPI1, SPI_MASTER, SPI_MODE_0, 32, 12000000);
@@ -52,22 +49,22 @@ void Leds::init() {
         (1UL << SPI1_MASTER_TX_DMA_CH)||
         (1UL << USPI0_MASTER_TX_DMA_CH));
 
-    PDMA_SetTransferCnt(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[0].size());
-    PDMA_SetTransferAddr(PDMA,SPI0_MASTER_TX_DMA_CH, (uint32_t)circleLedsDMABuf[0].data(), PDMA_SAR_INC, (uint32_t)&SPI0->TX, PDMA_DAR_FIX);
-    PDMA_SetTransferMode(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_QSPI0_TX, FALSE, 0);
-    PDMA_SetBurstType(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
+    PDMA_SetTransferCnt(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[0].size());
+    PDMA_SetTransferAddr(PDMA, SPI0_MASTER_TX_DMA_CH, (uint32_t)circleLedsDMABuf[0].data(), PDMA_SAR_INC, (uint32_t)&SPI0->TX, PDMA_DAR_FIX);
+    PDMA_SetTransferMode(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_SPI0_TX, FALSE, 0);
+    PDMA_SetBurstType(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
     PDMA->DSCT[SPI0_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
 
-    PDMA_SetTransferCnt(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[1].size());
-    PDMA_SetTransferAddr(PDMA,SPI1_MASTER_TX_DMA_CH, (uint32_t)circleLedsDMABuf[1].data(), PDMA_SAR_INC, (uint32_t)&SPI1->TX, PDMA_DAR_FIX);
-    PDMA_SetTransferMode(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_QSPI1_TX, FALSE, 0);
-    PDMA_SetBurstType(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
+    PDMA_SetTransferCnt(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[1].size());
+    PDMA_SetTransferAddr(PDMA, SPI1_MASTER_TX_DMA_CH, (uint32_t)circleLedsDMABuf[1].data(), PDMA_SAR_INC, (uint32_t)&SPI1->TX, PDMA_DAR_FIX);
+    PDMA_SetTransferMode(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_SPI1_TX, FALSE, 0);
+    PDMA_SetBurstType(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
     PDMA->DSCT[SPI1_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
 
-    PDMA_SetTransferCnt(PDMA,USPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_16, birdsLedsDMABuf.size());    
-    PDMA_SetTransferAddr(PDMA,USPI0_MASTER_TX_DMA_CH, (uint32_t)birdsLedsDMABuf.data(), PDMA_SAR_INC, (uint32_t)&USPI0->TXDAT, PDMA_DAR_FIX);
-    PDMA_SetTransferMode(PDMA,USPI0_MASTER_TX_DMA_CH, PDMA_USCI0_TX, FALSE, 0);    
-    PDMA_SetBurstType(PDMA,USPI0_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);   
+    PDMA_SetTransferCnt(PDMA, USPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_16, birdsLedsDMABuf.size());    
+    PDMA_SetTransferAddr(PDMA, USPI0_MASTER_TX_DMA_CH, (uint32_t)birdsLedsDMABuf.data(), PDMA_SAR_INC, (uint32_t)&USPI0->TXDAT, PDMA_DAR_FIX);
+    PDMA_SetTransferMode(PDMA, USPI0_MASTER_TX_DMA_CH, PDMA_USCI0_TX, FALSE, 0);    
+    PDMA_SetBurstType(PDMA, USPI0_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);   
     PDMA->DSCT[USPI0_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
 }
 
@@ -133,15 +130,15 @@ void Leds::transfer() {
 
     prepare();
 
-    PDMA_SetTransferCnt(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[0].size());
+    PDMA_SetTransferCnt(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[0].size() / sizeof(uint32_t));
     PDMA_SetTransferMode(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_SPI0_TX, FALSE, 0);
     SPI_TRIGGER_TX_PDMA(SPI0);
 
-    PDMA_SetTransferCnt(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[1].size());
+    PDMA_SetTransferCnt(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[1].size() / sizeof(uint32_t));
     PDMA_SetTransferMode(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_SPI1_TX, FALSE, 0);
     SPI_TRIGGER_TX_PDMA(SPI1);
 
-    PDMA_SetTransferCnt(PDMA,USPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_16, birdsLedsDMABuf.size());    
+    PDMA_SetTransferCnt(PDMA,USPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_16, birdsLedsDMABuf.size() / sizeof(uint16_t));    
     PDMA_SetTransferMode(PDMA,USPI0_MASTER_TX_DMA_CH, PDMA_USCI0_TX, FALSE, 0);    
     USPI_TRIGGER_RX_PDMA(USPI0);
 
