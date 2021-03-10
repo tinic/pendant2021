@@ -23,6 +23,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./bootloader.h"
 #include "./emfat.h"
 #include "./main.h"
+#include "./leds.h"
+#include "./i2cmanager.h"
 
 #include "M480.h"
 
@@ -42,6 +44,8 @@ Bootloader &Bootloader::instance() {
 }
 
 void Bootloader::init() {
+    Leds::instance();
+    I2CManager::instance();
 }
 
 void Bootloader::Run() {

@@ -23,6 +23,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./pendant.h"
 #include "./color.h"
 #include "./leds.h"
+#include "./i2cmanager.h"
 
 #include "M480.h"
 
@@ -50,6 +51,7 @@ Pendant &Pendant::instance() {
 
 void Pendant::init() { 
     Leds::instance();
+    I2CManager::instance();
 }
 
 void Pendant::Run() {

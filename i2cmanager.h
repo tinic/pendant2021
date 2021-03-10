@@ -30,6 +30,8 @@ public:
     static I2CManager &instance();
 
 private:
+    bool deviceReady(uint8_t u8SlaveAddr);
+    void probe();
     void init();
     bool initialized = false;
 };
