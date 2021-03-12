@@ -25,6 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <cstdint>
 #include <functional>
+#include <tuple>
 
 class Quad {
 public:
@@ -56,6 +57,10 @@ public:
         double time = 0.0;
         double duration = 0.0;
 
+        double attack = 0.0;
+        double decay = 0.0;
+        double release = 0.0;
+
         std::function<void (Span &span)> startFunc;
         std::function<void (Span &span, Span &below)> calcFunc;
         std::function<void (Span &span)> commitFunc;
@@ -76,8 +81,10 @@ public:
 
         bool Valid() const { return type != None; }
 
-        bool InBeginPeriod(float &interpolation, float period_length = 0.25f);
-        bool InEndPeriod(float &interpolation, float period_length = 0.25f);
+        std::tuple<bool, float> InAttackPeriod() const;
+        std::tuple<bool, float> InDecayPeriod() const;
+        std::tuple<bool, float> InSustainPeriod() const;
+        std::tuple<bool, float> InReleasePeriod() const;
 
     private:
 
