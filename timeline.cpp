@@ -128,7 +128,7 @@ void Timeline::Remove(Timeline::Span &span) {
 void Timeline::Process(Span::Type type) {
     static std::array<Span *, 64> collected;
     size_t collected_num = 0;
-    double time = Model::instance().Time();
+    double time = SystemTime();
     Span *p = 0;
     for (Span *i = head; i ; i = i->next) {
         if (i->type == type) {
@@ -155,7 +155,7 @@ void Timeline::Process(Span::Type type) {
 
 Timeline::Span &Timeline::Top(Span::Type type) const {
     static Timeline::Span empty;
-    double time = Model::instance().Time();
+    double time = SystemTime();
     for (Span *i = head; i ; i = i->next) {
         if ((i->type == type) &&
             (i->time <= time) &&
@@ -168,7 +168,7 @@ Timeline::Span &Timeline::Top(Span::Type type) const {
 
 Timeline::Span &Timeline::Below(Span *context, Span::Type type) const {
     static Timeline::Span empty;
-    double time = Model::instance().Time();
+    double time = SystemTime();
     for (Span *i = head; i ; i = i->next) {
         if (i == context) {
             continue;
@@ -183,7 +183,7 @@ Timeline::Span &Timeline::Below(Span *context, Span::Type type) const {
 }
 
 bool Timeline::Span::InBeginPeriod(float &interpolation, float period_length) {
-    double now = Model::instance().Time();
+    double now = Timeline::instance().SystemTime();
     if ( (now - time) < static_cast<double>(period_length)) {
         interpolation = static_cast<float>((now - time) * (1.0 / static_cast<double>(period_length)));
         return true;
@@ -192,7 +192,7 @@ bool Timeline::Span::InBeginPeriod(float &interpolation, float period_length) {
 }
 
 bool Timeline::Span::InEndPeriod(float &interpolation, float period_length) {
-    double now = Model::instance().Time();
+    double now = Timeline::instance().SystemTime();
     if ( ((time + duration) - now) < static_cast<double>(period_length)) {
         interpolation = 1.0f - static_cast<float>(((time + duration) - now) * (1.0 / static_cast<double>(period_length)));
         return true;
