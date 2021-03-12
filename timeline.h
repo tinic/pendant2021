@@ -88,6 +88,8 @@ public:
 
     static Timeline &instance();
 
+    double SystemTime() const;
+
     void Add(Timeline::Span &span);
     void Remove(Timeline::Span &span);
     bool Scheduled(Timeline::Span &span);

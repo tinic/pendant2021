@@ -28,6 +28,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <limits>
 #include <array>
 
+
+
+extern "C" {
+static uint32_t systemSeconds = 0;
+
+void TMR0_IRQHandler(void)
+{
+    systemSeconds++;
+    TIMER_ClearIntFlag(TIMER0);
+}
+}
+
 float Quad::easeIn (float t,float b , float c, float d) {
     t /= d;
     return c*t*t+b;
@@ -208,19 +220,13 @@ Timeline::Span &Timeline::TopDisplay() const
     return Top(Span::Display);
 }
 
+double Timeline::SystemTime() const {
+    return double(uint64_t(systemSeconds) * uint64_t(10000) + uint64_t(TIMER0->CNT)) / 10000.0;
+}
+
 void Timeline::init() {
-
-    S_RTC_TIME_DATA_T sWriteRTC { };
-    sWriteRTC.u32Year       = 2021;
-    sWriteRTC.u32Month      = 1;
-    sWriteRTC.u32Day        = 1;
-    sWriteRTC.u32DayOfWeek  = 1;
-    sWriteRTC.u32Hour       = 0;
-    sWriteRTC.u32Minute     = 0;
-    sWriteRTC.u32Second     = 0;
-    sWriteRTC.u32TimeScale  = 1;
-
-    RTC_Open(&sWriteRTC);
-
-    RTC_32KCalibration(10000);
+    TIMER_Open(TIMER3, TIMER_PERIODIC_MODE, 10000);
+    TIMER_EnableInt(TIMER3);
+    NVIC_EnableIRQ(TMR3_IRQn);
+    TIMER_Start(TIMER3);
 }

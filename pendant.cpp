@@ -24,6 +24,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./color.h"
 #include "./leds.h"
 #include "./i2cmanager.h"
+#include "./timeline.h"
 
 #include "M480.h"
 
@@ -52,9 +53,11 @@ Pendant &Pendant::instance() {
 void Pendant::init() { 
     Leds::instance();
     I2CManager::instance();
+    Timeline::instance();
 }
 
 void Pendant::Run() {
+    printf("%f\n",Timeline::instance().SystemTime());
     while (1) {
         Leds::instance().apply();
         __WFI();
