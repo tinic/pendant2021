@@ -28,8 +28,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <limits>
 #include <array>
 
-
-
 extern "C" {
 static uint32_t systemSeconds = 0;
 

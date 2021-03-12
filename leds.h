@@ -144,10 +144,10 @@ private:
     std::array<std::array<vector::float4, birdLedsN>, sidesN> birdLeds;
 
     static constexpr size_t bitsPerComponent = 16;
-    static constexpr size_t bytesPerColor = bitsPerComponent * 3;
+    static constexpr size_t bitsPerLed = bitsPerComponent * 3;
 
-    std::array<std::array<uint8_t, circleLedsN * bytesPerColor>, sidesN> circleLedsDMABuf;
-    std::array<std::array<uint8_t, birdLedsN * bytesPerColor>, sidesN> birdsLedsDMABuf;
+    std::array<std::array<uint8_t, circleLedsN * bitsPerLed>, sidesN> circleLedsDMABuf;
+    std::array<std::array<uint8_t, birdLedsN * bitsPerLed>, sidesN> birdsLedsDMABuf;
 
     void transfer();
     void prepare();
