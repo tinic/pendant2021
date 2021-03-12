@@ -23,6 +23,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./timeline.h"
 #include "./model.h"
 
+#include "M480.h"
+
 #include <limits>
 #include <array>
 
@@ -207,4 +209,18 @@ Timeline::Span &Timeline::TopDisplay() const
 }
 
 void Timeline::init() {
+
+    S_RTC_TIME_DATA_T sWriteRTC { };
+    sWriteRTC.u32Year       = 2021;
+    sWriteRTC.u32Month      = 1;
+    sWriteRTC.u32Day        = 1;
+    sWriteRTC.u32DayOfWeek  = 1;
+    sWriteRTC.u32Hour       = 0;
+    sWriteRTC.u32Minute     = 0;
+    sWriteRTC.u32Second     = 0;
+    sWriteRTC.u32TimeScale  = 1;
+
+    RTC_Open(&sWriteRTC);
+
+    RTC_32KCalibration(10000);
 }

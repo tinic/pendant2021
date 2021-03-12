@@ -94,6 +94,9 @@ static void SYS_Init(void)
     SYS->GPB_MFPL |= (SYS_GPB_MFPL_PB3MFP_USCI1_DAT1 | SYS_GPB_MFPL_PB2MFP_USCI1_DAT0);
 
     // Init clocks
+    CLK_EnableXtalRC(CLK_PWRCTL_LIRCEN_Msk);
+    CLK_WaitClockReady(CLK_STATUS_LIRCSTB_Msk);
+
     CLK_EnableXtalRC(CLK_PWRCTL_HIRCEN_Msk);
     CLK_WaitClockReady(CLK_STATUS_HIRCSTB_Msk);
 
@@ -105,6 +108,9 @@ static void SYS_Init(void)
     CLK_SetCoreClock(96000000UL);
 
     CLK->PCLKDIV = CLK_PCLKDIV_APB0DIV_DIV8 | CLK_PCLKDIV_APB1DIV_DIV8;
+
+    CLK_EnableModuleClock(RTC_MODULE);
+    CLK_SetModuleClock(RTC_MODULE, CLK_CLKSEL3_RTCSEL_LIRC, MODULE_NoMsk); // 10Khz
 
     CLK_EnableModuleClock(UART0_MODULE);
     CLK_SetModuleClock(UART0_MODULE, CLK_CLKSEL1_UART0SEL_HIRC, CLK_CLKDIV0_UART0(1)); // 12Mhz
