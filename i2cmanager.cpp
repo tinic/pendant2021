@@ -101,8 +101,5 @@ void I2CManager::probe() {
 void I2CManager::init() {
     I2C_Open(I2C0, 100000);
 
-    //I2C_EnableInt(I2C0);
-    //NVIC_EnableIRQ(I2C0_IRQn);
-
     probe();
 }

@@ -40,7 +40,7 @@ Leds &Leds::instance() {
 }
 
 void Leds::init() {
-    black();
+    half();
 
     SPI_Open(SPI0, SPI_MASTER, SPI_MODE_0, 32, 12000000);
     SPI_Open(SPI1, SPI_MASTER, SPI_MODE_0, 32, 12000000);

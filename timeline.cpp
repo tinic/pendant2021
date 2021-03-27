@@ -33,8 +33,8 @@ static uint32_t systemSeconds = 0;
 
 void TMR3_IRQHandler(void)
 {
-    systemSeconds++;
     TIMER_ClearIntFlag(TIMER3);
+    systemSeconds++;
 }
 }
 
@@ -241,11 +241,11 @@ Timeline::Span &Timeline::TopDisplay() const
 }
 
 double Timeline::SystemTime() const {
-    return double(uint64_t(systemSeconds) * uint64_t(10000) + uint64_t(TIMER0->CNT)) / 10000.0;
+    return double(uint64_t(systemSeconds) * uint64_t(TIMER3->CMP) + uint64_t(TIMER3->CNT)) / double(TIMER3->CMP);
 }
 
 void Timeline::init() {
-    TIMER_Open(TIMER3, TIMER_PERIODIC_MODE, 10000);
+    TIMER_Open(TIMER3, TIMER_PERIODIC_MODE, 1);
     TIMER_EnableInt(TIMER3);
     NVIC_EnableIRQ(TMR3_IRQn);
     TIMER_Start(TIMER3);

@@ -58,9 +58,15 @@ void Pendant::init() {
 
 void Pendant::Run() {
     while (1) {
-        //printf("%f\r",Timeline::instance().SystemTime());
+        static double oldtime = 0;
+        double newtime = Timeline::instance().SystemTime();
+        if ((newtime - oldtime) > 0.1) {
+            printf("%f\r",float(newtime));
+            fflush(stdout);
+            oldtime = newtime;
+        }
         Leds::instance().apply();
-        __WFI();
+        // __WFI();
     }
 }
 
