@@ -55,27 +55,30 @@ bool I2CManager::deviceReady(uint8_t u8SlaveAddr) {
     {
         I2C_WAIT_READY(I2C0) {}
 
-        switch(I2C_GET_STATUS(I2C0)) {
+        uint32_t status = I2C_GET_STATUS(I2C0);
+        switch(status) {
         case 0x08u:
             I2C_SET_DATA(I2C0, (uint8_t)((u8SlaveAddr << 1u) | 0x01u)); /* Write SLA+R to Register I2CDAT */
             ctrl = I2C_CTL_SI;                                          /* Clear SI */
             break;
         case 0x40u:                                                     /* Slave Address ACK */
-            ctrl = I2C_CTL_STO_SI;                                      /* Clear SI and send STOP */
-            done = true;
+            ctrl = I2C_CTL_SI;                                          /* Clear SI */
+            break;
+        case 0x58u:                                                     /* Receive Data */
+            ctrl = I2C_CTL_STO_SI;                                      /* Clear SI and STOP */
             error = false;
+            done = true;
             break;
         default:                                                        /* Unknow status */
-            I2C_SET_CONTROL_REG(I2C0, I2C_CTL_STO_SI);                  /* Clear SI and send STOP */
-            ctrl = I2C_CTL_SI;
+            ctrl = I2C_CTL_STO_SI;                                      /* Clear SI and STOP */
             done = true;
             break;
         }
 
-        I2C_SET_CONTROL_REG(I2C0, ctrl);                              /* Write controlbit to I2C_CTL register */
+        I2C_SET_CONTROL_REG(I2C0, ctrl);                                /* Write controlbit to I2C_CTL register */
     }
 
-    return error;
+    return !error;
 }
 
 I2CManager &I2CManager::instance() {
@@ -98,8 +101,8 @@ void I2CManager::probe() {
 void I2CManager::init() {
     I2C_Open(I2C0, 100000);
 
-    I2C_EnableInt(I2C0);
-    NVIC_EnableIRQ(I2C0_IRQn);
+    //I2C_EnableInt(I2C0);
+    //NVIC_EnableIRQ(I2C0_IRQn);
 
-    //probe();
+    probe();
 }
