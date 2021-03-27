@@ -3,18 +3,21 @@ cmake_minimum_required(VERSION 3.10)
 # M48x M480 M482 M482ZGCAE
 
 if(BOOTLOADER)
+    set(BASE_ADDRESS 0x00000000)
     project(pendant2021-mainfirmware-bootloader C CXX ASM)
     set(MAINCPU_DEFINITIONS BOOTLOADER)
     set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_bootloader.ld)
 endif(BOOTLOADER)
     
 if(BOOTLOADED)
+    set(BASE_ADDRESS 0x00008000)
     project(pendant2021-mainfirmware-bootloaded C CXX ASM)
     set(MAINCPU_DEFINITIONS BOOTLOADED)
     set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_bootloaded.ld)
 endif(BOOTLOADED)
 
 if(VSCODE)
+    set(BASE_ADDRESS 0x00000000)
     project(pendant2021-mainfirmware-vscode C CXX ASM)
     set(MAINCPU_DEFINITIONS BOOTLOADED)
     set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_vscode.ld)
@@ -136,3 +139,6 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
     COMMAND ${CMAKE_OBJCOPY} -O ihex -R .eeprom -R .fuse -R .lock -R .signature $<TARGET_FILE:${PROJECT_NAME}.elf> ${HEX_FILE}
     COMMAND ${CMAKE_SIZE} ${PROJECT_NAME}.elf
     COMMENT "Building ${HEX_FILE} \nBuilding ${BIN_FILE}")
+
+set(PROGRAM_CMD "openocd -f interface/stlink-v2.cfg -f target/numicroM4.cfg -c \"program ${PROJECT_NAME}.bin ${BASE_ADDRESS} verify reset exit\"")
+install(CODE "execute_process(COMMAND ${PROGRAM_CMD})")
