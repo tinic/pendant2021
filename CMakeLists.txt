@@ -19,7 +19,7 @@ endif(BOOTLOADED)
 if(VSCODE)
     set(BASE_ADDRESS 0x00000000)
     project(pendant2021-mainfirmware-vscode C CXX ASM)
-    set(MAINCPU_DEFINITIONS BOOTLOADED)
+    set(MAINCPU_DEFINITIONS BOOTLOADED TESTING)
     set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_vscode.ld)
 endif(VSCODE)
 

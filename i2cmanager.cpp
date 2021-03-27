@@ -93,7 +93,7 @@ I2CManager &I2CManager::instance() {
 void I2CManager::probe() {
     for (size_t c = 0; c <  127; c++) {
         if (deviceReady(c)) {
-            printf("I2C device %02x ready.\n", c);
+            printf("I2C device 0x%02x ready.\n", c);
         }
     }
 }

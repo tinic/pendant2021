@@ -217,12 +217,31 @@ int main(void)
 
     UART_Open(UART1, 115200);
 
-    fputc('H', 0);
-    fputc('e', 0);
-    fputc('l', 0);
-    fputc('l', 0);
-    fputc('o', 0);
-    fputc('\n', 0);
+    SYS_UnlockReg();
+    FMC_Open();
+
+    printf("================================================================================\n");
+    printf("Pendant 2021 "
+#if defined(TESTING)
+#if defined(BOOTLOADER)
+        "Bootloader Testing"
+#else  // #if defined(BOOTLOADER)
+        "Main Testing"
+#endif  // #if defined(BOOTLOADER)
+#elif defined(BOOTLOADER)
+        "Bootloader"
+#else  // #if defined(BOOTLOADER)
+        "Main"
+#endif  // #if defined(BOOTLOADER)
+        " PID(0x%08x) UID(0x%08x%08x%08x)\n", 
+        (unsigned int)SYS_ReadPDID(),
+        (unsigned int)FMC_ReadUID(0),
+        (unsigned int)FMC_ReadUID(1),
+        (unsigned int)FMC_ReadUID(2));
+    printf("--------------------------------------------------------------------------------\n");
+
+    FMC_Close();
+    SYS_LockReg();
 
 #if defined(BOOTLOADER)
 
