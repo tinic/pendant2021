@@ -132,7 +132,7 @@ static void SYS_Init(void)
     CLK_SetModuleClock(TMR3_MODULE, CLK_CLKSEL1_TMR3SEL_LIRC, MODULE_NoMsk); // 10Khz
 
     CLK_EnableModuleClock(UART1_MODULE);
-    CLK_SetModuleClock(UART1_MODULE, CLK_CLKSEL1_UART0SEL_HIRC, CLK_CLKDIV0_UART1(1)); // 12Mhz
+    CLK_SetModuleClock(UART1_MODULE, CLK_CLKSEL1_UART1SEL_HIRC, CLK_CLKDIV0_UART1(1));
    
     CLK_EnableModuleClock(SPI0_MODULE);
     CLK_SetModuleClock(SPI0_MODULE, CLK_CLKSEL2_SPI0SEL_HIRC, MODULE_NoMsk); // 12Mhz
@@ -151,6 +151,9 @@ static void SYS_Init(void)
     CLK_EnableModuleClock(USCI1_MODULE);
 
     CLK_EnableSysTick(CLK_CLKSEL0_STCLKSEL_HIRC_DIV2, 0);
+
+    CLK_EnableModuleClock(QSPI0_MODULE);
+    CLK_SetModuleClock(QSPI0_MODULE, CLK_CLKSEL2_QSPI0SEL_PCLK0, MODULE_NoMsk);
 
     // SW1
     GPIO_SetMode(PF, BIT2, GPIO_MODE_INPUT);
@@ -214,8 +217,12 @@ int main(void)
 
     UART_Open(UART1, 115200);
 
-    //fputc('!', 0);
-    //fputc('\n', 0);
+    fputc('H', 0);
+    fputc('e', 0);
+    fputc('l', 0);
+    fputc('l', 0);
+    fputc('o', 0);
+    fputc('\n', 0);
 
 #if defined(BOOTLOADER)
 
