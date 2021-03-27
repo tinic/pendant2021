@@ -158,11 +158,11 @@ namespace color {
 
     class convert {
     public:
-        consteval float consteval_pow(const float x, const float p) const {
+        constexpr float consteval_pow(const float x, const float p) const {
             return ::exp2f(p * ::log2f(x));
         }
 
-        consteval convert() : sRGB2lRGB() {
+        constexpr convert() : sRGB2lRGB() {
             for (size_t c = 0; c < 256; c++) {
                 float v = float(c) / 255.0f;
                 if (v > 0.04045f) {
@@ -173,7 +173,7 @@ namespace color {
             }
         }
 
-        consteval vector::float4 sRGB2CIELUV(const rgba<uint8_t> &in) const  {
+        constexpr vector::float4 sRGB2CIELUV(const rgba<uint8_t> &in) const  {
             float r = sRGB2lRGB[in.r];
             float g = sRGB2lRGB[in.g];
             float b = sRGB2lRGB[in.b];
@@ -200,11 +200,11 @@ namespace color {
         float sRGB2lRGB[256];
     };
 
-    consteval vector::float4 srgb8(const rgba<uint8_t> &color, float alpha = 1.0f) {
+    constexpr vector::float4 srgb8(const rgba<uint8_t> &color, float alpha = 1.0f) {
         return vector::float4(convert().sRGB2CIELUV(color), alpha);
     }
 
-    consteval vector::float4 srgb8_stop(const rgba<uint8_t> &color, float stop) {
+    constexpr vector::float4 srgb8_stop(const rgba<uint8_t> &color, float stop) {
         return vector::float4(convert().sRGB2CIELUV(color), stop);
     }
 }

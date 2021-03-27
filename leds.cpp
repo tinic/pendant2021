@@ -25,6 +25,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./leds.h"
 #include "./color.h"
 
+#define USE_DMA 1
+
 #define SPI0_MASTER_TX_DMA_CH   0
 #define SPI1_MASTER_TX_DMA_CH   1
 #define USPI0_MASTER_TX_DMA_CH  2 
@@ -40,42 +42,49 @@ Leds &Leds::instance() {
 }
 
 void Leds::init() {
-    half();
+    white();
 
-    SPI_Open(SPI0, SPI_MASTER, SPI_MODE_0, 32, 12000000);
-    SPI_Open(SPI1, SPI_MASTER, SPI_MODE_0, 32, 12000000);
-    USPI_Open(USPI0, USPI_MASTER, USPI_MODE_0, 16, 12000000);
-    USPI_Open(USPI1, USPI_MASTER, USPI_MODE_0, 16, 12000000);
+    PF3 = 0;
+
+    SPI_Open(SPI0, SPI_MASTER, SPI_MODE_0, 8, 8000000);
+    SPI_Open(SPI1, SPI_MASTER, SPI_MODE_0, 8, 8000000);
+    USPI_Open(USPI0, USPI_MASTER, USPI_MODE_0, 8, 8000000);
+    USPI_Open(USPI1, USPI_MASTER, USPI_MODE_0, 8, 8000000);
+
+#ifdef USE_DMA
 
     PDMA_Open(PDMA,
-        (1UL << SPI0_MASTER_TX_DMA_CH)||
-        (1UL << SPI1_MASTER_TX_DMA_CH)||
-        (1UL << USPI0_MASTER_TX_DMA_CH)||
+        (1UL << SPI0_MASTER_TX_DMA_CH)|
+        (1UL << SPI1_MASTER_TX_DMA_CH)|
+        (1UL << USPI0_MASTER_TX_DMA_CH)|
         (1UL << USPI1_MASTER_TX_DMA_CH));
 
-    PDMA_SetTransferCnt(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[0].size());
+    PDMA_SetTransferCnt(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[0].size());
     PDMA_SetTransferAddr(PDMA, SPI0_MASTER_TX_DMA_CH, (uint32_t)circleLedsDMABuf[0].data(), PDMA_SAR_INC, (uint32_t)&SPI0->TX, PDMA_DAR_FIX);
     PDMA_SetTransferMode(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_SPI0_TX, FALSE, 0);
     PDMA_SetBurstType(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
     PDMA->DSCT[SPI0_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
 
-    PDMA_SetTransferCnt(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[1].size());
+    PDMA_SetTransferCnt(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[1].size());
     PDMA_SetTransferAddr(PDMA, SPI1_MASTER_TX_DMA_CH, (uint32_t)circleLedsDMABuf[1].data(), PDMA_SAR_INC, (uint32_t)&SPI1->TX, PDMA_DAR_FIX);
     PDMA_SetTransferMode(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_SPI1_TX, FALSE, 0);
     PDMA_SetBurstType(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
     PDMA->DSCT[SPI1_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
 
-    PDMA_SetTransferCnt(PDMA, USPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_16, birdsLedsDMABuf[0].size());    
+    PDMA_SetTransferCnt(PDMA, USPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[0].size());    
     PDMA_SetTransferAddr(PDMA, USPI0_MASTER_TX_DMA_CH, (uint32_t)birdsLedsDMABuf[0].data(), PDMA_SAR_INC, (uint32_t)&USPI0->TXDAT, PDMA_DAR_FIX);
     PDMA_SetTransferMode(PDMA, USPI0_MASTER_TX_DMA_CH, PDMA_USCI0_TX, FALSE, 0);    
     PDMA_SetBurstType(PDMA, USPI0_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);   
     PDMA->DSCT[USPI0_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
 
-    PDMA_SetTransferCnt(PDMA, USPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_16, birdsLedsDMABuf[1].size());    
+    PDMA_SetTransferCnt(PDMA, USPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[1].size());    
     PDMA_SetTransferAddr(PDMA, USPI1_MASTER_TX_DMA_CH, (uint32_t)birdsLedsDMABuf[1].data(), PDMA_SAR_INC, (uint32_t)&USPI1->TXDAT, PDMA_DAR_FIX);
     PDMA_SetTransferMode(PDMA, USPI1_MASTER_TX_DMA_CH, PDMA_USCI1_TX, FALSE, 0);    
     PDMA_SetBurstType(PDMA, USPI1_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);   
     PDMA->DSCT[USPI1_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
+
+#endif  // #ifdef USE_DMA
+
 }
 
 void Leds::prepare() {
@@ -84,7 +93,7 @@ void Leds::prepare() {
     auto convert_to_one_wire = [] (uint8_t *p, uint16_t v) {
         for (uint32_t c = 0; c < 16; c++) {
             if ( ((1<<(15-c)) & v) != 0 ) {
-                *p++ = 0b11111000;
+                *p++ = 0b11110000;
             } else {
                 *p++ = 0b10000000;
             }
@@ -95,6 +104,7 @@ void Leds::prepare() {
     uint8_t *ptr0 = circleLedsDMABuf[0].data();
     uint8_t *ptr1 = circleLedsDMABuf[1].data();
     for (size_t c = 0; c < circleLedsN; c++) {
+
         color::rgba<uint16_t> pixel0(color::rgba<uint16_t>(converter.CIELUV2sRGB(circleLeds[0][c])).fix_for_ws2816());
         color::rgba<uint16_t> pixel1(color::rgba<uint16_t>(converter.CIELUV2sRGB(circleLeds[1][c])).fix_for_ws2816());
 
@@ -121,22 +131,49 @@ void Leds::prepare() {
     }
 }
 
+__attribute__ ((hot, optimize("O3"), flatten))
 void Leds::transfer() {
     prepare();
 
-    PDMA_SetTransferCnt(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[0].size() / sizeof(uint32_t));
+#ifdef USE_DMA
+
+    PDMA_SetTransferCnt(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[0].size() + 256);
     PDMA_SetTransferMode(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_SPI0_TX, FALSE, 0);
     SPI_TRIGGER_TX_PDMA(SPI0);
 
-    PDMA_SetTransferCnt(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[1].size() / sizeof(uint32_t));
+    PDMA_SetTransferCnt(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[1].size() + 256);
     PDMA_SetTransferMode(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_SPI1_TX, FALSE, 0);
     SPI_TRIGGER_TX_PDMA(SPI1);
 
-    PDMA_SetTransferCnt(PDMA,USPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_16, birdsLedsDMABuf[0].size() / sizeof(uint16_t));    
+    PDMA_SetTransferCnt(PDMA,USPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[0].size() + 256);    
     PDMA_SetTransferMode(PDMA,USPI0_MASTER_TX_DMA_CH, PDMA_USCI0_TX, FALSE, 0);    
     USPI_TRIGGER_RX_PDMA(USPI0);
 
-    PDMA_SetTransferCnt(PDMA,USPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_16, birdsLedsDMABuf[1].size() / sizeof(uint16_t));    
+    PDMA_SetTransferCnt(PDMA,USPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[1].size() + 256);    
     PDMA_SetTransferMode(PDMA,USPI1_MASTER_TX_DMA_CH, PDMA_USCI1_TX, FALSE, 0);    
     USPI_TRIGGER_RX_PDMA(USPI1);
+
+#else  // #ifdef USE_DMA
+
+    for(size_t c = 0; c < circleLedsDMABuf[0].size() + 256; c++) {
+        while(SPI_GET_TX_FIFO_FULL_FLAG(SPI0) == 1) {}
+        SPI_WRITE_TX(SPI0, circleLedsDMABuf[0].data()[c]);
+    }
+
+    for(size_t c = 0; c < circleLedsDMABuf[0].size() + 256; c++) {
+        while(SPI_GET_TX_FIFO_FULL_FLAG(SPI1) == 1) {}
+        SPI_WRITE_TX(SPI1, circleLedsDMABuf[1].data()[c]);
+    }
+
+    for(size_t c = 0; c < birdsLedsDMABuf[0].size() + 256; c++) {
+        while(USPI_GET_TX_FULL_FLAG(USPI0) == 1) {}
+        USPI_WRITE_TX(USPI0, birdsLedsDMABuf[0].data()[c]);
+    }
+
+    for(size_t c = 0; c < birdsLedsDMABuf[0].size() + 256; c++) {
+        while(USPI_GET_TX_FULL_FLAG(USPI1) == 1) {}
+        USPI_WRITE_TX(USPI1, birdsLedsDMABuf[1].data()[c]);
+    }
+
+#endif  // #ifdef USE_DMA
 }

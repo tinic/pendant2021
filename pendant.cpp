@@ -58,14 +58,23 @@ void Pendant::init() {
 
 void Pendant::Run() {
     while (1) {
+
+
         static double oldtime = 0;
         double newtime = Timeline::instance().SystemTime();
-        if ((newtime - oldtime) > 0.1) {
+        if ((newtime - oldtime) > 0.05) {
+            static float rot = 0.0f;
+            rot+=0.01f;
+            static uint8_t fade = 0;
+            for (size_t c = 0; c < Leds::instance().circleLedsN; c++) {
+                Leds::instance().setCircle(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)));
+                Leds::instance().setCircle(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)));
+            }
             printf("%f\r",float(newtime));
             fflush(stdout);
             oldtime = newtime;
+            Leds::instance().apply();
         }
-        Leds::instance().apply();
         // __WFI();
     }
 }
