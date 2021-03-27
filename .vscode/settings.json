@@ -1,4 +1,9 @@
 {
+    "cmake.configureSettings": {
+        "CMAKE_TOOLCHAIN_FILE": "../arm-gcc-toolchain.cmake",
+        "VSCODE" : true,
+        "CMAKE_BUILD_TYPE" : "Debug"
+    },
     "files.associations": {
         "array": "c",
         "string_view": "c",

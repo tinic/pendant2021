@@ -6,11 +6,19 @@ if(BOOTLOADER)
     project(pendant2021-mainfirmware-bootloader C CXX ASM)
     set(MAINCPU_DEFINITIONS BOOTLOADER)
     set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_bootloader.ld)
-else(BOOTLOADER)
+endif(BOOTLOADER)
+    
+if(BOOTLOADED)
     project(pendant2021-mainfirmware-bootloaded C CXX ASM)
     set(MAINCPU_DEFINITIONS BOOTLOADED)
     set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_bootloaded.ld)
-endif(BOOTLOADER)
+endif(BOOTLOADED)
+
+if(VSCODE)
+    project(pendant2021-mainfirmware-vscode C CXX ASM)
+    set(MAINCPU_DEFINITIONS BOOTLOADED)
+    set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_vscode.ld)
+endif(VSCODE)
 
 set(CC_FLAGS
     -flto
