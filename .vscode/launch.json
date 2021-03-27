@@ -1,14 +1,20 @@
 {
     "version": "0.2.0",
     "configurations": [
+        
         {
             "cwd": "${workspaceRoot}",
             "executable": "pendant2021_bootloader_dgb/pendant2021-mainfirmware-bootloader.elf",
             "name": "Debug Bootloader",
             "request": "launch",
             "type": "cortex-debug",
-            "servertype": "jlink",
+            "servertype": "openocd",
             "device": "M482ZGCAE",
+            "interface": "swd",
+            "configFiles": [
+                "interface/stlink-v2.cfg",
+                "target/numicroM4.cfg"
+            ]
         }
     ]
 }
