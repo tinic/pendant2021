@@ -122,7 +122,6 @@ void Leds::prepare() {
 }
 
 void Leds::transfer() {
-
     prepare();
 
     PDMA_SetTransferCnt(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_32, circleLedsDMABuf[0].size() / sizeof(uint32_t));

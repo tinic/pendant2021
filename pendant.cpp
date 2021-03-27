@@ -57,8 +57,8 @@ void Pendant::init() {
 }
 
 void Pendant::Run() {
-    printf("%f\n",Timeline::instance().SystemTime());
     while (1) {
+        //printf("%f\r",Timeline::instance().SystemTime());
         Leds::instance().apply();
         __WFI();
     }

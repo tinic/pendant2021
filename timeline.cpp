@@ -31,10 +31,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 extern "C" {
 static uint32_t systemSeconds = 0;
 
-void TMR0_IRQHandler(void)
+void TMR3_IRQHandler(void)
 {
     systemSeconds++;
-    TIMER_ClearIntFlag(TIMER0);
+    TIMER_ClearIntFlag(TIMER3);
 }
 }
 

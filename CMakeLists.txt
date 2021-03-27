@@ -57,6 +57,7 @@ set(LD_FLAGS
     -mfloat-abi=hard
     -mfpu=fpv4-sp-d16
     -specs=nano.specs
+    -u _printf_float
     -lc
     -lm
     -lnosys
