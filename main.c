@@ -95,14 +95,6 @@ static void SYS_Init(void)
     SYS->GPA_MFPH &= ~(SYS_GPA_MFPH_PA15MFP_Msk | SYS_GPA_MFPH_PA14MFP_Msk | SYS_GPA_MFPH_PA13MFP_Msk | SYS_GPA_MFPH_PA12MFP_Msk);
     SYS->GPA_MFPH |= (SYS_GPA_MFPH_PA15MFP_USB_OTG_ID | SYS_GPA_MFPH_PA14MFP_USB_D_P | SYS_GPA_MFPH_PA13MFP_USB_D_N | SYS_GPA_MFPH_PA12MFP_USB_VBUS);
 
-    // USCI0
-    SYS->GPB_MFPH &= ~(SYS_GPB_MFPH_PB13MFP_Msk);
-    SYS->GPB_MFPH |= (SYS_GPB_MFPH_PB13MFP_USCI0_DAT0);
-
-    // USCI1
-    SYS->GPB_MFPL &= ~(SYS_GPB_MFPL_PB2MFP_Msk);
-    SYS->GPB_MFPL |= (SYS_GPB_MFPL_PB2MFP_USCI1_DAT0);
-
     // Init clocks
     CLK_EnableXtalRC(CLK_PWRCTL_LIRCEN_Msk);
     CLK_WaitClockReady(CLK_STATUS_LIRCSTB_Msk);
@@ -147,9 +139,6 @@ static void SYS_Init(void)
     CLK_EnableModuleClock(PDMA_MODULE); // HCLK, 96Mhz
     CLK_EnableModuleClock(TRNG_MODULE); // PCLK1, 12 Mhz
 
-    CLK_EnableModuleClock(USCI0_MODULE); 
-    CLK_EnableModuleClock(USCI1_MODULE);
-
     CLK_EnableSysTick(CLK_CLKSEL0_STCLKSEL_HIRC_DIV2, 0);
 
     CLK_EnableModuleClock(QSPI0_MODULE);
@@ -175,6 +164,10 @@ static void SYS_Init(void)
     GPIO_SetMode(PB, BIT1, GPIO_MODE_OUTPUT);
     // OLED_RESET
     GPIO_SetMode(PB, BIT9, GPIO_MODE_OUTPUT);
+    // TOP_LED_BIRD
+    GPIO_SetMode(PB, BIT2, GPIO_MODE_OUTPUT);
+    // BOTTOM_LED_BIRD
+    GPIO_SetMode(PB, BIT13, GPIO_MODE_OUTPUT);
 
     // >>>>>> USB ----------------------------------
 
@@ -199,8 +192,6 @@ static void SYS_DeInit(void)
 {
     CLK_DisableSysTick();
     CLK_DisableModuleClock(USBD_MODULE);
-    CLK_DisableModuleClock(USCI1_MODULE);
-    CLK_DisableModuleClock(USCI0_MODULE);
     CLK_DisableModuleClock(TRNG_MODULE);
     CLK_DisableModuleClock(PDMA_MODULE);
     CLK_DisableModuleClock(I2C0_MODULE);

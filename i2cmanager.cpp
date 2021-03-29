@@ -102,4 +102,19 @@ void I2CManager::init() {
     I2C_Open(I2C0, 100000);
 
     probe();
+
+    {
+        uint8_t value = I2C_ReadByteOneReg(I2C0, 0x6A, 0x03);
+        printf(" >> 0x%02x\n", value);
+        value &= ~(1 << 0x05);
+        printf(" << 0x%02x\n", value);
+        I2C_WriteByteOneReg(I2C0, 0x6A, 0x03, value);
+    }
+    {
+        uint8_t value = I2C_ReadByteOneReg(I2C0, 0x6A, 0x02);
+        printf(" >> 0x%02x\n", value);
+        value &= ~(1 << 0x05);
+        printf(" << 0x%02x\n", value);
+        I2C_WriteByteOneReg(I2C0, 0x6A, 0x02, value);
+    }
 }

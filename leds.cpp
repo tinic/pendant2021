@@ -22,6 +22,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "M480.h"
 
+#include "./main.h"
 #include "./leds.h"
 #include "./color.h"
 
@@ -29,8 +30,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define SPI0_MASTER_TX_DMA_CH   0
 #define SPI1_MASTER_TX_DMA_CH   1
-#define USPI0_MASTER_TX_DMA_CH  2 
-#define USPI1_MASTER_TX_DMA_CH  3
 
 Leds &Leds::instance() {
     static Leds leds;
@@ -42,7 +41,7 @@ Leds &Leds::instance() {
 }
 
 void Leds::init() {
-    white();
+    half();
 
     PF3 = 0;
 
@@ -53,11 +52,7 @@ void Leds::init() {
 
 #ifdef USE_DMA
 
-    PDMA_Open(PDMA,
-        (1UL << SPI0_MASTER_TX_DMA_CH)|
-        (1UL << SPI1_MASTER_TX_DMA_CH)|
-        (1UL << USPI0_MASTER_TX_DMA_CH)|
-        (1UL << USPI1_MASTER_TX_DMA_CH));
+    PDMA_Open(PDMA,(1UL << SPI0_MASTER_TX_DMA_CH)|(1UL << SPI1_MASTER_TX_DMA_CH));
 
     PDMA_SetTransferCnt(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[0].size());
     PDMA_SetTransferAddr(PDMA, SPI0_MASTER_TX_DMA_CH, (uint32_t)circleLedsDMABuf[0].data(), PDMA_SAR_INC, (uint32_t)&SPI0->TX, PDMA_DAR_FIX);
@@ -71,18 +66,6 @@ void Leds::init() {
     PDMA_SetBurstType(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
     PDMA->DSCT[SPI1_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
 
-    PDMA_SetTransferCnt(PDMA, USPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[0].size());    
-    PDMA_SetTransferAddr(PDMA, USPI0_MASTER_TX_DMA_CH, (uint32_t)birdsLedsDMABuf[0].data(), PDMA_SAR_INC, (uint32_t)&USPI0->TXDAT, PDMA_DAR_FIX);
-    PDMA_SetTransferMode(PDMA, USPI0_MASTER_TX_DMA_CH, PDMA_USCI0_TX, FALSE, 0);    
-    PDMA_SetBurstType(PDMA, USPI0_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);   
-    PDMA->DSCT[USPI0_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
-
-    PDMA_SetTransferCnt(PDMA, USPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[1].size());    
-    PDMA_SetTransferAddr(PDMA, USPI1_MASTER_TX_DMA_CH, (uint32_t)birdsLedsDMABuf[1].data(), PDMA_SAR_INC, (uint32_t)&USPI1->TXDAT, PDMA_DAR_FIX);
-    PDMA_SetTransferMode(PDMA, USPI1_MASTER_TX_DMA_CH, PDMA_USCI1_TX, FALSE, 0);    
-    PDMA_SetBurstType(PDMA, USPI1_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);   
-    PDMA->DSCT[USPI1_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
-
 #endif  // #ifdef USE_DMA
 
 }
@@ -95,7 +78,7 @@ void Leds::prepare() {
             if ( ((1<<(15-c)) & v) != 0 ) {
                 *p++ = 0b11110000;
             } else {
-                *p++ = 0b10000000;
+                *p++ = 0b11000000;
             }
         }
         return p;
@@ -145,14 +128,6 @@ void Leds::transfer() {
     PDMA_SetTransferMode(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_SPI1_TX, FALSE, 0);
     SPI_TRIGGER_TX_PDMA(SPI1);
 
-    PDMA_SetTransferCnt(PDMA,USPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[0].size() + 256);    
-    PDMA_SetTransferMode(PDMA,USPI0_MASTER_TX_DMA_CH, PDMA_USCI0_TX, FALSE, 0);    
-    USPI_TRIGGER_RX_PDMA(USPI0);
-
-    PDMA_SetTransferCnt(PDMA,USPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[1].size() + 256);    
-    PDMA_SetTransferMode(PDMA,USPI1_MASTER_TX_DMA_CH, PDMA_USCI1_TX, FALSE, 0);    
-    USPI_TRIGGER_RX_PDMA(USPI1);
-
 #else  // #ifdef USE_DMA
 
     for(size_t c = 0; c < circleLedsDMABuf[0].size() + 256; c++) {
@@ -165,15 +140,40 @@ void Leds::transfer() {
         SPI_WRITE_TX(SPI1, circleLedsDMABuf[1].data()[c]);
     }
 
-    for(size_t c = 0; c < birdsLedsDMABuf[0].size() + 256; c++) {
-        while(USPI_GET_TX_FULL_FLAG(USPI0) == 1) {}
-        USPI_WRITE_TX(USPI0, birdsLedsDMABuf[0].data()[c]);
-    }
-
-    for(size_t c = 0; c < birdsLedsDMABuf[0].size() + 256; c++) {
-        while(USPI_GET_TX_FULL_FLAG(USPI1) == 1) {}
-        USPI_WRITE_TX(USPI1, birdsLedsDMABuf[1].data()[c]);
-    }
-
 #endif  // #ifdef USE_DMA
+
+#define DELAY() \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::);
+
+    __disable_irq();
+    for (size_t c = 0; c < birdsLedsDMABuf[0].size()+256; c++) {
+        PB2 = (birdsLedsDMABuf[0][c] >> 7) & 1;
+        PB13 = (birdsLedsDMABuf[1][c] >> 7) & 1;
+        DELAY();
+        PB2 = (birdsLedsDMABuf[0][c] >> 6) & 1;
+        PB13 = (birdsLedsDMABuf[1][c] >> 6) & 1;
+        DELAY();
+        PB2 = (birdsLedsDMABuf[0][c] >> 5) & 1;
+        PB13 = (birdsLedsDMABuf[1][c] >> 5) & 1;
+        DELAY();
+        PB2 = (birdsLedsDMABuf[0][c] >> 4) & 1;
+        PB13 = (birdsLedsDMABuf[1][c] >> 4) & 1;
+        DELAY();
+        PB2 = (birdsLedsDMABuf[0][c] >> 3) & 1;
+        PB13 = (birdsLedsDMABuf[1][c] >> 3) & 1;
+        DELAY();
+        PB2 = (birdsLedsDMABuf[0][c] >> 2) & 1;
+        PB13 = (birdsLedsDMABuf[1][c] >> 2) & 1;
+        DELAY();
+        PB2 = (birdsLedsDMABuf[0][c] >> 1) & 1;
+        PB13 = (birdsLedsDMABuf[1][c] >> 1) & 1;
+        DELAY();
+        PB2 = (birdsLedsDMABuf[0][c] >> 0) & 1;
+        PB13 = (birdsLedsDMABuf[1][c] >> 0) & 1;
+        DELAY();
+    }
+    __enable_irq();
 }

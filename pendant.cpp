@@ -58,18 +58,21 @@ void Pendant::init() {
 
 void Pendant::Run() {
     while (1) {
-
-
         static double oldtime = 0;
         double newtime = Timeline::instance().SystemTime();
         if ((newtime - oldtime) > 0.05) {
+#if 1
             static float rot = 0.0f;
             rot+=0.01f;
-            static uint8_t fade = 0;
             for (size_t c = 0; c < Leds::instance().circleLedsN; c++) {
-                Leds::instance().setCircle(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)));
-                Leds::instance().setCircle(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)));
+                Leds::instance().setCircle(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+                Leds::instance().setCircle(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
             }
+            for (size_t c = 0; c < Leds::instance().birdLedsN; c++) {
+                Leds::instance().setBird(0,c,color::srgb8({0xff,0x00,0x00}) * 0.1f);
+                Leds::instance().setBird(1,c,color::srgb8({0xff,0x00,0x00}) * 0.1f);
+            }
+#endif  // #if 1
             printf("%f\r",float(newtime));
             fflush(stdout);
             oldtime = newtime;
