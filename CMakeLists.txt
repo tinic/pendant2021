@@ -10,7 +10,7 @@ if(BOOTLOADER)
 endif(BOOTLOADER)
     
 if(BOOTLOADED)
-    set(BASE_ADDRESS 0x00008000)
+    set(BASE_ADDRESS 0x0000C000)
     project(pendant2021-mainfirmware-bootloaded C CXX ASM)
     set(MAINCPU_DEFINITIONS BOOTLOADED)
     set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_bootloaded.ld)
