@@ -27,22 +27,22 @@ namespace color {
 __attribute__ ((hot, optimize("Os"), flatten))
 vector::float4 gradient::repeat(float i) const {
     i = fabsf(i);
-    i -= floorf(i);
+    i -= truncf(i);
     i *= colors_mul;
-    return vector::float4::lerp(colors[(static_cast<size_t>(i))&colors_mask], colors[(static_cast<size_t>(i)+1)&colors_mask], i - floorf(i));
+    return vector::float4::lerp(colors[(static_cast<size_t>(i))&colors_mask], colors[(static_cast<size_t>(i)+1)&colors_mask], i - truncf(i));
 }
 
 __attribute__ ((hot, optimize("Os"), flatten))
 vector::float4 gradient::reflect(float i) const {
     i = fabsf(i);
     if ((static_cast<int32_t>(i) & 1) == 0) {
-        i -= floorf(i);
+        i -= truncf(i);
     } else {
-        i -= floorf(i);
+        i -= truncf(i);
         i = 1.0f - i;
     }
     i *= colors_mul;
-    return vector::float4::lerp(colors[(static_cast<size_t>(i))&colors_mask], colors[(static_cast<size_t>(i)+1)&colors_mask], i - floorf(i));
+    return vector::float4::lerp(colors[(static_cast<size_t>(i))&colors_mask], colors[(static_cast<size_t>(i)+1)&colors_mask], i - truncf(i));
 }
 
 __attribute__ ((hot, optimize("Os"), flatten))
@@ -54,7 +54,7 @@ vector::float4 gradient::clamp(float i) const {
         return colors[colors_n-1];
     }
     i *= colors_mul;
-    return vector::float4::lerp(colors[(static_cast<size_t>(i))&colors_mask], colors[(static_cast<size_t>(i)+1)&colors_mask], i - floorf(i));
+    return vector::float4::lerp(colors[(static_cast<size_t>(i))&colors_mask], colors[(static_cast<size_t>(i)+1)&colors_mask], i - truncf(i));
 }
 
 __attribute__ ((hot, optimize("Os"), flatten))
