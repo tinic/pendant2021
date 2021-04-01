@@ -3,7 +3,7 @@
     "configurations": [
         {
             "cwd": "${workspaceRoot}",
-            "executable": "build/pendant2021-mainfirmware-vscode.elf",
+            "executable": "build/pendant2021-testing.elf",
             "name": "Debug Main Firmware",
             "request": "launch",
             "type": "cortex-debug",

@@ -4,24 +4,24 @@ cmake_minimum_required(VERSION 3.10)
 
 if(BOOTLOADER)
     set(BASE_ADDRESS 0x00000000)
-    project(pendant2021-mainfirmware-bootloader C CXX ASM)
+    project(pendant2021-bootloader C CXX ASM)
     set(MAINCPU_DEFINITIONS BOOTLOADER)
     set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_bootloader.ld)
 endif(BOOTLOADER)
     
 if(BOOTLOADED)
     set(BASE_ADDRESS 0x0000C000)
-    project(pendant2021-mainfirmware-bootloaded C CXX ASM)
+    project(pendant2021-bootloaded C CXX ASM)
     set(MAINCPU_DEFINITIONS BOOTLOADED)
     set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_bootloaded.ld)
 endif(BOOTLOADED)
 
-if(VSCODE)
+if(TESTING)
     set(BASE_ADDRESS 0x00000000)
-    project(pendant2021-mainfirmware-vscode C CXX ASM)
+    project(pendant2021-testing C CXX ASM)
     set(MAINCPU_DEFINITIONS BOOTLOADED TESTING)
     set(MAINMCU_LD_SCRIPT ${PROJECT_SOURCE_DIR}/gcc_arm_128k_vscode.ld)
-endif(VSCODE)
+endif(TESTING)
 
 set(CC_FLAGS
     -flto
