@@ -66,12 +66,14 @@ void Pendant::init() {
 void Pendant::Run() {
 
     while (1) {
+        static double delta_idle = 0;
+        static double delta_busy = 0;
+        double a = Timeline::instance().SystemTime();
         __WFI();
-
-        SDCard::instance().process();
-
+        double b = Timeline::instance().SystemTime();
+        delta_idle = b - a;
         if (Timeline::instance().CheckFrameReadyAndClear()) {
-
+            SDCard::instance().process();
 #if 1
             static float rot = 0.0f;
             rot+=0.01f;
@@ -84,10 +86,11 @@ void Pendant::Run() {
                 Leds::instance().setBird(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
             }
 #endif  // #if 1
-
-            printf("%f\r",Timeline::instance().SystemTime());
+            printf("busy(%3.2f%%) time(%fs)\r",(delta_busy/(delta_idle+delta_busy))*100.0,Timeline::instance().SystemTime());
             fflush(stdout);
             Leds::instance().apply();
+            double c = Timeline::instance().SystemTime();
+            delta_busy = c - b;
         }
     }
 }

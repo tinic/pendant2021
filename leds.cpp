@@ -156,9 +156,6 @@ void Leds::prepare() {
         return p;
     };
 
-    memset(circleLedsDMABuf[0].data(),0,circleLedsDMABuf[0].size());
-    memset(circleLedsDMABuf[1].data(),0,circleLedsDMABuf[1].size());
-
     uint8_t *ptr0 = circleLedsDMABuf[0].data();
     uint8_t *ptr1 = circleLedsDMABuf[1].data();
     for (size_t c = 0; c < circleLedsN; c++) {
@@ -184,9 +181,6 @@ void Leds::prepare() {
         }
         return p;
     };
-
-    memset(birdsLedsDMABuf[0].data(),0,birdsLedsDMABuf[0].size());
-    memset(birdsLedsDMABuf[1].data(),0,birdsLedsDMABuf[1].size());
 
     uint8_t *ptr2 = birdsLedsDMABuf[0].data();
     uint8_t *ptr3 = birdsLedsDMABuf[1].data();
