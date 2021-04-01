@@ -98,6 +98,14 @@ void I2CManager::probe() {
     }
 }
 
+void I2CManager::write(uint8_t slaveAddr, uint8_t data[], size_t len) {
+    I2C_WriteMultiBytes(I2C0, slaveAddr, data, len);
+}
+
+void I2CManager::read(uint8_t slaveAddr, uint8_t data[], size_t len) {
+    I2C_ReadMultiBytes(I2C0, slaveAddr, data, len);
+}
+
 uint8_t I2CManager::getReg8(uint8_t slaveAddr, uint8_t reg) {
     return I2C_ReadByteOneReg(I2C0, slaveAddr, reg);
 }

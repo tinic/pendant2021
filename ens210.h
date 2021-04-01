@@ -20,28 +20,33 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef I2CMANAGER_H_
-#define I2CMANAGER_H_
+#ifndef ENS210_H_
+#define ENS210_H_
 
 #include "./color.h"
 
-class I2CManager {
+class ENS210 {
 public:
-    static I2CManager &instance();
+    static ENS210 &instance();
 
-    void write(uint8_t slaveAddr, uint8_t data[], size_t len);
-    void read(uint8_t slaveAddr, uint8_t data[], size_t len);
+    void update();
 
-    uint8_t getReg8(uint8_t slaveAddr, uint8_t reg);
-    void setReg8(uint8_t slaveAddr, uint8_t reg, uint8_t dat);
-    void setReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask);
-    void clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask);
+    float Temperature() const { return temperature; }
+    float Humidity() const { return humidity; }
 
 private:
-    bool deviceReady(uint8_t u8SlaveAddr);
-    void probe();
+    static constexpr uint8_t ens210_addr = 0x43;
+
+    float temperature;
+    float humidity;
+
+    void reset();
+    void read();
+    void measure();
+    void wait();
+
     void init();
     bool initialized = false;
 };
 
-#endif /* I2CMANAGER_H_ */
+#endif /* ENS210_H_ */

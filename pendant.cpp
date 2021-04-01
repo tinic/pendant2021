@@ -28,6 +28,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./sdcard.h"
 #include "./input.h"
 #include "./bq25895.h"
+#include "./ens210.h"
 
 #include "M480.h"
 
@@ -59,6 +60,7 @@ void Pendant::init() {
     Timeline::instance();
     Input::instance();
     BQ25895::instance();
+    ENS210::instance();
 }
 
 void Pendant::Run() {
