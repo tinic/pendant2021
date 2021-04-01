@@ -83,7 +83,7 @@ void Pendant::Run() {
             }
 #endif  // #if 1
 
-            printf("%f\r",float(Timeline::instance().SystemTime()));
+            printf("%f\r",Timeline::instance().SystemTime());
             fflush(stdout);
             Leds::instance().apply();
         }

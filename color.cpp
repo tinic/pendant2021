@@ -24,27 +24,28 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace color {
 
-__attribute__ ((hot, optimize("O3"), flatten))
+__attribute__ ((hot, optimize("Os"), flatten))
 vector::float4 gradient::repeat(float i) const {
-    i = fmodf(i, 1.0f);
+    i = fabsf(i);
+    i -= truncf(i);
     i *= colors_mul;
-    return vector::float4::lerp(colors[(static_cast<size_t>(i))&colors_mask], colors[(static_cast<size_t>(i)+1)&colors_mask], fmodf(i, 1.0f));
+    return vector::float4::lerp(colors[(static_cast<size_t>(i))&colors_mask], colors[(static_cast<size_t>(i)+1)&colors_mask], i - truncf(i));
 }
 
-__attribute__ ((hot, optimize("O3"), flatten))
+__attribute__ ((hot, optimize("Os"), flatten))
 vector::float4 gradient::reflect(float i) const {
     i = fabsf(i);
     if ((static_cast<int32_t>(i) & 1) == 0) {
-        i = fmodf(i, 1.0f);
+        i -= truncf(i);
     } else {
-        i = fmodf(i, 1.0f);
+        i -= truncf(i);
         i = 1.0f - i;
     }
     i *= colors_mul;
-    return vector::float4::lerp(colors[(static_cast<size_t>(i))&colors_mask], colors[(static_cast<size_t>(i)+1)&colors_mask], fmodf(i, 1.0f));
+    return vector::float4::lerp(colors[(static_cast<size_t>(i))&colors_mask], colors[(static_cast<size_t>(i)+1)&colors_mask], i - truncf(i));
 }
 
-__attribute__ ((hot, optimize("O3"), flatten))
+__attribute__ ((hot, optimize("Os"), flatten))
 vector::float4 gradient::clamp(float i) const {
     if (i <= 0.0f) {
         return colors[0];
@@ -53,10 +54,10 @@ vector::float4 gradient::clamp(float i) const {
         return colors[colors_n-1];
     }
     i *= colors_mul;
-    return vector::float4::lerp(colors[(static_cast<size_t>(i))&colors_mask], colors[(static_cast<size_t>(i)+1)&colors_mask], fmodf(i, 1.0f));
+    return vector::float4::lerp(colors[(static_cast<size_t>(i))&colors_mask], colors[(static_cast<size_t>(i)+1)&colors_mask], i - truncf(i));
 }
 
-__attribute__ ((hot, optimize("O3"), flatten))
+__attribute__ ((hot, optimize("Os"), flatten))
 static inline float fast_exp2(const float p) {
     const float offset = (p < 0) ? 1.0f : 0.0f;
     const float clipp = (p < -126) ? -126.0f : p;
@@ -68,7 +69,7 @@ static inline float fast_exp2(const float p) {
     return v.f;
 }
 
-__attribute__ ((hot, optimize("O3"), flatten))
+__attribute__ ((hot, optimize("Os"), flatten))
 static inline float fast_log2(const float x) {
     const union { float f; uint32_t i; } vx = { x };
     const union { uint32_t i; float f; } mx = { (vx.i & 0x007FFFFF) | 0x3f000000 };
@@ -78,12 +79,12 @@ static inline float fast_log2(const float x) {
              - 1.72587999f / (0.3520887068f + mx.f);
 }
 
-__attribute__ ((hot, optimize("O3"), flatten))
+__attribute__ ((hot, optimize("Os"), flatten))
 static inline float fast_pow(const float x, const float p) {
     return fast_exp2(p * fast_log2(x));
 }
 
-__attribute__ ((hot, optimize("O3"), flatten))
+__attribute__ ((hot, optimize("Os"), flatten))
 vector::float4 convert::CIELUV2sRGB(const vector::float4 &in) const {
     const float wu = 0.197839825f;
     const float wv = 0.468336303f;
