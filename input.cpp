@@ -32,8 +32,8 @@ void GPF_IRQHandler(void)
     if(GPIO_GET_INT_FLAG(PF, BIT2))
     {
         Input::instance().switch1Down = PF2 ? true : false;
-        GPIO_CLR_INT_FLAG(PF, BIT2);
         printf("(SW1) PF.2 IRQ occurred.\n");
+        GPIO_CLR_INT_FLAG(PF, BIT2);
     }
 
     if(GPIO_GET_INT_FLAG(PF, BIT4))
@@ -44,8 +44,8 @@ void GPF_IRQHandler(void)
 
     if(GPIO_GET_INT_FLAG(PF, BIT5))
     {
-        GPIO_CLR_INT_FLAG(PF, BIT5);
         printf("(DSEL) PF.5 IRQ occurred.\n");
+        GPIO_CLR_INT_FLAG(PF, BIT5);
     }
 }
 
@@ -54,15 +54,15 @@ void GPB_IRQHandler(void)
     if(GPIO_GET_INT_FLAG(PB, BIT5))
     {
         Input::instance().switch2Down = PB5 ? true : false;
-        GPIO_CLR_INT_FLAG(PB, BIT5);
         printf("(SW2) PB.5 IRQ occurred.\n");
+        GPIO_CLR_INT_FLAG(PB, BIT5);
     }
 
     if(GPIO_GET_INT_FLAG(PB, BIT15))
     {
         Input::instance().switch2Down = PB15 ? true : false;
-        GPIO_CLR_INT_FLAG(PB, BIT15);
         printf("(SW3) PB.15 IRQ occurred.\n");
+        GPIO_CLR_INT_FLAG(PB, BIT15);
     }
 }
 
@@ -78,7 +78,7 @@ Input &Input::instance() {
 }
 
 void Input::init() {
-    GPIO_SET_DEBOUNCE_TIME(GPIO_DBCTL_DBCLKSRC_LIRC, GPIO_DBCTL_DBCLKSEL_64);
+    GPIO_SET_DEBOUNCE_TIME(GPIO_DBCTL_DBCLKSRC_LIRC, GPIO_DBCTL_DBCLKSEL_256);
 
     // BQ_INT
     GPIO_SetMode(PF, BIT4, GPIO_MODE_INPUT);
@@ -112,5 +112,8 @@ void Input::init() {
     GPIO_EnableInt(PB, 15, GPIO_INT_BOTH_EDGE);
 
     NVIC_EnableIRQ(GPB_IRQn);
+    NVIC_SetPriority(GPB_IRQn, 5);
+    
     NVIC_EnableIRQ(GPF_IRQn);
+    NVIC_SetPriority(GPF_IRQn, 5);
 }
