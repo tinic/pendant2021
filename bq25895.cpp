@@ -123,10 +123,10 @@ uint32_t BQ25895::GetInputCurrent () {
 }
 
 void BQ25895::stats() {
-    printf("Battery Voltage: %g\n", BatteryVoltage());
-    printf("System Voltage: %g\n", SystemVoltage());
-    printf("VBUSVoltage Voltage: %g\n", VBUSVoltage());
-    printf("Charge Current: %g\n", ChargeCurrent());
+    printf("Battery Voltage: %g\n", double(BatteryVoltage()));
+    printf("System Voltage: %g\n", double(SystemVoltage()));
+    printf("VBUSVoltage Voltage: %g\n", double(VBUSVoltage()));
+    printf("Charge Current: %g\n", double(ChargeCurrent()));
 }
 
 void BQ25895::init() {
