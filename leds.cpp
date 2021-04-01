@@ -194,7 +194,7 @@ void Leds::prepare() {
     }
 }
 
-__attribute__ ((hot, optimize("O3"), flatten))
+__attribute__ ((hot, optimize("Os"), flatten))
 void Leds::transfer() {
     prepare();
 
