@@ -20,25 +20,55 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef I2CMANAGER_H_
-#define I2CMANAGER_H_
+#ifndef BQ25895_H_
+#define BQ25895_H_
 
 #include "./color.h"
 
-class I2CManager {
+class BQ25895 {
 public:
-    static I2CManager &instance();
+    static BQ25895 &instance();
 
-    uint8_t getReg8(uint8_t slaveAddr, uint8_t reg);
-    void setReg8(uint8_t slaveAddr, uint8_t reg, uint8_t dat);
-    void setReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask);
-    void clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask);
+    void UpdateState();
+
+    uint8_t Status() const { return status; }
+    uint8_t FaultState() const { return faultState; }
+
+    float BatteryVoltage() const { return batteryVoltage; }
+    float SystemVoltage() const { return systemVoltage; }
+    float VBUSVoltage() const { return vbusVoltage; }
+    float ChargeCurrent() const { return chargeCurrent; }
 
 private:
-    bool deviceReady(uint8_t u8SlaveAddr);
-    void probe();
+    float batteryVoltage = 0;
+    float systemVoltage = 0;
+    float vbusVoltage = 0;
+    float chargeCurrent = 0;
+    uint8_t status = 0;
+    uint8_t faultState = 0;
+
+    float ReadBatteryVoltage();
+    float ReadSystemVoltage();
+    float ReadVBUSVoltage();
+    float ReadChargeCurrent();
+
+    void DisableWatchdog();
+    void DisableOTG();
+
+    bool ADCActive();
+    void OneShotADC();
+
+    void SetInputCurrent(uint32_t currentMA);
+    uint32_t GetInputCurrent();
+
+    void SetBoostVoltage (uint32_t voltageMV);
+    uint32_t GetBoostVoltage();
+
+    static constexpr uint8_t bq25895Addr = 0x6a;
+    void stats();
+
     void init();
     bool initialized = false;
 };
 
-#endif /* I2CMANAGER_H_ */
+#endif /* BQ25895_H_ */

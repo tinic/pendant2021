@@ -98,6 +98,26 @@ void I2CManager::probe() {
     }
 }
 
+uint8_t I2CManager::getReg8(uint8_t slaveAddr, uint8_t reg) {
+    return I2C_ReadByteOneReg(I2C0, slaveAddr, reg);
+}
+
+void I2CManager::setReg8(uint8_t slaveAddr, uint8_t reg, uint8_t dat) {
+    I2C_WriteByteOneReg(I2C0, slaveAddr, reg, dat);
+}
+
+void I2CManager::setReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
+    uint8_t value = getReg8(slaveAddr, reg);
+    value |= mask;
+    setReg8(slaveAddr, reg, value);
+}
+
+void I2CManager::clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
+    uint8_t value = getReg8(slaveAddr, reg);
+    value &= ~mask;
+    setReg8(slaveAddr, reg, value);
+}
+
 void I2CManager::init() {
     NVIC_SetPriority(I2C0_IRQn, 3);
 

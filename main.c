@@ -144,45 +144,12 @@ static void SYS_Init(void)
     CLK_EnableModuleClock(QSPI0_MODULE);
     CLK_SetModuleClock(QSPI0_MODULE, CLK_CLKSEL2_QSPI0SEL_PCLK0, MODULE_NoMsk);
 
-    // EPWM0_CH3
-
-    // EPWM1_CH2
-    SYS->GPB_MFPH &= ~(SYS_GPB_MFPH_PB13MFP_Msk);
-    SYS->GPB_MFPH |= (SYS_GPB_MFPH_PB13MFP_EPWM1_CH2);
-
-    // SW1
-    GPIO_SetMode(PF, BIT2, GPIO_MODE_INPUT);
-    GPIO_SetPullCtl(PF, BIT2, GPIO_PUSEL_PULL_UP);
-    // SW2
-    GPIO_SetMode(PB, BIT5, GPIO_MODE_INPUT);
-    GPIO_SetPullCtl(PB, BIT5, GPIO_PUSEL_PULL_UP);
-    // SW3
-    GPIO_SetMode(PB, BIT15, GPIO_MODE_INPUT);
-    GPIO_SetPullCtl(PB, BIT15, GPIO_PUSEL_PULL_UP);
-    // BQ_INT
-    GPIO_SetMode(PF, BIT4, GPIO_MODE_INPUT);
-    GPIO_SetPullCtl(PF, BIT4, GPIO_PUSEL_PULL_UP);
-    // DSEL
-    GPIO_SetMode(PF, BIT5, GPIO_MODE_INPUT);
-    GPIO_SetPullCtl(PF, BIT5, GPIO_PUSEL_PULL_UP);
     // LED_ON
     GPIO_SetMode(PF, BIT3, GPIO_MODE_OUTPUT);
     // OLED_CS
     GPIO_SetMode(PB, BIT1, GPIO_MODE_OUTPUT);
     // OLED_RESET
     GPIO_SetMode(PB, BIT9, GPIO_MODE_OUTPUT);
-
-    // TOP_LED_BIRD
-    GPIO_SetMode(PB, BIT2, GPIO_MODE_OUTPUT);
-
-    CLK_EnableModuleClock(EPWM0_MODULE);
-    CLK_SetModuleClock(EPWM0_MODULE, CLK_CLKSEL2_EPWM0SEL_PLL, 0);
-
-    // BOTTOM_LED_BIRD
-    GPIO_SetMode(PB, BIT13, GPIO_MODE_OUTPUT);
-
-    CLK_EnableModuleClock(EPWM1_MODULE);
-    CLK_SetModuleClock(EPWM1_MODULE, CLK_CLKSEL2_EPWM1SEL_PLL, 0);
 
     // >>>>>> USB ----------------------------------
 

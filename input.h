@@ -20,25 +20,35 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef I2CMANAGER_H_
-#define I2CMANAGER_H_
+#ifndef INPUT_H_
+#define INPUT_H_
 
 #include "./color.h"
 
-class I2CManager {
-public:
-    static I2CManager &instance();
+extern "C" {
+    void GPB_IRQHandler(void);
+    void GPF_IRQHandler(void);
+}
 
-    uint8_t getReg8(uint8_t slaveAddr, uint8_t reg);
-    void setReg8(uint8_t slaveAddr, uint8_t reg, uint8_t dat);
-    void setReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask);
-    void clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask);
+class Input {
+public:
+    static Input &instance();
+
+    bool Switch1Down() const { return switch1Down; }
+    bool Switch2Down() const { return switch2Down; }
+    bool Switch3Down() const { return switch3Down; }
 
 private:
-    bool deviceReady(uint8_t u8SlaveAddr);
-    void probe();
+
+    friend void GPB_IRQHandler(void);
+    friend void GPF_IRQHandler(void);
+
+    bool switch1Down = false;
+    bool switch2Down = false;
+    bool switch3Down = false;
+
     void init();
     bool initialized = false;
 };
 
-#endif /* I2CMANAGER_H_ */
+#endif /* INPUT_H_ */

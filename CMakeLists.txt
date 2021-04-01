@@ -97,6 +97,8 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/pendant.cpp
     ${PROJECT_SOURCE_DIR}/bootloader.cpp
     ${PROJECT_SOURCE_DIR}/sdcard.cpp
+    ${PROJECT_SOURCE_DIR}/input.cpp
+    ${PROJECT_SOURCE_DIR}/bq25895.cpp
     ${PROJECT_SOURCE_DIR}/stubs.c
     ${PROJECT_SOURCE_DIR}/descriptors.c
     ${PROJECT_SOURCE_DIR}/msc.c

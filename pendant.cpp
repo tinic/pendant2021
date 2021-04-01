@@ -26,6 +26,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./i2cmanager.h"
 #include "./timeline.h"
 #include "./sdcard.h"
+#include "./input.h"
+#include "./bq25895.h"
 
 #include "M480.h"
 
@@ -55,6 +57,8 @@ void Pendant::init() {
     Leds::instance();
     I2CManager::instance();
     Timeline::instance();
+    Input::instance();
+    BQ25895::instance();
 }
 
 void Pendant::Run() {

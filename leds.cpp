@@ -122,6 +122,24 @@ void Leds::init() {
 
 #endif  // #ifdef USE_DMA
 
+    GPIO_SetMode(PB, BIT2, GPIO_MODE_OUTPUT);
+    PB2 = 0;
+
+    GPIO_SetMode(PB, BIT13, GPIO_MODE_OUTPUT);
+    PB13 = 0;
+
+#ifdef USE_PWM
+
+    // TOP_LED_BIRD
+    CLK_EnableModuleClock(EPWM0_MODULE);
+    CLK_SetModuleClock(EPWM0_MODULE, CLK_CLKSEL2_EPWM0SEL_PLL, 0);
+
+    // BOTTOM_LED_BIRD
+    CLK_EnableModuleClock(EPWM1_MODULE);
+    CLK_SetModuleClock(EPWM1_MODULE, CLK_CLKSEL2_EPWM1SEL_PLL, 0);
+
+#endif // #ifdef USE_PWM
+
 }
 
 void Leds::prepare() {
@@ -223,6 +241,8 @@ void Leds::transfer() {
 #endif  // #ifdef USE_DMA
 
 #ifdef USE_PWM
+
+    // TOP_LED_BIRD
     PB2 = 0;
 
     SYS->GPB_MFPL &= ~(SYS_GPB_MFPL_PB2MFP_Msk);
@@ -240,6 +260,7 @@ void Leds::transfer() {
     EPWM_SET_CNR(EPWM0, 3, 0x80);
     EPWM_SET_CMR(EPWM0, 3, *pwm0Buf++);
 
+    // BOTTOM_LED_BIRD
     PB13 = 0;
 
     SYS->GPB_MFPH &= ~(SYS_GPB_MFPH_PB13MFP_Msk);
