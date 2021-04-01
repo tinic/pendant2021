@@ -13,6 +13,11 @@ cd pendant2021_bootloaded_dgb
 cmake -G "$build_type" -DCMAKE_TOOLCHAIN_FILE=../arm-gcc-toolchain.cmake -DBOOTLOADED=1 -DCMAKE_BUILD_TYPE=Debug ..
 cmake --build .
 cd ..
+mkdir -p pendant2021_vscode_dgb
+cd pendant2021_vscode_dgb
+cmake -G "$build_type" -DCMAKE_TOOLCHAIN_FILE=../arm-gcc-toolchain.cmake -DVSCODE=1 -DCMAKE_BUILD_TYPE=Debug ..
+cmake --build .
+cd ..
 mkdir -p pendant2021_bootloader_rel
 cd pendant2021_bootloader_rel
 cmake -G "$build_type" -DCMAKE_TOOLCHAIN_FILE=../arm-gcc-toolchain.cmake -DBOOTLOADER=1 -DCMAKE_BUILD_TYPE=Release ..
@@ -21,5 +26,10 @@ cd ..
 mkdir -p pendant2021_bootloaded_rel
 cd pendant2021_bootloaded_rel
 cmake -G "$build_type" -DCMAKE_TOOLCHAIN_FILE=../arm-gcc-toolchain.cmake -DBOOTLOADED=1 -DCMAKE_BUILD_TYPE=Release ..
+cmake --build .
+cd ..
+mkdir -p pendant2021_vscode_rel
+cd pendant2021_vscode_rel
+cmake -G "$build_type" -DCMAKE_TOOLCHAIN_FILE=../arm-gcc-toolchain.cmake -DVSCODE=1 -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
 cd ..

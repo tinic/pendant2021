@@ -49,25 +49,8 @@ void Bootloader::init() {
 }
 
 void Bootloader::Run() {
-
-    HSUSBD_Open(&gsHSInfo, MSC_ClassRequest, NULL);
-
-    MSC_Init();
-
-    NVIC_SetPriority(USBD20_IRQn, 3);
-    NVIC_EnableIRQ(USBD20_IRQn);
-
     for(;;) {
-        if (HSUSBD_IS_ATTACHED()) {
-            HSUSBD_Start();
-            break;
-        }
-    }
-
-    for(;;) {
-        if (g_hsusbd_Configured) {
-            MSC_ProcessCmd();
-        }
+        __WFI();
     }
 }
 
