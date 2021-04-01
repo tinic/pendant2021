@@ -96,6 +96,7 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/timeline.cpp
     ${PROJECT_SOURCE_DIR}/pendant.cpp
     ${PROJECT_SOURCE_DIR}/bootloader.cpp
+    ${PROJECT_SOURCE_DIR}/sdcard.cpp
     ${PROJECT_SOURCE_DIR}/stubs.c
     ${PROJECT_SOURCE_DIR}/descriptors.c
     ${PROJECT_SOURCE_DIR}/msc.c
@@ -113,7 +114,8 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/timer.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/uart.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/epwm.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/hsusbd.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/usbd.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/qspi.c
     ${USB_CORE_SRC}
     ${NUVOTON0_SRC}
     ${NUVOTON1_SRC}

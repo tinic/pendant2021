@@ -186,15 +186,12 @@ static void SYS_Init(void)
 
     // >>>>>> USB ----------------------------------
 
-    /* select HSUSBD */
-    SYS->USBPHY &= ~SYS_USBPHY_HSUSBROLE_Msk;    
-    /* Enable USB PHY */
-    SYS->USBPHY = (SYS->USBPHY & ~(SYS_USBPHY_HSUSBROLE_Msk | SYS_USBPHY_HSUSBACT_Msk)) | SYS_USBPHY_HSUSBEN_Msk;
-    delay_us(100);
-    SYS->USBPHY |= SYS_USBPHY_HSUSBACT_Msk;
+    CLK->PWRCTL |= CLK_PWRCTL_HIRC48MEN_Msk;
+    CLK->CLKSEL0 &= ~CLK_CLKSEL0_USBSEL_Msk;
+
+    SYS->USBPHY = (SYS->USBPHY & ~SYS_USBPHY_USBROLE_Msk) | SYS_USBPHY_USBEN_Msk | SYS_USBPHY_SBO_Msk;
 
     CLK_EnableModuleClock(USBD_MODULE);
-    CLK_SetModuleClock(USBD_MODULE, CLK_CLKSEL0_USBSEL_RC48M, CLK_CLKDIV0_USB(1));
 
     // <<<<<< USB ----------------------------------
 

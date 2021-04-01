@@ -25,6 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./leds.h"
 #include "./i2cmanager.h"
 #include "./timeline.h"
+#include "./sdcard.h"
 
 #include "M480.h"
 
@@ -57,8 +58,12 @@ void Pendant::init() {
 }
 
 void Pendant::Run() {
+
     while (1) {
         __WFI();
+
+        SDCard::instance().process();
+
         if (Timeline::instance().CheckFrameReadyAndClear()) {
 
 #if 1
