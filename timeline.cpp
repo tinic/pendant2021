@@ -247,6 +247,7 @@ double Timeline::SystemTime() const {
 void Timeline::init() {
     TIMER_Open(TIMER3, TIMER_PERIODIC_MODE, 1);
     TIMER_EnableInt(TIMER3);
+    NVIC_SetPriority(TMR3_IRQn, 3);
     NVIC_EnableIRQ(TMR3_IRQn);
     TIMER_Start(TIMER3);
 }

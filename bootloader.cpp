@@ -54,6 +54,7 @@ void Bootloader::Run() {
 
     MSC_Init();
 
+    NVIC_SetPriority(USBD20_IRQn, 3);
     NVIC_EnableIRQ(USBD20_IRQn);
 
     for(;;) {

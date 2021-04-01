@@ -99,6 +99,8 @@ void I2CManager::probe() {
 }
 
 void I2CManager::init() {
+    NVIC_SetPriority(I2C0_IRQn, 3);
+
     I2C_Open(I2C0, 100000);
 
     probe();

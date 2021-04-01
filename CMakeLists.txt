@@ -112,7 +112,7 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/sys.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/timer.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/uart.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/usci_spi.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/epwm.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/hsusbd.c
     ${USB_CORE_SRC}
     ${NUVOTON0_SRC}

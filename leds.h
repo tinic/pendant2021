@@ -146,8 +146,10 @@ private:
     static constexpr size_t bitsPerComponent = 16;
     static constexpr size_t bitsPerLed = bitsPerComponent * 3;
 
+    static constexpr size_t extraBirdPadding = 1;
+
+    std::array<std::array<uint8_t, birdLedsN * bitsPerLed + extraBirdPadding>, sidesN> birdsLedsDMABuf;
     std::array<std::array<uint8_t, circleLedsN * bitsPerLed>, sidesN> circleLedsDMABuf;
-    std::array<std::array<uint8_t, birdLedsN * bitsPerLed>, sidesN> birdsLedsDMABuf;
 
     void transfer();
     void prepare();

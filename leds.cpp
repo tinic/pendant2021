@@ -26,10 +26,65 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./leds.h"
 #include "./color.h"
 
+#include <memory.h>
+
 #define USE_DMA 1
+#define USE_PWM 1
 
 #define SPI0_MASTER_TX_DMA_CH   0
 #define SPI1_MASTER_TX_DMA_CH   1
+
+extern "C" 
+{
+
+static uint8_t *pwm0Buf = 0;
+static uint8_t *pwm0BufEnd = 0;
+
+__attribute__ ((optimize("Os"), flatten))
+void EPWM0P1_IRQHandler(void) {
+    static volatile uint32_t *cmr = &EPWM0->CMPDAT[3];
+    static volatile uint32_t *intsts0 = &EPWM0->INTSTS0;
+    static volatile uint32_t *cnten0 = &EPWM0->CNTEN;
+    static volatile uint32_t *cnten1 = &EPWM1->CNTEN;
+    static volatile uint32_t *gpb_mfpl = &SYS->GPB_MFPL;
+    // Set new interval within fewest cycles possible in interrupt
+    *cmr = *pwm0Buf;
+    // Clear zero interrupt flag
+    *intsts0 = ((1UL << EPWM_INTEN0_ZIEN0_Pos) << 3);
+    // Now check if we are at the end
+    if (++pwm0Buf >= pwm0BufEnd) {
+        // Stop Top
+        *cnten0 &= ~EPWM_CH_3_MASK;
+        // Pull line down by setting back to GPIO
+        *gpb_mfpl = (*gpb_mfpl & ~(SYS_GPB_MFPL_PB2MFP_Msk)) | (SYS_GPB_MFPL_PB2MFP_GPIO);
+        // Enable Bottom
+        *cnten1 |= EPWM_CH_2_MASK;
+    }
+}
+
+static uint8_t *pwm1Buf = 0;
+static uint8_t *pwm1BufEnd = 0;
+
+__attribute__ ((optimize("Os"), flatten))
+void EPWM1P1_IRQHandler(void) {
+    static volatile uint32_t *cmr = &EPWM1->CMPDAT[2];
+    static volatile uint32_t *intsts0 = &EPWM1->INTSTS0;
+    static volatile uint32_t *cnten = &EPWM1->CNTEN;
+    static volatile uint32_t *gpb_mfpl = &SYS->GPB_MFPL;
+    // Set new interval within fewest cycles possible in interrupt
+    *cmr = *pwm1Buf;
+    // Clear zero interrupt flag
+    *intsts0 = ((1UL << EPWM_INTEN0_ZIEN0_Pos) << 2);
+    // Now check if we are at the end
+    if (++pwm1Buf >= pwm1BufEnd) {
+        // Stop Bottom
+        *cnten &= ~EPWM_CH_2_MASK;
+        // Pull line down by setting back to GPIO
+        *gpb_mfpl = (*gpb_mfpl & ~(SYS_GPB_MFPH_PB13MFP_Msk)) | (SYS_GPB_MFPH_PB13MFP_GPIO);
+    }
+}
+
+}
 
 Leds &Leds::instance() {
     static Leds leds;
@@ -47,8 +102,6 @@ void Leds::init() {
 
     SPI_Open(SPI0, SPI_MASTER, SPI_MODE_0, 8, 8000000);
     SPI_Open(SPI1, SPI_MASTER, SPI_MODE_0, 8, 8000000);
-    USPI_Open(USPI0, USPI_MASTER, USPI_MODE_0, 8, 8000000);
-    USPI_Open(USPI1, USPI_MASTER, USPI_MODE_0, 8, 8000000);
 
 #ifdef USE_DMA
 
@@ -68,12 +121,15 @@ void Leds::init() {
 
 #endif  // #ifdef USE_DMA
 
+#ifdef USE_PWM
+#endif  // #ifdef USE_PWM
+
 }
 
 void Leds::prepare() {
     static color::convert converter;
 
-    auto convert_to_one_wire = [] (uint8_t *p, uint16_t v) {
+    auto convert_to_one_wire_spi = [] (uint8_t *p, uint16_t v) {
         for (uint32_t c = 0; c < 16; c++) {
             if ( ((1<<(15-c)) & v) != 0 ) {
                 *p++ = 0b11110000;
@@ -84,6 +140,9 @@ void Leds::prepare() {
         return p;
     };
 
+    memset(circleLedsDMABuf[0].data(),0,circleLedsDMABuf[0].size());
+    memset(circleLedsDMABuf[1].data(),0,circleLedsDMABuf[1].size());
+
     uint8_t *ptr0 = circleLedsDMABuf[0].data();
     uint8_t *ptr1 = circleLedsDMABuf[1].data();
     for (size_t c = 0; c < circleLedsN; c++) {
@@ -91,13 +150,27 @@ void Leds::prepare() {
         color::rgba<uint16_t> pixel0(color::rgba<uint16_t>(converter.CIELUV2sRGB(circleLeds[0][c])).fix_for_ws2816());
         color::rgba<uint16_t> pixel1(color::rgba<uint16_t>(converter.CIELUV2sRGB(circleLeds[1][c])).fix_for_ws2816());
 
-        ptr0 = convert_to_one_wire(ptr0, pixel0.g);
-        ptr0 = convert_to_one_wire(ptr0, pixel0.r);
-        ptr0 = convert_to_one_wire(ptr0, pixel0.b);
-        ptr1 = convert_to_one_wire(ptr1, pixel1.g);
-        ptr1 = convert_to_one_wire(ptr1, pixel1.r);
-        ptr1 = convert_to_one_wire(ptr1, pixel1.b);
+        ptr0 = convert_to_one_wire_spi(ptr0, pixel0.g);
+        ptr0 = convert_to_one_wire_spi(ptr0, pixel0.r);
+        ptr0 = convert_to_one_wire_spi(ptr0, pixel0.b);
+        ptr1 = convert_to_one_wire_spi(ptr1, pixel1.g);
+        ptr1 = convert_to_one_wire_spi(ptr1, pixel1.r);
+        ptr1 = convert_to_one_wire_spi(ptr1, pixel1.b);
     }
+
+    auto convert_to_one_wire_pwm = [] (uint8_t *p, uint16_t v) {
+        for (uint32_t c = 0; c < 16; c++) {
+            if ( ((1<<(15-c)) & v) != 0 ) {
+                *p++ = 0x40;
+            } else {
+                *p++ = 0x20;
+            }
+        }
+        return p;
+    };
+
+    memset(birdsLedsDMABuf[0].data(),0,birdsLedsDMABuf[0].size());
+    memset(birdsLedsDMABuf[1].data(),0,birdsLedsDMABuf[1].size());
 
     uint8_t *ptr2 = birdsLedsDMABuf[0].data();
     uint8_t *ptr3 = birdsLedsDMABuf[1].data();
@@ -105,12 +178,21 @@ void Leds::prepare() {
         color::rgba<uint16_t> pixel0(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[0][c])).fix_for_ws2816());
         color::rgba<uint16_t> pixel1(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[1][c])).fix_for_ws2816());
 
-        ptr2 = convert_to_one_wire(ptr2, pixel0.g);
-        ptr2 = convert_to_one_wire(ptr2, pixel0.r);
-        ptr2 = convert_to_one_wire(ptr2, pixel0.b);
-        ptr3 = convert_to_one_wire(ptr3, pixel1.g);
-        ptr3 = convert_to_one_wire(ptr3, pixel1.r);
-        ptr3 = convert_to_one_wire(ptr3, pixel1.b);
+#ifdef USE_PWM
+        ptr2 = convert_to_one_wire_pwm(ptr2, pixel0.g);
+        ptr2 = convert_to_one_wire_pwm(ptr2, pixel0.r);
+        ptr2 = convert_to_one_wire_pwm(ptr2, pixel0.b);
+        ptr3 = convert_to_one_wire_pwm(ptr3, pixel1.g);
+        ptr3 = convert_to_one_wire_pwm(ptr3, pixel1.r);
+        ptr3 = convert_to_one_wire_pwm(ptr3, pixel1.b);
+#else  // #ifdef USE_PWM
+        ptr2 = convert_to_one_wire_spi(ptr2, pixel0.g);
+        ptr2 = convert_to_one_wire_spi(ptr2, pixel0.r);
+        ptr2 = convert_to_one_wire_spi(ptr2, pixel0.b);
+        ptr3 = convert_to_one_wire_spi(ptr3, pixel1.g);
+        ptr3 = convert_to_one_wire_spi(ptr3, pixel1.r);
+        ptr3 = convert_to_one_wire_spi(ptr3, pixel1.b);
+#endif  // #ifdef USE_PWM
     }
 }
 
@@ -120,36 +202,80 @@ void Leds::transfer() {
 
 #ifdef USE_DMA
 
-    PDMA_SetTransferCnt(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[0].size() + 256);
+    PDMA_SetTransferCnt(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[0].size());
     PDMA_SetTransferMode(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_SPI0_TX, FALSE, 0);
     SPI_TRIGGER_TX_PDMA(SPI0);
 
-    PDMA_SetTransferCnt(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[1].size() + 256);
+    PDMA_SetTransferCnt(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[1].size());
     PDMA_SetTransferMode(PDMA,SPI1_MASTER_TX_DMA_CH, PDMA_SPI1_TX, FALSE, 0);
     SPI_TRIGGER_TX_PDMA(SPI1);
 
 #else  // #ifdef USE_DMA
 
-    for(size_t c = 0; c < circleLedsDMABuf[0].size() + 256; c++) {
+    for(size_t c = 0; c < circleLedsDMABuf[0].size(); c++) {
         while(SPI_GET_TX_FIFO_FULL_FLAG(SPI0) == 1) {}
         SPI_WRITE_TX(SPI0, circleLedsDMABuf[0].data()[c]);
     }
 
-    for(size_t c = 0; c < circleLedsDMABuf[0].size() + 256; c++) {
+    for(size_t c = 0; c < circleLedsDMABuf[1].size(); c++) {
         while(SPI_GET_TX_FIFO_FULL_FLAG(SPI1) == 1) {}
         SPI_WRITE_TX(SPI1, circleLedsDMABuf[1].data()[c]);
     }
 
 #endif  // #ifdef USE_DMA
 
+#ifdef USE_PWM
+    PB2 = 0;
+
+    SYS->GPB_MFPL &= ~(SYS_GPB_MFPL_PB2MFP_Msk);
+    SYS->GPB_MFPL |= (SYS_GPB_MFPL_PB2MFP_EPWM0_CH3);
+
+    EPWM_ConfigOutputChannel(EPWM0, 3, 8000000, 0);
+    EPWM_EnableOutput(EPWM0, EPWM_CH_3_MASK);
+    EPWM_EnableZeroInt(EPWM0, 3);
+    NVIC_SetPriority(EPWM0P1_IRQn, 0);
+    NVIC_EnableIRQ(EPWM0P1_IRQn);
+
+    pwm0Buf = birdsLedsDMABuf[0].data();
+    pwm0BufEnd = pwm0Buf + birdsLedsDMABuf[0].size();
+
+    EPWM_SET_CNR(EPWM0, 3, 0x80);
+    EPWM_SET_CMR(EPWM0, 3, *pwm0Buf++);
+
+    PB13 = 0;
+
+    SYS->GPB_MFPH &= ~(SYS_GPB_MFPH_PB13MFP_Msk);
+    SYS->GPB_MFPH |= (SYS_GPB_MFPH_PB13MFP_EPWM1_CH2);
+
+    EPWM_ConfigOutputChannel(EPWM1, 2, 800000, 0);
+    EPWM_EnableOutput(EPWM1, BPWM_CH_2_MASK);
+    EPWM_EnableZeroInt(EPWM1, 2);
+    NVIC_SetPriority(EPWM1P1_IRQn, 0);
+    NVIC_EnableIRQ(EPWM1P1_IRQn);
+
+    pwm1Buf = birdsLedsDMABuf[1].data();
+    pwm1BufEnd = pwm1Buf + birdsLedsDMABuf[1].size();
+
+    EPWM_SET_CNR(EPWM1, 2, 0x80);
+    EPWM_SET_CMR(EPWM1, 2, *pwm1Buf++);
+
+    // Start Top
+    EPWM_Start(EPWM0, EPWM_CH_3_MASK);
+
+#else  // #ifdef USE_PWM
+
 #define DELAY() \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
     asm volatile ("nop"::); \
     asm volatile ("nop"::); \
     asm volatile ("nop"::); \
     asm volatile ("nop"::);
 
     __disable_irq();
-    for (size_t c = 0; c < birdsLedsDMABuf[0].size()+256; c++) {
+    for (size_t c = 0; c < birdsLedsDMABuf[0].size(); c++) {
         PB2 = (birdsLedsDMABuf[0][c] >> 7) & 1;
         PB13 = (birdsLedsDMABuf[1][c] >> 7) & 1;
         DELAY();
@@ -175,5 +301,8 @@ void Leds::transfer() {
         PB13 = (birdsLedsDMABuf[1][c] >> 0) & 1;
         DELAY();
     }
+    PB2 = 0;
+    PB13 = 0;
     __enable_irq();
+#endif // #ifdef USE_PWM
 }
