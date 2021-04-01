@@ -58,29 +58,26 @@ void Pendant::init() {
 
 void Pendant::Run() {
     while (1) {
-        static double oldtime = 0;
-        double newtime = Timeline::instance().SystemTime();
-        if ((newtime - oldtime) > 0.05f) {
+        __WFI();
+        if (Timeline::instance().CheckFrameReadyAndClear()) {
+
 #if 1
             static float rot = 0.0f;
             rot+=0.01f;
             for (size_t c = 0; c < Leds::instance().circleLedsN; c++) {
-                Leds::instance().setCircle(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 1.f);
-                Leds::instance().setCircle(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 1.f);
+                Leds::instance().setCircle(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+                Leds::instance().setCircle(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
             }
             for (size_t c = 0; c < Leds::instance().birdLedsN; c++) {
-                Leds::instance().setBird(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 1.f);
-                Leds::instance().setBird(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 1.f);
-                //Leds::instance().setBird(0,c,color::srgb8({0xff,0x00,0x00}));
-                //Leds::instance().setBird(1,c,color::srgb8({0xff,0x00,0x00}));
+                Leds::instance().setBird(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+                Leds::instance().setBird(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
             }
 #endif  // #if 1
-           // printf("%f\r",float(newtime));
+
+            printf("%f\r",float(Timeline::instance().SystemTime()));
             fflush(stdout);
-            oldtime = newtime;
             Leds::instance().apply();
         }
-        // __WFI();
     }
 }
 

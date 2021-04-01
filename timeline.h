@@ -44,6 +44,8 @@ public:
 class Timeline {
 public:
 
+    static constexpr double frameRate = 120.0;
+
     class Span {
     public:
 
@@ -96,6 +98,7 @@ public:
     static Timeline &instance();
 
     double SystemTime() const;
+    bool CheckFrameReadyAndClear();
 
     void Add(Timeline::Span &span);
     void Remove(Timeline::Span &span);

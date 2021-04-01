@@ -98,6 +98,7 @@ Leds &Leds::instance() {
 void Leds::init() {
     half();
 
+    // Turn Mosfet on
     PF3 = 0;
 
     SPI_Open(SPI0, SPI_MASTER, SPI_MODE_0, 8, 8000000);
@@ -120,9 +121,6 @@ void Leds::init() {
     PDMA->DSCT[SPI1_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
 
 #endif  // #ifdef USE_DMA
-
-#ifdef USE_PWM
-#endif  // #ifdef USE_PWM
 
 }
 

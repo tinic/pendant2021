@@ -146,7 +146,7 @@ private:
     static constexpr size_t bitsPerComponent = 16;
     static constexpr size_t bitsPerLed = bitsPerComponent * 3;
 
-    static constexpr size_t extraBirdPadding = 1;
+    static constexpr size_t extraBirdPadding = 1; // Need padding for PWM
 
     std::array<std::array<uint8_t, birdLedsN * bitsPerLed + extraBirdPadding>, sidesN> birdsLedsDMABuf;
     std::array<std::array<uint8_t, circleLedsN * bitsPerLed>, sidesN> circleLedsDMABuf;

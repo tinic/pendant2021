@@ -29,13 +29,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <array>
 
 extern "C" {
+
 static uint32_t systemSeconds = 0;
 
 void TMR3_IRQHandler(void)
 {
-    TIMER_ClearIntFlag(TIMER3);
     systemSeconds++;
+    TIMER_ClearIntFlag(TIMER3);
 }
+
+static bool frameReady = false;
+
+void TMR2_IRQHandler(void)
+{
+    frameReady = true;
+    TIMER_ClearIntFlag(TIMER2);
+}
+
 }
 
 float Quad::easeIn (float t,float b , float c, float d) {
@@ -244,10 +254,26 @@ double Timeline::SystemTime() const {
     return double(uint64_t(systemSeconds) * uint64_t(TIMER3->CMP) + uint64_t(TIMER3->CNT)) / double(TIMER3->CMP);
 }
 
+bool Timeline::CheckFrameReadyAndClear() {
+    if (frameReady) {
+        frameReady = false;
+        return true;
+    }
+    return false;
+}
+
 void Timeline::init() {
+    // Frame rate timer
+    TIMER_Open(TIMER2, TIMER_PERIODIC_MODE, int32_t(frameRate));
+    TIMER_EnableInt(TIMER2);
+    NVIC_SetPriority(TMR2_IRQn, 2);
+    NVIC_EnableIRQ(TMR2_IRQn);
+    TIMER_Start(TIMER2);
+
+    // SystemTime timer
     TIMER_Open(TIMER3, TIMER_PERIODIC_MODE, 1);
     TIMER_EnableInt(TIMER3);
-    NVIC_SetPriority(TMR3_IRQn, 3);
+    NVIC_SetPriority(TMR3_IRQn, 1);
     NVIC_EnableIRQ(TMR3_IRQn);
     TIMER_Start(TIMER3);
 }
