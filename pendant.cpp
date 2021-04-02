@@ -63,7 +63,7 @@ void Pendant::init() {
     ENS210::instance();
 }
 
-__attribute__ ((optimize("Os"), flatten))
+__attribute__ ((optimize("Os")))
 void Pendant::DemoPattern() {
     static float rot = 0.0f;
     rot+=0.01f;
