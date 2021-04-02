@@ -63,6 +63,20 @@ void Pendant::init() {
     ENS210::instance();
 }
 
+__attribute__ ((optimize("Os"), flatten))
+void Pendant::DemoPattern() {
+    static float rot = 0.0f;
+    rot+=0.01f;
+    for (size_t c = 0; c < Leds::instance().circleLedsN; c++) {
+        Leds::instance().setCircle(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+        Leds::instance().setCircle(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+    }
+    for (size_t c = 0; c < Leds::instance().birdLedsN; c++) {
+        Leds::instance().setBird(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+        Leds::instance().setBird(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+    }
+}
+
 void Pendant::Run() {
 
     while (1) {
@@ -84,18 +98,7 @@ void Pendant::Run() {
             delta_idle = b - a;
             SDCard::instance().process();
 
-#if 1
-            static float rot = 0.0f;
-            rot+=0.01f;
-            for (size_t c = 0; c < Leds::instance().circleLedsN; c++) {
-                Leds::instance().setCircle(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-                Leds::instance().setCircle(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-            }
-            for (size_t c = 0; c < Leds::instance().birdLedsN; c++) {
-                Leds::instance().setBird(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-                Leds::instance().setBird(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-            }
-#endif  // #if 1
+            DemoPattern();
 
             Leds::instance().apply();
             volatile double c = Timeline::instance().SystemTime();

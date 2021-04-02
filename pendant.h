@@ -34,6 +34,9 @@ public:
     void Run();
 
 private:
+
+    void DemoPattern();
+
     bool initialized = false;
     void init();
 };
