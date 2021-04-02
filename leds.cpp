@@ -162,6 +162,7 @@ void Leds::prepare() {
         ptr1 = convert_to_one_wire_spi(ptr1, pixel1.g);
         ptr1 = convert_to_one_wire_spi(ptr1, pixel1.r);
         ptr1 = convert_to_one_wire_spi(ptr1, pixel1.b);
+
     }
 
 #ifdef USE_PWM

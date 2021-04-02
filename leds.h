@@ -169,11 +169,11 @@ private:
 
 #ifdef USE_PWM
     static constexpr size_t extraBirdPadding = 1; // Need padding for PWM
-    std::array<std::array<uint8_t, birdLedsN * bitsPerLed + extraBirdPadding>, sidesN> birdsLedsDMABuf;
+    std::array<std::array<uint8_t, birdLedsN * bitsPerLed + extraBirdPadding>, sidesN> birdsLedsDMABuf __attribute__ ((aligned (16)));
 #else  // #ifdef USE_PWM
-    std::array<std::array<uint8_t, birdLedsN * bitsPerLed / 2>, sidesN> birdsLedsDMABuf;
+    std::array<std::array<uint8_t, (birdLedsN * bitsPerLed) / 2>, sidesN> birdsLedsDMABuf __attribute__ ((aligned (16)));
 #endif  // #ifdef USE_PWM
-    std::array<std::array<uint8_t, circleLedsN * bitsPerLed / 2>, sidesN> circleLedsDMABuf;
+    std::array<std::array<uint8_t, (circleLedsN * bitsPerLed) / 2>, sidesN> circleLedsDMABuf __attribute__ ((aligned (16)));
 
     void transfer();
     void prepare();
