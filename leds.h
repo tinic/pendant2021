@@ -28,6 +28,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <numbers>
 #include <cmath>
 
+#define USE_DMA 1
+#define USE_PWM 1
+
 class Leds {
 public:
     static constexpr size_t sidesN = 2;
@@ -140,16 +143,37 @@ public:
     }
 
 private:
+
+    static const struct lut_table {
+        consteval lut_table() {
+            for (uint32_t c = 0; c < 256; c++) {
+                table[c] = 0x88888888 |
+                        (((c >>  4) | (c <<  6) | (c << 16) | (c << 26)) & 0x04040404)|
+                        (((c >>  1) | (c <<  9) | (c << 19) | (c << 29)) & 0x40404040);
+            }
+        }
+
+        uint32_t operator[](size_t index) const {
+            return table[index];
+        }
+
+    private:
+        uint32_t table[256];
+    } lut;
+
     std::array<std::array<vector::float4, circleLedsN>, sidesN> circleLeds;
     std::array<std::array<vector::float4, birdLedsN>, sidesN> birdLeds;
 
     static constexpr size_t bitsPerComponent = 16;
     static constexpr size_t bitsPerLed = bitsPerComponent * 3;
 
+#ifdef USE_PWM
     static constexpr size_t extraBirdPadding = 1; // Need padding for PWM
-
     std::array<std::array<uint8_t, birdLedsN * bitsPerLed + extraBirdPadding>, sidesN> birdsLedsDMABuf;
-    std::array<std::array<uint8_t, circleLedsN * bitsPerLed>, sidesN> circleLedsDMABuf;
+#else  // #ifdef USE_PWM
+    std::array<std::array<uint8_t, birdLedsN * bitsPerLed / 2>, sidesN> birdsLedsDMABuf;
+#endif  // #ifdef USE_PWM
+    std::array<std::array<uint8_t, circleLedsN * bitsPerLed / 2>, sidesN> circleLedsDMABuf;
 
     void transfer();
     void prepare();

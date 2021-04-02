@@ -28,9 +28,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <memory.h>
 
-#define USE_DMA 1
-#define USE_PWM 1
-
 #define SPI0_MASTER_TX_DMA_CH   0
 #define SPI1_MASTER_TX_DMA_CH   1
 
@@ -95,14 +92,16 @@ Leds &Leds::instance() {
     return leds;
 }
 
+const Leds::lut_table Leds::lut;
+
 void Leds::init() {
     half();
 
     // Turn Mosfet on
     PF3 = 0;
 
-    SPI_Open(SPI0, SPI_MASTER, SPI_MODE_0, 8, 8000000);
-    SPI_Open(SPI1, SPI_MASTER, SPI_MODE_0, 8, 8000000);
+    SPI_Open(SPI0, SPI_MASTER, SPI_MODE_0, 8, 4000000);
+    SPI_Open(SPI1, SPI_MASTER, SPI_MODE_0, 8, 4000000);
 
 #ifdef USE_DMA
 
@@ -145,23 +144,17 @@ void Leds::init() {
 void Leds::prepare() {
     static color::convert converter;
 
-    auto convert_to_one_wire_spi = [] (uint8_t *p, uint16_t v) {
-        for (uint32_t c = 0; c < 16; c++) {
-            if ( ((1<<(15-c)) & v) != 0 ) {
-                *p++ = 0b11110000;
-            } else {
-                *p++ = 0b11000000;
-            }
-        }
-        return p;
-    };
-
-    uint8_t *ptr0 = circleLedsDMABuf[0].data();
-    uint8_t *ptr1 = circleLedsDMABuf[1].data();
+    uint32_t *ptr0 = reinterpret_cast<uint32_t *>(circleLedsDMABuf[0].data());
+    uint32_t *ptr1 = reinterpret_cast<uint32_t *>(circleLedsDMABuf[1].data());
     for (size_t c = 0; c < circleLedsN; c++) {
-
         color::rgba<uint16_t> pixel0(color::rgba<uint16_t>(converter.CIELUV2sRGB(circleLeds[0][c])).fix_for_ws2816());
         color::rgba<uint16_t> pixel1(color::rgba<uint16_t>(converter.CIELUV2sRGB(circleLeds[1][c])).fix_for_ws2816());
+
+        auto convert_to_one_wire_spi = [] (uint32_t *p, uint16_t v) {
+            *p++ = lut[(v>>8)&0xFF];
+            *p++ = lut[(v>>0)&0xFF];
+            return p;
+        };
 
         ptr0 = convert_to_one_wire_spi(ptr0, pixel0.g);
         ptr0 = convert_to_one_wire_spi(ptr0, pixel0.r);
@@ -171,24 +164,30 @@ void Leds::prepare() {
         ptr1 = convert_to_one_wire_spi(ptr1, pixel1.b);
     }
 
-    auto convert_to_one_wire_pwm = [] (uint8_t *p, uint16_t v) {
-        for (uint32_t c = 0; c < 16; c++) {
-            if ( ((1<<(15-c)) & v) != 0 ) {
-                *p++ = 0x40;
-            } else {
-                *p++ = 0x20;
-            }
-        }
-        return p;
-    };
-
+#ifdef USE_PWM
     uint8_t *ptr2 = birdsLedsDMABuf[0].data();
     uint8_t *ptr3 = birdsLedsDMABuf[1].data();
+#else  // #ifdef USE_PWM
+    uint32_t *ptr2 = reinterpret_cast<uint32_t *>(birdsLedsDMABuf[0].data());
+    uint32_t *ptr3 = reinterpret_cast<uint32_t *>(birdsLedsDMABuf[1].data());
+#endif  // #ifdef USE_PWM
     for (size_t c = 0; c < birdLedsN; c++) {
         color::rgba<uint16_t> pixel0(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[0][c])).fix_for_ws2816());
         color::rgba<uint16_t> pixel1(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[1][c])).fix_for_ws2816());
 
 #ifdef USE_PWM
+
+        auto convert_to_one_wire_pwm = [] (uint8_t *p, uint16_t v) {
+            for (uint32_t b = 0; b < 16; b++) {
+                if ( ((1<<(15-b)) & v) != 0 ) {
+                    *p++ = 0x40;
+                } else {
+                    *p++ = 0x20;
+                }
+            }
+            return p;
+        };
+
         ptr2 = convert_to_one_wire_pwm(ptr2, pixel0.g);
         ptr2 = convert_to_one_wire_pwm(ptr2, pixel0.r);
         ptr2 = convert_to_one_wire_pwm(ptr2, pixel0.b);
@@ -196,6 +195,13 @@ void Leds::prepare() {
         ptr3 = convert_to_one_wire_pwm(ptr3, pixel1.r);
         ptr3 = convert_to_one_wire_pwm(ptr3, pixel1.b);
 #else  // #ifdef USE_PWM
+
+        auto convert_to_one_wire_spi = [] (uint32_t *p, uint16_t v) {
+            *p++ = lut[(v>>8)&0xFF];
+            *p++ = lut[(v>>0)&0xFF];
+            return p;
+        };
+
         ptr2 = convert_to_one_wire_spi(ptr2, pixel0.g);
         ptr2 = convert_to_one_wire_spi(ptr2, pixel0.r);
         ptr2 = convert_to_one_wire_spi(ptr2, pixel0.b);
