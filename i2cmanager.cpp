@@ -33,6 +33,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern "C" {
 
+__attribute__ ((optimize("Os"), flatten))
 static void nullIRQHandler(void) {
     I2C_WAIT_READY(I2C0) { 
         if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
@@ -41,22 +42,27 @@ static void nullIRQHandler(void) {
     }
 }
 
+__attribute__ ((optimize("Os"), flatten))
 static void writeIRQHandler(void) {
     I2CManager::instance().writeIRQ();
 }
 
+__attribute__ ((optimize("Os"), flatten))
 static void readIRQHandler(void) {
     I2CManager::instance().readIRQ();
 }
 
+__attribute__ ((optimize("Os"), flatten))
 static void setReg8IRQHandler(void) {
     I2CManager::instance().setReg8IRQ();
 }
 
+__attribute__ ((optimize("Os"), flatten))
 static void getReg8IRQHandler(void) {
     I2CManager::instance().getReg8IRQ();
 }
 
+__attribute__ ((optimize("Os"), flatten))
 static void batchWriteIRQHandler(void) {
     I2CManager::instance().batchWriteIRQ();
 }
