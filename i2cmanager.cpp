@@ -33,8 +33,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern "C" {
 
-typedef void (*I2C_FUNC)(void);
-static I2C_FUNC s_I2C0HandlerFn = 0;
+static void nullIRQHandler(void) {
+    I2C_WAIT_READY(I2C0) { 
+        if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
+            I2C_ClearTimeoutFlag(I2C0);
+        }
+    }
+}
 
 static void writeIRQHandler(void) {
     I2CManager::instance().writeIRQ();
@@ -56,18 +61,13 @@ static void batchWriteIRQHandler(void) {
     I2CManager::instance().batchWriteIRQ();
 }
 
+typedef void (*I2C_FUNC)(void);
+static I2C_FUNC s_I2C0HandlerFn = nullIRQHandler;
+
 __attribute__ ((optimize("Os"), flatten))
 void I2C0_IRQHandler(void)
 {
-    if (s_I2C0HandlerFn) {
-        s_I2C0HandlerFn();
-    } else {
-        I2C_WAIT_READY(I2C0) { 
-            if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
-                I2C_ClearTimeoutFlag(I2C0);
-            }
-        }
-    }
+    s_I2C0HandlerFn();
 }
 
 }
