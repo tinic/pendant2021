@@ -230,8 +230,8 @@ void I2CManager::batchWriteIRQ() {
         I2C_SET_DATA(I2C0, (uint8_t)(u8SlaveAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
         u8Ctrl = I2C_CTL_SI;                                        /* Clear SI */
         break;
-    case 0x18u:                                                     /* Slave Address ACK */
-    case 0x28u:
+    [[likely]] case 0x18u:                                                     /* Slave Address ACK */
+    [[likely]] case 0x28u:
         if(u32txLen < u32wLen) {
             I2C_SET_DATA(I2C0, qBufPtr[u32txLen++]);                /* Write Data to I2CDAT */
             u8Ctrl = I2C_CTL_SI_AA;                                 /* Clear SI */
@@ -312,8 +312,8 @@ void I2CManager::writeIRQ() {
         I2C_SET_DATA(I2C0, (uint8_t)(u8SlaveAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
         u8Ctrl = I2C_CTL_SI;                                        /* Clear SI */
         break;
-    case 0x18u:                                                     /* Slave Address ACK */
-    case 0x28u:
+    [[likely]] case 0x18u:                                                     /* Slave Address ACK */
+    [[likely]] case 0x28u:
         if(u32txLen < u32wLen)
         {
             I2C_SET_DATA(I2C0, txBuf[u32txLen++]);                  /* Write Data to I2CDAT */
@@ -393,7 +393,7 @@ void I2CManager::readIRQ() {
         u8Ctrl = I2C_CTL_STO_SI;                                /* Clear SI and send STOP */
         u8Err = 1u;
         break;
-    case 0x50u:
+    [[likely]] case 0x50u:
         rxBuf[u32rxLen++] = (unsigned char) I2C_GET_DATA(I2C0); /* Receive Data */
         if(u32rxLen < (u32rLen - 1u)) {
             u8Ctrl = I2C_CTL_SI_AA;                             /* Clear SI and set ACK */
