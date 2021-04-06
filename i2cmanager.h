@@ -72,11 +72,9 @@ private:
     uint32_t u32rxLen = 0u;
     uint32_t u32wLen = 0u;
     uint32_t u32rLen = 0u;
-
-    uint8_t txBuf[256];
-    uint8_t rxBuf[256];
-
-    uint8_t qBufSeq[4096];
+    uint8_t txBuf[64];
+    uint8_t rxBuf[64];
+    uint8_t qBufSeq[1280];
     uint8_t *qBufPtr = 0;
     uint8_t *qBufEnd = 0;
 

@@ -175,6 +175,11 @@ void I2CManager::queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len) 
         return;
     }
 
+    if (((qBufEnd + len + 2) - qBufSeq) > sizeof(qBufSeq)) {
+        printf("I2C batch buffer too small (wanted at least %d bytes)!\n", ((qBufEnd + len + 2) - qBufSeq));
+        return;
+    }
+
     *qBufEnd++ = slaveAddr;
     *qBufEnd++ = len;
     memcpy(qBufEnd, data, len);

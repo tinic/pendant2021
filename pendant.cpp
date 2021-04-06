@@ -109,7 +109,6 @@ void Pendant::Run() {
 
                 last_printf = Timeline::instance().SystemTime();      
                 SDD1306::instance().ClearCache();
-                SDD1306::instance().ClearAttr();
                 char str[32];
                 sprintf(str,"B:%6.1f%%", (delta_busy/(delta_idle+delta_busy))*100.0);
                 SDD1306::instance().PlaceUTF8String(0,0,str);
