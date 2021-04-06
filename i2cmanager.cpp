@@ -44,7 +44,7 @@ static void readIRQHandler(void) {
     I2CManager::instance().readIRQ();
 }
 
-static void setReg8IRQIRQHandler(void) {
+static void setReg8IRQHandler(void) {
     I2CManager::instance().setReg8IRQ();
 }
 
