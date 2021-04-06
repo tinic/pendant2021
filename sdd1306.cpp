@@ -27,6 +27,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <memory.h>
 
+static constexpr
 #include "font.h"
 
 static void delay_us(int usec) {
