@@ -141,8 +141,6 @@ void I2CManager::probe() {
 
 void I2CManager::batchClear() {
 
-    if (qBufEnd) printf("Fuck0\n");
-
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 
     qBufEnd = qBufSeq;
@@ -150,6 +148,7 @@ void I2CManager::batchClear() {
 }
 
 void I2CManager::queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len) {
+
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 
     if (!qBufEnd || !qBufPtr) {
@@ -163,6 +162,7 @@ void I2CManager::queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len) 
 }
 
 void I2CManager::batchWrite() {
+
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 
     if (!qBufEnd || !qBufPtr) {
@@ -242,8 +242,6 @@ void I2CManager::batchWriteIRQ() {
 
 void I2CManager::write(uint8_t _u8SlaveAddr, uint8_t data[], size_t _u32wLen) {
 
-    if (qBufEnd) printf("Fuck1\n");
-
     // Wait for pending write
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 
@@ -315,8 +313,6 @@ void I2CManager::writeIRQ() {
 }
 
 uint8_t I2CManager::read(uint8_t _u8SlaveAddr, uint8_t rdata[], size_t _u32rLen) {
-
-    if (qBufEnd) printf("Fuck2\n");
 
     // Wait for pending write
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
@@ -394,8 +390,6 @@ void I2CManager::readIRQ() {
 
 uint8_t I2CManager::getReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr) {
 
-    if (qBufEnd) printf("Fuck3\n");
-
     // Wait for pending write
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 
@@ -472,8 +466,6 @@ void I2CManager::getReg8IRQ() {
 
 
 void I2CManager::setReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr, uint8_t _u8WData) {
-
-    if (qBufEnd) printf("Fuck4\n");
 
     // Wait for pending write
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }

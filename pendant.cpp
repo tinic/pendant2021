@@ -103,15 +103,24 @@ void Pendant::Run() {
             delta_busy = c - b;
 
             static double last_printf = 0;
-            if ( (Timeline::instance().SystemTime() - last_printf ) > (1.0/30.0)) {      
+            if ( (Timeline::instance().SystemTime() - last_printf ) > (1.0/10.0)) {     
+                ENS210::instance().update();
+                BQ25895::instance().UpdateState();
+
                 last_printf = Timeline::instance().SystemTime();      
                 SDD1306::instance().ClearCache();
                 SDD1306::instance().ClearAttr();
                 char str[32];
-                sprintf(str,"B:%7.1f%%", (delta_busy/(delta_idle+delta_busy))*100.0);
+                sprintf(str,"B:%6.1f%%", (delta_busy/(delta_idle+delta_busy))*100.0);
                 SDD1306::instance().PlaceUTF8String(0,0,str);
-                sprintf(str,"T:%7.1f", Timeline::instance().SystemTime());
+                sprintf(str,"D:%6.1fs", Timeline::instance().SystemTime());
                 SDD1306::instance().PlaceUTF8String(0,1,str);
+                sprintf(str,"T:%6.1fC", double(ENS210::instance().Temperature()));
+                SDD1306::instance().PlaceUTF8String(0,2,str);
+                sprintf(str,"H:%6.1f%%", double(ENS210::instance().Humidity())*100.0);
+                SDD1306::instance().PlaceUTF8String(0,3,str);
+                sprintf(str,"V:%6.1fV", double(BQ25895::instance().BatteryVoltage()));
+                SDD1306::instance().PlaceUTF8String(0,4,str);
 
                 SDD1306::instance().Display();
             }
