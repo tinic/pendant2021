@@ -33,42 +33,40 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern "C" {
 
-static enum {
-    I2C_None = 0,
-    I2C_Write = 1,
-    I2C_Read = 2,
-    I2C_SetReg8 = 3,
-    I2C_GetReg8 = 4,
-    I2C_BatchWrite = 5
-} I2C_CurrentOperation = I2C_None;
+typedef void (*I2C_FUNC)(void);
+static I2C_FUNC s_I2C0HandlerFn = 0;
+
+static void writeIRQHandler(void) {
+    I2CManager::instance().writeIRQ();
+}
+
+static void readIRQHandler(void) {
+    I2CManager::instance().readIRQ();
+}
+
+static void setReg8IRQIRQHandler(void) {
+    I2CManager::instance().setReg8IRQ();
+}
+
+static void getReg8IRQHandler(void) {
+    I2CManager::instance().getReg8IRQ();
+}
+
+static void batchWriteIRQHandler(void) {
+    I2CManager::instance().batchWriteIRQ();
+}
 
 __attribute__ ((optimize("Os"), flatten))
 void I2C0_IRQHandler(void)
 {
-    switch(I2C_CurrentOperation) {
-        default:
-        case I2C_None:{
-            I2C_WAIT_READY(I2C0) { 
-                if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
-                    I2C_ClearTimeoutFlag(I2C0);
-                }
+    if (s_I2C0HandlerFn) {
+        s_I2C0HandlerFn();
+    } else {
+        I2C_WAIT_READY(I2C0) { 
+            if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
+                I2C_ClearTimeoutFlag(I2C0);
             }
-        } break;
-        case I2C_Write:{
-            I2CManager::instance().writeIRQ();
-        } break;
-        case I2C_Read:{
-            I2CManager::instance().readIRQ();
-        } break;
-        case I2C_SetReg8:{
-            I2CManager::instance().setReg8IRQ();
-        } break;
-        case I2C_GetReg8:{
-            I2CManager::instance().getReg8IRQ();
-        } break;
-        case I2C_BatchWrite:{
-            I2CManager::instance().batchWriteIRQ();
-        } break;
+        }
     }
 }
 
@@ -203,7 +201,7 @@ void I2CManager::performBatchWrite() {
     u8SlaveAddr = *qBufPtr++;
     u32wLen = *qBufPtr++;
 
-    I2C_CurrentOperation = I2C_BatchWrite;
+    s_I2C0HandlerFn = batchWriteIRQHandler;
 
     I2C_START(I2C0);
 
@@ -285,7 +283,7 @@ void I2CManager::write(uint8_t _u8SlaveAddr, uint8_t data[], size_t _u32wLen) {
 
     memcpy(txBuf, data, u32wLen);
 
-    I2C_CurrentOperation = I2C_Write;
+    s_I2C0HandlerFn = writeIRQHandler;
 
     I2C_START(I2C0);                                              /* Send START */
 
@@ -356,7 +354,7 @@ uint8_t I2CManager::read(uint8_t _u8SlaveAddr, uint8_t rdata[], size_t _u32rLen)
     u32rLen = _u32rLen;
     u8SlaveAddr = _u8SlaveAddr;
 
-    I2C_CurrentOperation = I2C_Read;
+    s_I2C0HandlerFn = readIRQHandler;
 
     I2C_START(I2C0);                                                /* Send START */
 
@@ -428,7 +426,7 @@ uint8_t I2CManager::getReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr) {
     u8DataAddr = _u8DataAddr;
     u8SlaveAddr = _u8SlaveAddr;
 
-    I2C_CurrentOperation = I2C_GetReg8;
+    s_I2C0HandlerFn = getReg8IRQHandler;
 
     I2C_START(I2C0);                                                /* Send START */
 
@@ -506,7 +504,7 @@ void I2CManager::setReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr, uint8_t _u8W
     u8SlaveAddr = _u8SlaveAddr;
     u8WData = _u8WData; 
 
-    I2C_CurrentOperation = I2C_SetReg8;
+    s_I2C0HandlerFn = setReg8IRQHandler;
 
     I2C_START(I2C0);                                             /* Send START */
 
