@@ -30,7 +30,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CORE_CLOCK 96000000UL
 
 void delay_us(int usec) {
-    for (volatile size_t c = 0; c < usec*c*10000; c++) {}    
+    /* TIMER0 clock from LIRC */
+    CLK->CLKSEL1 = (CLK->CLKSEL1 & (~CLK_CLKSEL1_TMR0SEL_Msk)) | CLK_CLKSEL1_TMR0SEL_LIRC;
+    CLK->APBCLK0 |= CLK_APBCLK0_TMR0CKEN_Msk;
+    TIMER0->CTL = 0;
+    TIMER0->INTSTS = (TIMER_INTSTS_TIF_Msk | TIMER_INTSTS_TWKF_Msk);   /* write 1 to clear for safety */
+    TIMER0->CMP = usec / 100;
+    TIMER0->CTL = (11 << TIMER_CTL_PSC_Pos) | TIMER_ONESHOT_MODE | TIMER_CTL_CNTEN_Msk;
+    while (!TIMER0->INTSTS);
 }
 
 #ifdef BOOTLOADER

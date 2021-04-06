@@ -25,9 +25,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "M480.h"
 
 #include "./i2cmanager.h"
+#include "./timeline.h"
 
 static void delay_us(int usec) {
-    for (volatile size_t c = 0; c < usec*c*10000; c++) {}    
+    double t = Timeline::instance().SystemTime();
+    while ( ( Timeline::instance().SystemTime() - t ) > (double(usec) * (1.0 / 1000000.0) ) ) { }
 }
 
 bool ENS210::devicePresent = false;

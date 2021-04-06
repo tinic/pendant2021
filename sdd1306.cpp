@@ -22,6 +22,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./sdd1306.h"
 #include "./i2cmanager.h"
+#include "./timeline.h"
 
 #include "M480.h"
 
@@ -31,7 +32,8 @@ static constexpr
 #include "font.h"
 
 static void delay_us(int usec) {
-    for (volatile size_t c = 0; c < usec*c*10000; c++) {}    
+    double t = Timeline::instance().SystemTime();
+    while ( ( Timeline::instance().SystemTime() - t ) > (double(usec) * (1.0 / 1000000.0) ) ) { }
 }
 
 static const uint8_t rev_bits[] =
@@ -173,7 +175,7 @@ void SDD1306::SetBootScreen(bool on, int32_t xpos) {
     
 void SDD1306::Display() {
     if (!devicePresent) return;
-    
+
     if(I2CManager::instance().inBatchWrite()) {
         return;
     }
