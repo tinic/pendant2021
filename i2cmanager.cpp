@@ -33,6 +33,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern "C" {
 
+static I2CManager *i2c_irq_instance = 0;
+
 __attribute__ ((optimize("Os"), flatten))
 static void nullIRQHandler(void) {
     I2C_WAIT_READY(I2C0) { 
@@ -44,27 +46,27 @@ static void nullIRQHandler(void) {
 
 __attribute__ ((optimize("Os"), flatten))
 static void writeIRQHandler(void) {
-    I2CManager::instance().writeIRQ();
+    i2c_irq_instance->writeIRQ();
 }
 
 __attribute__ ((optimize("Os"), flatten))
 static void readIRQHandler(void) {
-    I2CManager::instance().readIRQ();
+    i2c_irq_instance->readIRQ();
 }
 
 __attribute__ ((optimize("Os"), flatten))
 static void setReg8IRQHandler(void) {
-    I2CManager::instance().setReg8IRQ();
+    i2c_irq_instance->setReg8IRQ();
 }
 
 __attribute__ ((optimize("Os"), flatten))
 static void getReg8IRQHandler(void) {
-    I2CManager::instance().getReg8IRQ();
+    i2c_irq_instance->getReg8IRQ();
 }
 
 __attribute__ ((optimize("Os"), flatten))
 static void batchWriteIRQHandler(void) {
-    I2CManager::instance().batchWriteIRQ();
+    i2c_irq_instance->batchWriteIRQ();
 }
 
 typedef void (*I2C_FUNC)(void);
@@ -132,6 +134,7 @@ I2CManager &I2CManager::instance() {
     static I2CManager i2c;
     if (!i2c.initialized) {
         i2c.initialized = true;
+        i2c_irq_instance = &i2c;
         i2c.init();
     }
     return i2c;
@@ -581,7 +584,6 @@ void I2CManager::clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
 }
 
 void I2CManager::init() {
-
     I2C_Open(I2C0, 400000);
     I2C_EnableTimeout(I2C0, 1);
     I2C_EnableInt(I2C0);
