@@ -95,6 +95,7 @@ void SDD1306::SetCenterFlip(int8_t progression) {
     center_flip_cache = progression;
 }
 
+__attribute__ ((optimize("Os"), flatten))
 void SDD1306::PlaceUTF8String(uint32_t x, uint32_t y, const char *s) {
     if (y>=text_y_size || x>=text_x_size) return;
 	
@@ -164,7 +165,14 @@ void SDD1306::SetBootScreen(bool on, int32_t xpos) {
 	boot_screen_offset = xpos;
 }
     
+__attribute__ ((optimize("Os"), flatten))
 void SDD1306::Display() {
+    if(I2CManager::instance().inBatchWrite()) {
+        return;
+    }
+
+    I2CManager::instance().batchClear();
+
     bool display_center_flip = false;
     if (center_flip_cache || center_flip_screen) {
         center_flip_screen = center_flip_cache;
@@ -174,9 +182,9 @@ void SDD1306::Display() {
     for (uint32_t y=0; y<text_y_size; y++) {
         if (display_boot_screen) {
 
-            WriteCommand(0xB0+0);
-			WriteCommand(0x00);
-			WriteCommand(0x10);
+            BatchWriteCommand(0xB0+0);
+			BatchWriteCommand(0x00);
+			BatchWriteCommand(0x10);
 
             uint8_t buf[97];
             buf[0] = 0x40;
@@ -188,11 +196,11 @@ void SDD1306::Display() {
                 buf[x+1] = font_pbm[0x0EA8 + cx * 8 + (rx & 0x07)];
             }
 
-            I2CManager::instance().write(i2caddr,  buf, 0x61);
+            I2CManager::instance().queueBatchWrite(i2caddr,  buf, 0x61);
 
-            WriteCommand(0xB0+1);
-			WriteCommand(0x00);
-			WriteCommand(0x10);
+            BatchWriteCommand(0xB0+1);
+			BatchWriteCommand(0x00);
+			BatchWriteCommand(0x10);
 
             // write second line
             for (int32_t x = 0; x < (text_x_size*8); x++) {
@@ -200,7 +208,7 @@ void SDD1306::Display() {
                 int32_t cx = rx >> 3;
                 buf[x+1] = font_pbm[0x16A8 + cx * 8 + (rx & 0x07)];
             }
-            I2CManager::instance().write(i2caddr, buf, 0x61);
+            I2CManager::instance().queueBatchWrite(i2caddr, buf, 0x61);
         } else {
             for (uint32_t x=0; x<text_x_size; x++) {
                 if (text_buffer_cache[y*text_x_size+x] != text_buffer_screen[y*text_x_size+x] ||
@@ -217,6 +225,8 @@ void SDD1306::Display() {
     if (display_center_flip) {
         DisplayCenterFlip();
     }
+
+    I2CManager::instance().batchWrite();
 }
     
 void SDD1306::SetVerticalShift(int8_t val) {
@@ -285,13 +295,14 @@ void SDD1306::Init() {
     }
 }
 
+__attribute__ ((optimize("Os"), flatten))
 void SDD1306::DisplayCenterFlip() {
     uint8_t buf[0x61];
     buf[0] = 0x40;
     for (uint32_t y=0; y<text_y_size; y++) {
-        WriteCommand(static_cast<uint8_t>(0xB0+y));
-        WriteCommand(0x00);
-        WriteCommand(0x10);
+        BatchWriteCommand(static_cast<uint8_t>(0xB0+y));
+        BatchWriteCommand(0x00);
+        BatchWriteCommand(0x10);
         for (uint32_t x = 0; x < (text_x_size*8); x++) {
             if (center_flip_screen == (text_x_size*8/2)) {
                 buf[x+1] = 0x00;
@@ -313,19 +324,20 @@ void SDD1306::DisplayCenterFlip() {
                 }
             }
         }
-        I2CManager::instance().write(i2caddr,  buf, 0x61);
+        I2CManager::instance().queueBatchWrite(i2caddr,  buf, 0x61);
     }
 }
     
+__attribute__ ((optimize("Os"), flatten))
 void SDD1306::DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr) {
 
     x = x * 8;
 
     x += 28;
 
-    WriteCommand(static_cast<uint8_t>(0xB0 + y));
-    WriteCommand(static_cast<uint8_t>(0x0f&(x   )));
-    WriteCommand(static_cast<uint8_t>(0x10|(x>>4)));
+    BatchWriteCommand(static_cast<uint8_t>(0xB0 + y));
+    BatchWriteCommand(static_cast<uint8_t>(0x0f&(x   )));
+    BatchWriteCommand(static_cast<uint8_t>(0x10|(x>>4)));
         
     uint8_t buf[9];
     buf[0] = 0x40;
@@ -375,9 +387,16 @@ void SDD1306::DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr) {
         }
     }
 
-    I2CManager::instance().write(i2caddr,  buf, 9);
+    I2CManager::instance().queueBatchWrite(i2caddr,  buf, 9);
 }
 
+__attribute__ ((optimize("Os"), flatten))
+void SDD1306::BatchWriteCommand(uint8_t cmd_val) const {
+    uint8_t cmd[2] = { 0x80, cmd_val };
+    I2CManager::instance().queueBatchWrite(i2caddr, cmd, sizeof(cmd));
+}
+
+__attribute__ ((optimize("Os"), flatten))
 void SDD1306::WriteCommand(uint8_t cmd_val) const {
     uint8_t cmd[2] = { 0x80, cmd_val };
     I2CManager::instance().write(i2caddr, cmd, sizeof(cmd));

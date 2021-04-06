@@ -29,6 +29,11 @@ class I2CManager {
 public:
     static I2CManager &instance();
 
+    void batchClear();
+    void queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len);
+    void batchWrite();
+    bool inBatchWrite() const { return u8Xfering && qBufPtr; }
+
     void write(uint8_t slaveAddr, uint8_t data[], size_t len);
     uint8_t read(uint8_t slaveAddr, uint8_t data[], size_t len);
 
@@ -44,10 +49,12 @@ public:
     void readIRQ();
     void setReg8IRQ();
     void getReg8IRQ();
+    void batchWriteIRQ();
 
     bool error() const { return u8Err ? true : false; }
 
 private:
+
     bool deviceReady(uint8_t u8SlaveAddr);
     void probe();
     void init();
@@ -66,8 +73,13 @@ private:
     uint32_t u32wLen = 0u;
     uint32_t u32rLen = 0u;
 
-    uint8_t txBuf[4096];
-    uint8_t rxBuf[4096];
+    uint8_t txBuf[256];
+    uint8_t rxBuf[256];
+
+    uint8_t qBufSeq[4096];
+    uint8_t *qBufPtr = 0;
+    uint8_t *qBufEnd = 0;
+
 };
 
 #endif /* I2CMANAGER_H_ */

@@ -62,6 +62,7 @@ private:
     void DisplayCenterFlip();
     void DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr);
     void WriteCommand(uint8_t v) const;
+    void BatchWriteCommand(uint8_t v) const;
 
     static constexpr int32_t text_y_size = 6;
     static constexpr int32_t text_x_size = 9;

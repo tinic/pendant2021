@@ -35,9 +35,11 @@ static enum {
     I2C_Write = 1,
     I2C_Read = 2,
     I2C_SetReg8 = 3,
-    I2C_GetReg8 = 4
+    I2C_GetReg8 = 4,
+    I2C_BatchWrite = 5
 } I2C_CurrentOperation = I2C_None;
 
+__attribute__ ((optimize("Os"), flatten))
 void I2C0_IRQHandler(void)
 {
     switch(I2C_CurrentOperation) {
@@ -60,6 +62,9 @@ void I2C0_IRQHandler(void)
         } break;
         case I2C_GetReg8:{
             I2CManager::instance().getReg8IRQ();
+        } break;
+        case I2C_BatchWrite:{
+            I2CManager::instance().batchWriteIRQ();
         } break;
     }
 }
@@ -134,7 +139,110 @@ void I2CManager::probe() {
     }
 }
 
+void I2CManager::batchClear() {
+
+    if (qBufEnd) printf("Fuck0\n");
+
+    while(u8Xfering && (u8Err == 0u)) { __WFI(); }
+
+    qBufEnd = qBufSeq;
+    qBufPtr = qBufSeq;
+}
+
+void I2CManager::queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len) {
+    while(u8Xfering && (u8Err == 0u)) { __WFI(); }
+
+    if (!qBufEnd || !qBufPtr) {
+        return;
+    }
+
+    *qBufEnd++ = slaveAddr;
+    *qBufEnd++ = len;
+    memcpy(qBufEnd, data, len);
+    qBufEnd += len;
+}
+
+void I2CManager::batchWrite() {
+    while(u8Xfering && (u8Err == 0u)) { __WFI(); }
+
+    if (!qBufEnd || !qBufPtr) {
+        return;
+    }
+
+    u8Xfering = 1u;
+    u8Err = 0u;
+    u8Ctrl = 0u;
+    u32txLen = 0u;
+    
+    u8SlaveAddr = *qBufPtr++;
+    u32wLen = *qBufPtr++;
+
+    I2C_CurrentOperation = I2C_BatchWrite;
+
+    I2C_START(I2C0);
+
+    // Do NOT wait for write
+    //while(u8Xfering && (u8Err == 0u)) { __WFI(); }
+}
+
+__attribute__ ((optimize("Os"), flatten))
+void I2CManager::batchWriteIRQ() {
+
+    if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
+        I2C_ClearTimeoutFlag(I2C0);
+#ifdef LOG_TIMEOUT
+        printf("batchWrite I2C timeout %d %d\n", int(u32wLen), int(qBufEnd-qBufPtr));
+#endif  // #ifdef LOG_TIMEOUT
+        u32txLen = 0;
+        I2C_START(I2C0);                                         /* Send START */
+        return;
+    }
+
+    switch(I2C_GET_STATUS(I2C0))
+    {
+    case 0x08u:
+        I2C_SET_DATA(I2C0, (uint8_t)(u8SlaveAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
+        u8Ctrl = I2C_CTL_SI;                                        /* Clear SI */
+        break;
+    case 0x18u:                                                     /* Slave Address ACK */
+    case 0x28u:
+        if(u32txLen < u32wLen) {
+            I2C_SET_DATA(I2C0, qBufPtr[u32txLen++]);                /* Write Data to I2CDAT */
+            u8Ctrl = I2C_CTL_SI_AA;                                 /* Clear SI */
+        } else {
+            u8Ctrl = I2C_CTL_STO_SI;                                /* Clear SI and send STOP */
+            u32txLen = 0u;
+            qBufPtr += u32wLen;
+            u8SlaveAddr = *qBufPtr++;
+            u32wLen = *qBufPtr++;
+            if (qBufPtr < qBufEnd) {
+                I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                  /* Write controlbit to I2C_CTL register */
+                I2C_START(I2C0);
+                return;
+            } else {
+                u8Xfering = 0u;
+                qBufEnd = 0;
+                qBufPtr = 0;
+            }
+        }
+        break;
+    case 0x20u:                                                     /* Slave Address NACK */
+    case 0x30u:                                                     /* Master transmit data NACK */
+        u8Ctrl = I2C_CTL_STO_SI;                                    /* Clear SI and send STOP */
+        u8Err = 1u;
+        break;
+    case 0x38u:                                                     /* Arbitration Lost */
+    default:                                                        /* Unknow status */
+        u8Ctrl = I2C_CTL_STO_SI;
+        u8Err = 1u;
+        break;
+    }
+    I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                              /* Write controlbit to I2C_CTL register */
+}
+
 void I2CManager::write(uint8_t _u8SlaveAddr, uint8_t data[], size_t _u32wLen) {
+
+    if (qBufEnd) printf("Fuck1\n");
 
     // Wait for pending write
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
@@ -160,14 +268,16 @@ void I2CManager::write(uint8_t _u8SlaveAddr, uint8_t data[], size_t _u32wLen) {
     //while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 }
 
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::writeIRQ() {
 
     if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
         I2C_ClearTimeoutFlag(I2C0);
 #ifdef LOG_TIMEOUT
-        printf("write I2C timeout %d\n", u32wLen);
+        printf("write I2C timeout %d\n", int(u32wLen));
 #endif  // #ifdef LOG_TIMEOUT
-        I2C_START(I2C0);                                         /* Send START */
+        u32txLen = 0; // Start again
+        I2C_START(I2C0);                                            /* Send START */
         return;
     }
 
@@ -206,6 +316,8 @@ void I2CManager::writeIRQ() {
 
 uint8_t I2CManager::read(uint8_t _u8SlaveAddr, uint8_t rdata[], size_t _u32rLen) {
 
+    if (qBufEnd) printf("Fuck2\n");
+
     // Wait for pending write
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 
@@ -232,6 +344,7 @@ uint8_t I2CManager::read(uint8_t _u8SlaveAddr, uint8_t rdata[], size_t _u32rLen)
     return u32rxLen;                                                /* Return bytes length that have been received */
 }
 
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::readIRQ() {
 
     if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
@@ -281,6 +394,8 @@ void I2CManager::readIRQ() {
 
 uint8_t I2CManager::getReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr) {
 
+    if (qBufEnd) printf("Fuck3\n");
+
     // Wait for pending write
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 
@@ -301,6 +416,7 @@ uint8_t I2CManager::getReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr) {
     return u8RData;
 }
 
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::getReg8IRQ() {
 
     if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
@@ -357,6 +473,8 @@ void I2CManager::getReg8IRQ() {
 
 void I2CManager::setReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr, uint8_t _u8WData) {
 
+    if (qBufEnd) printf("Fuck4\n");
+
     // Wait for pending write
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 
@@ -376,6 +494,7 @@ void I2CManager::setReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr, uint8_t _u8W
     //while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 }
 
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::setReg8IRQ() {
 
     if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
@@ -422,7 +541,6 @@ void I2CManager::setReg8IRQ() {
     }
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                        /* Write controlbit to I2C_CTL register */
 }
-
 
 void I2CManager::setReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
     uint8_t value = getReg8(slaveAddr, reg);
