@@ -144,9 +144,9 @@ execute_process(COMMAND gm convert -crop 2048x8+0+8  -rotate 90 -modulate 1000 -
 execute_process(COMMAND gm convert -crop 2048x8+0+16 -rotate 90 -modulate 1000 -depth 1 -background black +matte +adjoin ${PROJECT_SOURCE_DIR}/font.gif ${CMAKE_BINARY_DIR}/font_1_%d.png)
 execute_process(COMMAND gm convert -crop 2048x8+0+24 -rotate 90 -modulate 1000 -depth 1 -background black +matte +adjoin ${PROJECT_SOURCE_DIR}/font.gif ${CMAKE_BINARY_DIR}/font_2_%d.png)
 execute_process(COMMAND gm convert -crop 2048x8+0+32 -rotate 90 -modulate 1000 -depth 1 -background black +matte +adjoin ${PROJECT_SOURCE_DIR}/font.gif ${CMAKE_BINARY_DIR}/font_3_%d.png)
-execute_process(COMMAND gm montage ${CMAKE_BINARY_DIR}/font_0_1.png ${CMAKE_BINARY_DIR}/font_1_1.png ${CMAKE_BINARY_DIR}/font_2_1.png ${CMAKE_BINARY_DIR}/font_3_1.png -geometry +0+0 -tile 1x4 ${CMAKE_BINARY_DIR}/font.png)
-execute_process(COMMAND gm convert ${CMAKE_BINARY_DIR}/font.png -negate -depth 1 -colors 2 pbm:${CMAKE_BINARY_DIR}/font.pbm)
-execute_process(COMMAND xxd -s 10 -i font.pbm WORKING_DIRECTORY ${CMAKE_BINARY_DIR} OUTPUT_FILE ${CMAKE_BINARY_DIR}/font.h) # fragile!!
+execute_process(COMMAND gm montage font_0_1.png font_1_1.png font_2_1.png font_3_1.png -geometry +0+0 -tile 1x4 font.png WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+execute_process(COMMAND gm convert font.png -negate -depth 1 -colors 2 pbm:font.pbm WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+execute_process(COMMAND xxd -s 10 -i font.pbm OUTPUT_FILE font.h WORKING_DIRECTORY ${CMAKE_BINARY_DIR} ) # fragile!!
 
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     message(FATAL_ERROR "Compiler must be GCC.")
