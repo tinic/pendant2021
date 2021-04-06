@@ -158,7 +158,7 @@ void I2CManager::probe() {
 }
 
 __attribute__ ((optimize("Os"), flatten))
-void I2CManager::batchClear() {
+void I2CManager::prepareBatchWrite() {
 
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 
@@ -187,7 +187,7 @@ void I2CManager::queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len) 
 }
 
 __attribute__ ((optimize("Os"), flatten))
-void I2CManager::batchWrite() {
+void I2CManager::performBatchWrite() {
 
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 

@@ -173,11 +173,12 @@ void SDD1306::SetBootScreen(bool on, int32_t xpos) {
     
 void SDD1306::Display() {
     if (!devicePresent) return;
+    
     if(I2CManager::instance().inBatchWrite()) {
         return;
     }
 
-    I2CManager::instance().batchClear();
+    I2CManager::instance().prepareBatchWrite();
 
     bool display_center_flip = false;
     if (center_flip_cache || center_flip_screen) {
@@ -232,7 +233,7 @@ void SDD1306::Display() {
         DisplayCenterFlip();
     }
 
-    I2CManager::instance().batchWrite();
+    I2CManager::instance().performBatchWrite();
 }
     
 void SDD1306::SetVerticalShift(int8_t val) {

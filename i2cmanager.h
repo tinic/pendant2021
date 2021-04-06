@@ -29,10 +29,10 @@ class I2CManager {
 public:
     static I2CManager &instance();
 
-    void batchClear();
+    void prepareBatchWrite();
     void queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len);
-    void batchWrite();
-    bool inBatchWrite() const { return u8Xfering && qBufPtr; }
+    void performBatchWrite();
+    bool inBatchWrite() const { return u8Xfering && (u8Err == 0u) && qBufPtr; }
 
     void write(uint8_t slaveAddr, uint8_t data[], size_t len);
     uint8_t read(uint8_t slaveAddr, uint8_t data[], size_t len);
