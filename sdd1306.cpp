@@ -74,9 +74,9 @@ SDD1306 &SDD1306::instance() {
 
 void SDD1306::Clear() {
     memset(text_buffer_cache, 0, sizeof(text_buffer_cache));
-    memset(text_buffer_screen, 0, sizeof(text_buffer_screen));
+    memset(text_buffer_screen, 0xFFFF, sizeof(text_buffer_screen));
     memset(text_attr_cache, 0, sizeof(text_attr_cache));
-    memset(text_attr_screen, 0, sizeof(text_attr_screen));
+    memset(text_attr_screen, 0xFFFF, sizeof(text_attr_screen));
     center_flip_screen = 0;
     center_flip_cache = 0;
 }
@@ -85,6 +85,10 @@ void SDD1306::ClearAttr() {
     memset(text_attr_cache, 0, sizeof(text_attr_cache));
 }
     
+void SDD1306::ClearCache() {
+    memset(text_buffer_cache, 0, sizeof(text_buffer_cache));
+}
+
 void SDD1306::DisplayBootScreen() {
     for (uint32_t c=0; c<text_x_size*text_y_size; c++) {
         text_buffer_cache[c] = static_cast<uint16_t>(0x80 + c);
@@ -94,6 +98,7 @@ void SDD1306::DisplayBootScreen() {
 void SDD1306::SetCenterFlip(int8_t progression) {
     center_flip_cache = progression;
 }
+
 
 __attribute__ ((optimize("Os"), flatten))
 void SDD1306::PlaceUTF8String(uint32_t x, uint32_t y, const char *s) {
@@ -246,19 +251,6 @@ void SDD1306::DisplayOn() {
 
 void SDD1306::DisplayOff() {
     WriteCommand(0xAE);
-}
-
-void SDD1306::White() {
-    for (size_t y = 0; y < 8; y++) {
-        size_t x = 0;
-        WriteCommand(static_cast<uint8_t>(0xB0+y));
-        WriteCommand(static_cast<uint8_t>(0x0f&(x   )));
-        WriteCommand(static_cast<uint8_t>(0x10|(x>>4)));
-        uint8_t buf[129];
-        memset(buf, 0xFF, sizeof(buf));
-        buf[0] = 0x40;
-        I2CManager::instance().write(i2caddr, buf, sizeof(buf));
-    }
 }
 
 void SDD1306::Init() {

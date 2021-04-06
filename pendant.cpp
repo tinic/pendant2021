@@ -80,20 +80,17 @@ void Pendant::DemoPattern() {
 
 void Pendant::Run() {
 
+    SDD1306::instance().DisplayBootScreen();
+    SDD1306::instance().Display();
+
     while (1) {
+
         static double delta_idle = 0;
         static double delta_busy = 0;
-
         volatile double a = Timeline::instance().SystemTime();
 
-        static double last_printf = 0;
-        if ( (Timeline::instance().SystemTime() - last_printf ) > 0.1) {      
-            last_printf = Timeline::instance().SystemTime();      
-            printf("busy(%3.2f%%) time(%fs)\r",(delta_busy/(delta_idle+delta_busy))*100.0,Timeline::instance().SystemTime());
-            fflush(stdout);
-        }
-
         __WFI();
+
         if (Timeline::instance().CheckFrameReadyAndClear()) {
             volatile double b = Timeline::instance().SystemTime();
             delta_idle = b - a;
@@ -105,14 +102,19 @@ void Pendant::Run() {
             volatile double c = Timeline::instance().SystemTime();
             delta_busy = c - b;
 
-            SDD1306::instance().PlaceUTF8String(0,0,"ABCDEFGHJ");
-            SDD1306::instance().PlaceUTF8String(0,1,"KLMOPQRST");
-            SDD1306::instance().PlaceUTF8String(0,2,"abcdefghj");
-            SDD1306::instance().PlaceUTF8String(0,3,"klmopqrst");
-            SDD1306::instance().PlaceUTF8String(0,4,"012345678");
+            static double last_printf = 0;
+            if ( (Timeline::instance().SystemTime() - last_printf ) > (1.0/30.0)) {      
+                last_printf = Timeline::instance().SystemTime();      
+                SDD1306::instance().ClearCache();
+                SDD1306::instance().ClearAttr();
+                char str[32];
+                sprintf(str,"B:%7.1f%%", (delta_busy/(delta_idle+delta_busy))*100.0);
+                SDD1306::instance().PlaceUTF8String(0,0,str);
+                sprintf(str,"T:%7.1f", Timeline::instance().SystemTime());
+                SDD1306::instance().PlaceUTF8String(0,1,str);
 
-            SDD1306::instance().Invert();
-            SDD1306::instance().Display();
+                SDD1306::instance().Display();
+            }
         }
     }
 }

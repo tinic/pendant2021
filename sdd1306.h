@@ -35,6 +35,7 @@ public:
     
     void Clear();
     void ClearAttr();
+    void ClearCache();
     void DisplayBootScreen();
     void SetCenterFlip(int8_t progression);
 
@@ -50,7 +51,6 @@ public:
     void DisplayOff();
     void DisplayUID();
 
-    void White();
 
     bool DevicePresent() const { return devicePresent; }
 
