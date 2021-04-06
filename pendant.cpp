@@ -26,6 +26,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./i2cmanager.h"
 #include "./timeline.h"
 #include "./sdcard.h"
+#include "./input.h"
+#include "./bq25895.h"
+#include "./ens210.h"
 
 #include "M480.h"
 
@@ -55,33 +58,52 @@ void Pendant::init() {
     Leds::instance();
     I2CManager::instance();
     Timeline::instance();
+    Input::instance();
+    BQ25895::instance();
+    ENS210::instance();
+}
+
+__attribute__ ((optimize("Os")))
+void Pendant::DemoPattern() {
+    static float rot = 0.0f;
+    rot+=0.01f;
+    for (size_t c = 0; c < Leds::instance().circleLedsN; c++) {
+        Leds::instance().setCircle(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+        Leds::instance().setCircle(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+    }
+    for (size_t c = 0; c < Leds::instance().birdLedsN; c++) {
+        Leds::instance().setBird(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+        Leds::instance().setBird(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+    }
 }
 
 void Pendant::Run() {
 
     while (1) {
-        __WFI();
+        static double delta_idle = 0;
+        static double delta_busy = 0;
 
-        SDCard::instance().process();
+        volatile double a = Timeline::instance().SystemTime();
 
-        if (Timeline::instance().CheckFrameReadyAndClear()) {
-
-#if 1
-            static float rot = 0.0f;
-            rot+=0.01f;
-            for (size_t c = 0; c < Leds::instance().circleLedsN; c++) {
-                Leds::instance().setCircle(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-                Leds::instance().setCircle(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-            }
-            for (size_t c = 0; c < Leds::instance().birdLedsN; c++) {
-                Leds::instance().setBird(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-                Leds::instance().setBird(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-            }
-#endif  // #if 1
-
-            printf("%f\r",Timeline::instance().SystemTime());
+        static double last_printf = 0;
+        if ( (Timeline::instance().SystemTime() - last_printf ) > 0.1) {      
+            last_printf = Timeline::instance().SystemTime();      
+            printf("busy(%3.2f%%) time(%fs)\r",(delta_busy/(delta_idle+delta_busy))*100.0,Timeline::instance().SystemTime());
             fflush(stdout);
+        }
+
+        __WFI();
+        if (Timeline::instance().CheckFrameReadyAndClear()) {
+            volatile double b = Timeline::instance().SystemTime();
+            delta_idle = b - a;
+            SDCard::instance().process();
+
+            DemoPattern();
+
             Leds::instance().apply();
+            volatile double c = Timeline::instance().SystemTime();
+            delta_busy = c - b;
+
         }
     }
 }

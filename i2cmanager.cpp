@@ -98,25 +98,38 @@ void I2CManager::probe() {
     }
 }
 
+void I2CManager::write(uint8_t slaveAddr, uint8_t data[], size_t len) {
+    I2C_WriteMultiBytes(I2C0, slaveAddr, data, len);
+}
+
+void I2CManager::read(uint8_t slaveAddr, uint8_t data[], size_t len) {
+    I2C_ReadMultiBytes(I2C0, slaveAddr, data, len);
+}
+
+uint8_t I2CManager::getReg8(uint8_t slaveAddr, uint8_t reg) {
+    return I2C_ReadByteOneReg(I2C0, slaveAddr, reg);
+}
+
+void I2CManager::setReg8(uint8_t slaveAddr, uint8_t reg, uint8_t dat) {
+    I2C_WriteByteOneReg(I2C0, slaveAddr, reg, dat);
+}
+
+void I2CManager::setReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
+    uint8_t value = getReg8(slaveAddr, reg);
+    value |= mask;
+    setReg8(slaveAddr, reg, value);
+}
+
+void I2CManager::clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
+    uint8_t value = getReg8(slaveAddr, reg);
+    value &= ~mask;
+    setReg8(slaveAddr, reg, value);
+}
+
 void I2CManager::init() {
     NVIC_SetPriority(I2C0_IRQn, 3);
 
     I2C_Open(I2C0, 100000);
 
     probe();
-
-    {
-        uint8_t value = I2C_ReadByteOneReg(I2C0, 0x6A, 0x03);
-        printf(" >> 0x%02x\n", value);
-        value &= ~(1 << 0x05);
-        printf(" << 0x%02x\n", value);
-        I2C_WriteByteOneReg(I2C0, 0x6A, 0x03, value);
-    }
-    {
-        uint8_t value = I2C_ReadByteOneReg(I2C0, 0x6A, 0x02);
-        printf(" >> 0x%02x\n", value);
-        value &= ~(1 << 0x05);
-        printf(" << 0x%02x\n", value);
-        I2C_WriteByteOneReg(I2C0, 0x6A, 0x02, value);
-    }
 }

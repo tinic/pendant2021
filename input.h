@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Tinic Uro
+Copyright 2020 Tinic Uro
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
@@ -20,27 +20,35 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef _PENDANT_H_
-#define _PENDANT_H_
+#ifndef INPUT_H_
+#define INPUT_H_
 
-#ifndef BOOTLOADER
+#include "./color.h"
 
-extern "C" void pendant_entry(void);
+extern "C" {
+    void GPB_IRQHandler(void);
+    void GPF_IRQHandler(void);
+}
 
-class Pendant {
+class Input {
 public:
-    static Pendant &instance();
-    
-    void Run();
+    static Input &instance();
+
+    bool Switch1Down() const { return switch1Down; }
+    bool Switch2Down() const { return switch2Down; }
+    bool Switch3Down() const { return switch3Down; }
 
 private:
 
-    void DemoPattern();
+    friend void GPB_IRQHandler(void);
+    friend void GPF_IRQHandler(void);
 
-    bool initialized = false;
+    bool switch1Down = false;
+    bool switch2Down = false;
+    bool switch3Down = false;
+
     void init();
+    bool initialized = false;
 };
 
-#endif  // #ifndef BOOTLOADER
-
-#endif  // #ifndef _PENDANT_H_
+#endif /* INPUT_H_ */

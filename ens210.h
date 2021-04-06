@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Tinic Uro
+Copyright 2020 Tinic Uro
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
@@ -20,27 +20,33 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef _PENDANT_H_
-#define _PENDANT_H_
+#ifndef ENS210_H_
+#define ENS210_H_
 
-#ifndef BOOTLOADER
+#include "./color.h"
 
-extern "C" void pendant_entry(void);
-
-class Pendant {
+class ENS210 {
 public:
-    static Pendant &instance();
-    
-    void Run();
+    static ENS210 &instance();
+
+    void update();
+
+    float Temperature() const { return temperature; }
+    float Humidity() const { return humidity; }
 
 private:
+    static constexpr uint8_t ens210_addr = 0x43;
 
-    void DemoPattern();
+    float temperature;
+    float humidity;
 
-    bool initialized = false;
+    void reset();
+    void read();
+    void measure();
+    void wait();
+
     void init();
+    bool initialized = false;
 };
 
-#endif  // #ifndef BOOTLOADER
-
-#endif  // #ifndef _PENDANT_H_
+#endif /* ENS210_H_ */
