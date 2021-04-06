@@ -33,7 +33,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern "C" {
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 static void nullIRQHandler(void) {
     I2C_WAIT_READY(I2C0) { 
         if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
@@ -42,27 +42,27 @@ static void nullIRQHandler(void) {
     }
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 static void writeIRQHandler(void) {
     I2CManager::instance().writeIRQ();
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 static void readIRQHandler(void) {
     I2CManager::instance().readIRQ();
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 static void setReg8IRQHandler(void) {
     I2CManager::instance().setReg8IRQ();
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 static void getReg8IRQHandler(void) {
     I2CManager::instance().getReg8IRQ();
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 static void batchWriteIRQHandler(void) {
     I2CManager::instance().batchWriteIRQ();
 }
@@ -161,7 +161,7 @@ void I2CManager::probe() {
     }
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::prepareBatchWrite() {
 
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
@@ -170,7 +170,7 @@ void I2CManager::prepareBatchWrite() {
     qBufPtr = qBufSeq;
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len) {
 
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
@@ -190,7 +190,7 @@ void I2CManager::queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len) 
     qBufEnd += len;
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::performBatchWrite() {
 
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
@@ -215,7 +215,7 @@ void I2CManager::performBatchWrite() {
     //while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::batchWriteIRQ() {
 
     if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
@@ -270,7 +270,7 @@ void I2CManager::batchWriteIRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                              /* Write controlbit to I2C_CTL register */
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::write(uint8_t _u8SlaveAddr, uint8_t data[], size_t _u32wLen) {
 
     // Wait for pending write
@@ -297,7 +297,7 @@ void I2CManager::write(uint8_t _u8SlaveAddr, uint8_t data[], size_t _u32wLen) {
     //while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::writeIRQ() {
 
     if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
@@ -343,7 +343,7 @@ void I2CManager::writeIRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                              /* Write controlbit to I2C_CTL register */
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 uint8_t I2CManager::read(uint8_t _u8SlaveAddr, uint8_t rdata[], size_t _u32rLen) {
 
     // Wait for pending write
@@ -372,7 +372,7 @@ uint8_t I2CManager::read(uint8_t _u8SlaveAddr, uint8_t rdata[], size_t _u32rLen)
     return u32rxLen;                                                /* Return bytes length that have been received */
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::readIRQ() {
 
     if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
@@ -419,7 +419,7 @@ void I2CManager::readIRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                                 /* Write controlbit to I2C_CTL register */
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 uint8_t I2CManager::getReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr) {
 
     // Wait for pending write
@@ -442,7 +442,7 @@ uint8_t I2CManager::getReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr) {
     return u8RData;
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::getReg8IRQ() {
 
     if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
@@ -496,7 +496,7 @@ void I2CManager::getReg8IRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                          /* Write controlbit to I2C_CTL register */
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::setReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr, uint8_t _u8WData) {
 
     // Wait for pending write
@@ -518,7 +518,7 @@ void I2CManager::setReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr, uint8_t _u8W
     //while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::setReg8IRQ() {
 
     if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
@@ -566,14 +566,14 @@ void I2CManager::setReg8IRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                        /* Write controlbit to I2C_CTL register */
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::setReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
     uint8_t value = getReg8(slaveAddr, reg);
     value |= mask;
     setReg8(slaveAddr, reg, value);
 }
 
-__attribute__ ((optimize("Os")))
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
     uint8_t value = getReg8(slaveAddr, reg);
     value &= ~mask;
