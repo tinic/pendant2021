@@ -206,7 +206,7 @@ int main(void)
 #else  // #if defined(BOOTLOADER)
         "Main"
 #endif  // #if defined(BOOTLOADER)
-        " PID(0x%08x) UID(0x%08x%08x%08x)\n", 
+        "\nPID(0x%08x) UID(0x%08x%08x%08x)\n"
         "Build %s\n",
         (unsigned int)SYS_ReadPDID(),
         (unsigned int)FMC_ReadUID(0),

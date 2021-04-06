@@ -62,9 +62,9 @@ void Pendant::init() {
     Input::instance();
     BQ25895::instance();
     ENS210::instance();
-    SDD1306::instance();
-    SDD1306::instance().PlaceUTF8String(0,0,"TEST");
-    SDD1306::instance().Display();
+    //SDD1306::instance();
+    //SDD1306::instance().PlaceUTF8String(0,0,"TEST");
+    //SDD1306::instance().Display();
 
 }
 
