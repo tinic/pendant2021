@@ -30,18 +30,44 @@ public:
     static I2CManager &instance();
 
     void write(uint8_t slaveAddr, uint8_t data[], size_t len);
-    void read(uint8_t slaveAddr, uint8_t data[], size_t len);
+    uint8_t read(uint8_t slaveAddr, uint8_t data[], size_t len);
 
-    uint8_t getReg8(uint8_t slaveAddr, uint8_t reg);
     void setReg8(uint8_t slaveAddr, uint8_t reg, uint8_t dat);
+    uint8_t getReg8(uint8_t slaveAddr, uint8_t reg);
+
     void setReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask);
     void clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask);
+
+    void setTimeout() { timeout = true; }
+
+    void writeIRQ();
+    void readIRQ();
+    void setReg8IRQ();
+    void getReg8IRQ();
+
+    bool error() const { return u8Err ? true : false; }
 
 private:
     bool deviceReady(uint8_t u8SlaveAddr);
     void probe();
     void init();
+    bool timeout = false;
     bool initialized = false;
+
+    uint8_t u8SlaveAddr = 0u;
+    uint8_t u8Xfering = 0u;
+    uint8_t u8Err = 0u;
+    uint8_t u8Ctrl = 0u;
+    uint8_t u8DataAddr = 0u;
+    uint8_t u8RData = 0u;
+    uint8_t u8WData = 0u;
+    uint32_t u32txLen = 0u;
+    uint32_t u32rxLen = 0u;
+    uint32_t u32wLen = 0u;
+    uint32_t u32rLen = 0u;
+
+    uint8_t txBuf[4096];
+    uint8_t rxBuf[4096];
 };
 
 #endif /* I2CMANAGER_H_ */

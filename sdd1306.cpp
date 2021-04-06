@@ -31,16 +31,7 @@ static constexpr
 #include "font.h"
 
 static void delay_us(int usec) {
-    
-    /* TIMER0 clock from LIRC */
-    CLK->CLKSEL1 = (CLK->CLKSEL1 & (~CLK_CLKSEL1_TMR0SEL_Msk)) | CLK_CLKSEL1_TMR0SEL_LIRC;
-    CLK->APBCLK0 |= CLK_APBCLK0_TMR0CKEN_Msk;
-    TIMER0->CTL = 0;
-    TIMER0->INTSTS = (TIMER_INTSTS_TIF_Msk | TIMER_INTSTS_TWKF_Msk);   /* write 1 to clear for safety */
-    TIMER0->CMP = usec / 100;
-    TIMER0->CTL = (11 << TIMER_CTL_PSC_Pos) | TIMER_ONESHOT_MODE | TIMER_CTL_CNTEN_Msk;
-
-    while (!TIMER0->INTSTS);
+    for (volatile size_t c = 0; c < usec*c*10000; c++) {}    
 }
 
 static const uint8_t rev_bits[] =
@@ -174,12 +165,12 @@ void SDD1306::SetBootScreen(bool on, int32_t xpos) {
 }
     
 void SDD1306::Display() {
-
     bool display_center_flip = false;
     if (center_flip_cache || center_flip_screen) {
         center_flip_screen = center_flip_cache;
         display_center_flip = true;
     }
+
     for (uint32_t y=0; y<text_y_size; y++) {
         if (display_boot_screen) {
 
@@ -226,7 +217,6 @@ void SDD1306::Display() {
     if (display_center_flip) {
         DisplayCenterFlip();
     }
-
 }
     
 void SDD1306::SetVerticalShift(int8_t val) {
@@ -248,43 +238,45 @@ void SDD1306::DisplayOff() {
     WriteCommand(0xAE);
 }
 
+void SDD1306::White() {
+    for (size_t y = 0; y < 8; y++) {
+        size_t x = 0;
+        WriteCommand(static_cast<uint8_t>(0xB0+y));
+        WriteCommand(static_cast<uint8_t>(0x0f&(x   )));
+        WriteCommand(static_cast<uint8_t>(0x10|(x>>4)));
+        uint8_t buf[129];
+        memset(buf, 0xFF, sizeof(buf));
+        buf[0] = 0x40;
+        I2CManager::instance().write(i2caddr, buf, sizeof(buf));
+    }
+}
+
 void SDD1306::Init() {
     // Reset OLED screen
-    PB1 = true; // OLED_CS
-    PB0 = true; // OLED_RESET
+    PB1 = 0; // OLED_CS
+    PB0 = 1; // OLED_RESET
+    delay_us(100);
+    PB0 = 0;
     delay_us(1000);
-    PB0 = false;
-    delay_us(10000);
-    PB0 = true;
-    delay_us(20000);
-
-    uint8_t status = 0x8;
-    uint8_t value = 0x0;
-
-    I2CManager::instance().write(i2caddr,  &status, 1);
-    I2CManager::instance().read(i2caddr,  &value, 1);
-
-    if (value == 0) {
-        devicePresent = true;
-    } else {
-        return;
-    }
+    PB0 = 1;
+    delay_us(2000);
 
     static uint8_t startup_sequence[] = {
         0xAE,           // Display off
         0xD5, 0x80,     // Set Display Clock Divide Ratio
-        0xA8, 0x0F,     // Set Multiplex Ratio
+        0xAD, 0x30,     // Internal IREF Setting
+        0xA8, 0x27,     // Set Multiplex Ratio
         0xD3, 0x00,     // Set Display Offset
-        0x8D, 0x14,     // Enable Charge Pump
+        0x8D, 0x95,     // Enable Charge Pump
         0x40,           // Set Display RAM start
         0xA6,           // Set to normal display (0xA7 == inverse)
         0xA4,           // Force Display From RAM On
         0xA1,           // Set Segment Re-map
         0xC8,           // Set COM Output Scan Direction (flipped)
-        0xDA, 0x02,     // Set Pins configuration
-        0x81, 0x80,     // Set Contrast (0x00-0xFF)
-        0xD9, 0x10,     // Set Pre-Charge period
-        0xDB, 0x40,     // Adjust Vcomm regulator output
+        0xDA, 0x12,     // Set Pins configuration
+        0x81, 0xFF,     // Set Contrast (0x00-0xFF)
+        0xD9, 0x22,     // Set Pre-Charge period
+        0xDB, 0x20,     // Adjust Vcomm regulator output
         0xAF            // Display on
     };
 
@@ -328,6 +320,8 @@ void SDD1306::DisplayCenterFlip() {
 void SDD1306::DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr) {
 
     x = x * 8;
+
+    x += 28;
 
     WriteCommand(static_cast<uint8_t>(0xB0 + y));
     WriteCommand(static_cast<uint8_t>(0x0f&(x   )));
@@ -385,8 +379,6 @@ void SDD1306::DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr) {
 }
 
 void SDD1306::WriteCommand(uint8_t cmd_val) const {
-    uint8_t cmd[2];
-    cmd[0] = 0;
-    cmd[1] = cmd_val;
-    I2CManager::instance().write(i2caddr,  cmd, sizeof(cmd));
+    uint8_t cmd[2] = { 0x80, cmd_val };
+    I2CManager::instance().write(i2caddr, cmd, sizeof(cmd));
 }

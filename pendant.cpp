@@ -62,10 +62,6 @@ void Pendant::init() {
     Input::instance();
     BQ25895::instance();
     ENS210::instance();
-    //SDD1306::instance();
-    //SDD1306::instance().PlaceUTF8String(0,0,"TEST");
-    //SDD1306::instance().Display();
-
 }
 
 __attribute__ ((optimize("Os")))
@@ -109,6 +105,14 @@ void Pendant::Run() {
             volatile double c = Timeline::instance().SystemTime();
             delta_busy = c - b;
 
+            SDD1306::instance().PlaceUTF8String(0,0,"ABCDEFGHJ");
+            SDD1306::instance().PlaceUTF8String(0,1,"KLMOPQRST");
+            SDD1306::instance().PlaceUTF8String(0,2,"abcdefghj");
+            SDD1306::instance().PlaceUTF8String(0,3,"klmopqrst");
+            SDD1306::instance().PlaceUTF8String(0,4,"012345678");
+
+            SDD1306::instance().Invert();
+            SDD1306::instance().Display();
         }
     }
 }

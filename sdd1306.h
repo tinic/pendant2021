@@ -50,6 +50,8 @@ public:
     void DisplayOff();
     void DisplayUID();
 
+    void White();
+
     bool DevicePresent() const { return devicePresent; }
 
 private:
@@ -60,7 +62,6 @@ private:
     void DisplayCenterFlip();
     void DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr);
     void WriteCommand(uint8_t v) const;
-    void BulkTransfer(const uint8_t *buf, size_t size) const;
 
     static constexpr int32_t text_y_size = 6;
     static constexpr int32_t text_x_size = 9;

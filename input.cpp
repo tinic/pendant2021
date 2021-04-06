@@ -38,7 +38,7 @@ void GPF_IRQHandler(void)
 
     if(GPIO_GET_INT_FLAG(PF, BIT4))
     {
-        BQ25895::instance().UpdateState();
+        //BQ25895::instance().UpdateState();
         GPIO_CLR_INT_FLAG(PF, BIT4);
     }
 
