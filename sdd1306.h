@@ -51,7 +51,6 @@ public:
     void DisplayOff();
     void DisplayUID();
 
-
     bool DevicePresent() const { return devicePresent; }
 
 private:

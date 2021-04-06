@@ -335,9 +335,9 @@ void SDD1306::DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr) {
 
     x += 28;
 
-    BatchWriteCommand(static_cast<uint8_t>(0xB0 + y));
     BatchWriteCommand(static_cast<uint8_t>(0x0f&(x   )));
     BatchWriteCommand(static_cast<uint8_t>(0x10|(x>>4)));
+    BatchWriteCommand(static_cast<uint8_t>(0xB0 + y));
         
     uint8_t buf[9];
     buf[0] = 0x40;
@@ -392,12 +392,12 @@ void SDD1306::DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr) {
 
 void SDD1306::BatchWriteCommand(uint8_t cmd_val) const {
     if (!devicePresent) return;
-    uint8_t cmd[2] = { 0x80, cmd_val };
+    uint8_t cmd[2] = { 0x00, cmd_val };
     I2CManager::instance().queueBatchWrite(i2c_addr, cmd, sizeof(cmd));
 }
 
 void SDD1306::WriteCommand(uint8_t cmd_val) const {
     if (!devicePresent) return;
-    uint8_t cmd[2] = { 0x80, cmd_val };
+    uint8_t cmd[2] = { 0x00, cmd_val };
     I2CManager::instance().write(i2c_addr, cmd, sizeof(cmd));
 }

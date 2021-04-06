@@ -32,7 +32,7 @@ public:
     void prepareBatchWrite();
     void queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len);
     void performBatchWrite();
-    
+
     bool inBatchWrite() const { return u8Xfering && (u8Err == 0u) && qBufPtr; }
 
     void write(uint8_t slaveAddr, uint8_t data[], size_t len);
@@ -44,9 +44,9 @@ public:
     void setReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask);
     void clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask);
 
-private:
-    static I2CManager *i2c_irq_instance;
+    bool error() const { return u8Err ? true : false; }
 
+private:
     static void batchWriteIRQHandler(void);
     static void writeIRQHandler(void);
     static void readIRQHandler(void);
