@@ -33,9 +33,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern "C" {
 
-static I2CManager *i2c_irq_instance = 0;
-
-__attribute__ ((optimize("Os"), flatten))
 static void nullIRQHandler(void) {
     I2C_WAIT_READY(I2C0) { 
         if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
@@ -44,35 +41,10 @@ static void nullIRQHandler(void) {
     }
 }
 
-__attribute__ ((optimize("Os"), flatten))
-static void writeIRQHandler(void) {
-    i2c_irq_instance->writeIRQ();
-}
-
-__attribute__ ((optimize("Os"), flatten))
-static void readIRQHandler(void) {
-    i2c_irq_instance->readIRQ();
-}
-
-__attribute__ ((optimize("Os"), flatten))
-static void setReg8IRQHandler(void) {
-    i2c_irq_instance->setReg8IRQ();
-}
-
-__attribute__ ((optimize("Os"), flatten))
-static void getReg8IRQHandler(void) {
-    i2c_irq_instance->getReg8IRQ();
-}
-
-__attribute__ ((optimize("Os"), flatten))
-static void batchWriteIRQHandler(void) {
-    i2c_irq_instance->batchWriteIRQ();
-}
-
 typedef void (*I2C_FUNC)(void);
 static I2C_FUNC s_I2C0HandlerFn = nullIRQHandler;
 
-__attribute__ ((optimize("Os"), flatten))
+__attribute__ ((optimize("Os")))
 void I2C0_IRQHandler(void)
 {
     s_I2C0HandlerFn();
@@ -130,11 +102,13 @@ retry:
     return !error;
 }
 
+I2CManager *I2CManager::i2c_irq_instance = 0;
+
 I2CManager &I2CManager::instance() {
     static I2CManager i2c;
     if (!i2c.initialized) {
-        i2c.initialized = true;
         i2c_irq_instance = &i2c;
+        i2c.initialized = true;
         i2c.init();
     }
     return i2c;
@@ -218,6 +192,10 @@ void I2CManager::performBatchWrite() {
     //while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 }
 
+void I2CManager::batchWriteIRQHandler(void) {
+    i2c_irq_instance->batchWriteIRQ();
+}
+
 __attribute__ ((optimize("Os"), flatten))
 void I2CManager::batchWriteIRQ() {
 
@@ -227,7 +205,7 @@ void I2CManager::batchWriteIRQ() {
         printf("batchWrite I2C timeout %d %d\n", int(u32wLen), int(qBufEnd-qBufPtr));
 #endif  // #ifdef LOG_TIMEOUT
         u32txLen = 0;
-        I2C_START(I2C0);                                         /* Send START */
+        I2C_START(I2C0);                                            /* Send START */
         return;
     }
 
@@ -237,11 +215,11 @@ void I2CManager::batchWriteIRQ() {
         I2C_SET_DATA(I2C0, (uint8_t)(u8SlaveAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
         u8Ctrl = I2C_CTL_SI;                                        /* Clear SI */
         break;
-    [[likely]] case 0x18u:                                                     /* Slave Address ACK */
+    [[likely]] case 0x18u:                                          /* Slave Address ACK */
     [[likely]] case 0x28u:
         if(u32txLen < u32wLen) {
             I2C_SET_DATA(I2C0, qBufPtr[u32txLen++]);                /* Write Data to I2CDAT */
-            u8Ctrl = I2C_CTL_SI_AA;                                 /* Clear SI */
+            u8Ctrl = I2C_CTL_SI;                                    /* Clear SI */
         } else {
             u8Ctrl = I2C_CTL_STO_SI;                                /* Clear SI and send STOP */
             u32txLen = 0u;
@@ -300,6 +278,10 @@ void I2CManager::write(uint8_t _u8SlaveAddr, uint8_t data[], size_t _u32wLen) {
     //while(u8Xfering && (u8Err == 0u)) { __WFI(); }
 }
 
+void I2CManager::writeIRQHandler(void) {
+    i2c_irq_instance->writeIRQ();
+}
+
 __attribute__ ((optimize("Os"), flatten))
 void I2CManager::writeIRQ() {
 
@@ -319,12 +301,12 @@ void I2CManager::writeIRQ() {
         I2C_SET_DATA(I2C0, (uint8_t)(u8SlaveAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
         u8Ctrl = I2C_CTL_SI;                                        /* Clear SI */
         break;
-    [[likely]] case 0x18u:                                                     /* Slave Address ACK */
+    [[likely]] case 0x18u:                                          /* Slave Address ACK */
     [[likely]] case 0x28u:
         if(u32txLen < u32wLen)
         {
             I2C_SET_DATA(I2C0, txBuf[u32txLen++]);                  /* Write Data to I2CDAT */
-            u8Ctrl = I2C_CTL_SI_AA;                                 /* Clear SI */
+            u8Ctrl = I2C_CTL_SI;                                    /* Clear SI */
         }
         else
         {
@@ -373,6 +355,10 @@ uint8_t I2CManager::read(uint8_t _u8SlaveAddr, uint8_t rdata[], size_t _u32rLen)
     memcpy(rdata, rxBuf, u32rxLen);
 
     return u32rxLen;                                                /* Return bytes length that have been received */
+}
+
+void I2CManager::readIRQHandler(void) {
+    i2c_irq_instance->readIRQ();
 }
 
 __attribute__ ((optimize("Os"), flatten))
@@ -445,6 +431,10 @@ uint8_t I2CManager::getReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr) {
     return u8RData;
 }
 
+void I2CManager::getReg8IRQHandler(void) {
+    i2c_irq_instance->getReg8IRQ();
+}
+
 __attribute__ ((optimize("Os"), flatten))
 void I2CManager::getReg8IRQ() {
 
@@ -461,36 +451,36 @@ void I2CManager::getReg8IRQ() {
     {
     case 0x08u:
         I2C_SET_DATA(I2C0, (uint8_t)(u8SlaveAddr << 1u | 0x00u));      /* Write SLA+W to Register I2CDAT */
-        u8Ctrl = I2C_CTL_SI;                             /* Clear SI */
+        u8Ctrl = I2C_CTL_SI;                                /* Clear SI */
         break;
     case 0x18u:                                             /* Slave Address ACK */
         I2C_SET_DATA(I2C0, u8DataAddr);                     /* Write Lo byte address of register */
         break;
     case 0x20u:                                             /* Slave Address NACK */
     case 0x30u:                                             /* Master transmit data NACK */
-        u8Ctrl = I2C_CTL_STO_SI;                         /* Clear SI and send STOP */
+        u8Ctrl = I2C_CTL_STO_SI;                            /* Clear SI and send STOP */
         u8Err = 1u;
         break;
     case 0x28u:
-        u8Ctrl = I2C_CTL_STA_SI;                         /* Send repeat START */
+        u8Ctrl = I2C_CTL_STA_SI;                           /* Send repeat START */
         break;
     case 0x10u:
         I2C_SET_DATA(I2C0, (uint8_t)((u8SlaveAddr << 1u) | 0x01u));    /* Write SLA+R to Register I2CDAT */
         u8Ctrl = I2C_CTL_SI;                               /* Clear SI */
         break;
-    case 0x40u:                                             /* Slave Address ACK */
-        u8Ctrl = I2C_CTL_SI;                             /* Clear SI */
+    case 0x40u:                                            /* Slave Address ACK */
+        u8Ctrl = I2C_CTL_SI;                               /* Clear SI */
         break;
-    case 0x48u:                                             /* Slave Address NACK */
-        u8Ctrl = I2C_CTL_STO_SI;                         /* Clear SI and send STOP */
+    case 0x48u:                                            /* Slave Address NACK */
+        u8Ctrl = I2C_CTL_STO_SI;                           /* Clear SI and send STOP */
         u8Err = 1u;
         break;
     case 0x58u:
-        u8RData = (uint8_t) I2C_GET_DATA(I2C0);               /* Receive Data */
-        u8Ctrl = I2C_CTL_STO_SI;                         /* Clear SI and send STOP */
+        u8RData = (uint8_t) I2C_GET_DATA(I2C0);            /* Receive Data */
+        u8Ctrl = I2C_CTL_STO_SI;                           /* Clear SI and send STOP */
         u8Xfering = 0u;
         break;
-    case 0x38u:                                             /* Arbitration Lost */
+    case 0x38u:                                            /* Arbitration Lost */
     default:                                               /* Unknow status */
         u8Ctrl = I2C_CTL_STO_SI;
         u8Err = 1u;
@@ -519,6 +509,10 @@ void I2CManager::setReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr, uint8_t _u8W
 
     // Do NOT wait for write
     //while(u8Xfering && (u8Err == 0u)) { __WFI(); }
+}
+
+void I2CManager::setReg8IRQHandler(void) {
+    i2c_irq_instance->setReg8IRQ();
 }
 
 __attribute__ ((optimize("Os"), flatten))
@@ -585,6 +579,13 @@ void I2CManager::clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
 
 void I2CManager::init() {
     I2C_Open(I2C0, 400000);
+
+    uint32_t STCTL = 0;
+    uint32_t HTCTL = 2;
+
+    I2C0->TMCTL = ( ( STCTL << I2C_TMCTL_STCTL_Pos) & I2C_TMCTL_STCTL_Msk ) |
+                  ( ( HTCTL << I2C_TMCTL_HTCTL_Pos) & I2C_TMCTL_HTCTL_Msk );
+
     I2C_EnableTimeout(I2C0, 1);
     I2C_EnableInt(I2C0);
 
