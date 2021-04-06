@@ -100,6 +100,7 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/input.cpp
     ${PROJECT_SOURCE_DIR}/bq25895.cpp
     ${PROJECT_SOURCE_DIR}/ens210.cpp
+    ${PROJECT_SOURCE_DIR}/sdd1306.cpp
     ${PROJECT_SOURCE_DIR}/stubs.c
     ${PROJECT_SOURCE_DIR}/descriptors.c
     ${PROJECT_SOURCE_DIR}/msc.c

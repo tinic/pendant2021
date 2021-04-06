@@ -29,6 +29,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./input.h"
 #include "./bq25895.h"
 #include "./ens210.h"
+#include "./sdd1306.h"
 
 #include "M480.h"
 
@@ -61,6 +62,10 @@ void Pendant::init() {
     Input::instance();
     BQ25895::instance();
     ENS210::instance();
+    SDD1306::instance();
+    SDD1306::instance().PlaceUTF8String(0,0,"TEST");
+    SDD1306::instance().Display();
+
 }
 
 __attribute__ ((optimize("Os")))
