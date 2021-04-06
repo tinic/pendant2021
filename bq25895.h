@@ -40,6 +40,10 @@ public:
     float ChargeCurrent() const { return chargeCurrent; }
 
 private:
+    friend class I2CManager;
+    static constexpr uint8_t i2c_addr = 0x6a;
+    static bool devicePresent;
+
     float batteryVoltage = 0;
     float systemVoltage = 0;
     float vbusVoltage = 0;
@@ -64,7 +68,6 @@ private:
     void SetBoostVoltage (uint32_t voltageMV);
     uint32_t GetBoostVoltage();
 
-    static constexpr uint8_t bq25895Addr = 0x6a;
     void stats();
 
     void init();

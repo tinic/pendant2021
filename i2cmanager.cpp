@@ -21,6 +21,9 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./i2cmanager.h"
+#include "./bq25895.h"
+#include "./ens210.h"
+#include "./sdd1306.h"
 
 #include "M480.h"
 
@@ -131,14 +134,30 @@ I2CManager &I2CManager::instance() {
 }
 
 void I2CManager::probe() {
-
     for (size_t c = 0; c <  127; c++) {
         if (deviceReady(c)) {
-            printf("I2C device 0x%02x ready.\n", c);
+            switch(c) {
+                case SDD1306::i2c_addr: {
+                    SDD1306::devicePresent = true;
+                    printf("SDD1306 is ready.\n");
+                } break;
+                case ENS210::i2c_addr: {
+                    ENS210::devicePresent = true;
+                    printf("ENS210 is ready.\n");
+                } break;
+                case BQ25895::i2c_addr: {
+                    BQ25895::devicePresent = true;
+                    printf("BQ25895 is ready.\n");
+                } break;
+            default: {
+                    printf("Uknown I2C device is 0x%02x ready.\n", c);
+                } break;
+            }
         }
     }
 }
 
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::batchClear() {
 
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
@@ -147,6 +166,7 @@ void I2CManager::batchClear() {
     qBufPtr = qBufSeq;
 }
 
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len) {
 
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
@@ -161,6 +181,7 @@ void I2CManager::queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len) 
     qBufEnd += len;
 }
 
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::batchWrite() {
 
     while(u8Xfering && (u8Err == 0u)) { __WFI(); }
@@ -240,6 +261,7 @@ void I2CManager::batchWriteIRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                              /* Write controlbit to I2C_CTL register */
 }
 
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::write(uint8_t _u8SlaveAddr, uint8_t data[], size_t _u32wLen) {
 
     // Wait for pending write
@@ -312,6 +334,7 @@ void I2CManager::writeIRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                              /* Write controlbit to I2C_CTL register */
 }
 
+__attribute__ ((optimize("Os"), flatten))
 uint8_t I2CManager::read(uint8_t _u8SlaveAddr, uint8_t rdata[], size_t _u32rLen) {
 
     // Wait for pending write
@@ -387,7 +410,7 @@ void I2CManager::readIRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                                 /* Write controlbit to I2C_CTL register */
 }
 
-
+__attribute__ ((optimize("Os"), flatten))
 uint8_t I2CManager::getReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr) {
 
     // Wait for pending write
@@ -464,7 +487,7 @@ void I2CManager::getReg8IRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                          /* Write controlbit to I2C_CTL register */
 }
 
-
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::setReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr, uint8_t _u8WData) {
 
     // Wait for pending write
@@ -534,12 +557,14 @@ void I2CManager::setReg8IRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                        /* Write controlbit to I2C_CTL register */
 }
 
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::setReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
     uint8_t value = getReg8(slaveAddr, reg);
     value |= mask;
     setReg8(slaveAddr, reg, value);
 }
 
+__attribute__ ((optimize("Os"), flatten))
 void I2CManager::clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
     uint8_t value = getReg8(slaveAddr, reg);
     value &= ~mask;

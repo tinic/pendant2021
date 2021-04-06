@@ -55,9 +55,11 @@ public:
     bool DevicePresent() const { return devicePresent; }
 
 private:
-    void Init();
+    friend class I2CManager;
+    static constexpr uint32_t i2c_addr = 0x3C;
+    static bool devicePresent;
 
-    static constexpr uint32_t i2caddr = 0x3C;
+    void Init();
 
     void DisplayCenterFlip();
     void DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr);
@@ -78,7 +80,6 @@ private:
     int32_t boot_screen_offset = 0;
     int32_t vertical_shift = 0;
 
-    bool devicePresent = false;
     bool initialized = false;
 };  // class SDD1306
 

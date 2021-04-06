@@ -35,7 +35,9 @@ public:
     float Humidity() const { return humidity; }
 
 private:
-    static constexpr uint8_t ens210_addr = 0x43;
+    friend class I2CManager;
+    static constexpr uint8_t i2c_addr = 0x43;
+    static bool devicePresent;
 
     float temperature;
     float humidity;

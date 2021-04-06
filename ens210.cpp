@@ -30,6 +30,8 @@ static void delay_us(int usec) {
     for (volatile size_t c = 0; c < usec*c*10000; c++) {}    
 }
 
+bool ENS210::devicePresent = false;
+
 ENS210 &ENS210::instance() {
     static ENS210 ens210;
     if (!ens210.initialized) {
@@ -40,34 +42,38 @@ ENS210 &ENS210::instance() {
 }
 
 void ENS210::reset() {
+    if (!devicePresent) return;
     static uint8_t th_reset[] = { 0x10, 0x80 };
-    I2CManager::instance().write(ens210_addr, th_reset, 2);
+    I2CManager::instance().write(i2c_addr, th_reset, 2);
     delay_us(2000);
     static uint8_t th_normal[] = { 0x10, 0x00 };
-    I2CManager::instance().write(ens210_addr, th_normal, 2);
+    I2CManager::instance().write(i2c_addr, th_normal, 2);
     delay_us(2000);
 }
 
 void ENS210::measure() {
+    if (!devicePresent) return;
     static uint8_t th_start_single[] = { 0x21, 0x00, 0x03 };
-    I2CManager::instance().write(ens210_addr, (uint8_t *)&th_start_single, sizeof(th_start_single));
+    I2CManager::instance().write(i2c_addr, (uint8_t *)&th_start_single, sizeof(th_start_single));
 }
 
 void ENS210::wait() {
+    if (!devicePresent) return;
     static uint8_t th_sens_stat = 0x24;
     static uint8_t th_stat = 0;
     do {
-        I2CManager::instance().write(ens210_addr, (uint8_t *)&th_sens_stat, sizeof(th_sens_stat));
-        I2CManager::instance().read(ens210_addr, (uint8_t *)&th_stat, sizeof(th_stat));
+        I2CManager::instance().write(i2c_addr, (uint8_t *)&th_sens_stat, sizeof(th_sens_stat));
+        I2CManager::instance().read(i2c_addr, (uint8_t *)&th_stat, sizeof(th_stat));
         delay_us(2000);
     } while (th_stat);
 }
 
 void ENS210::read() {
+    if (!devicePresent) return;
     static uint8_t th_read = 0x30;
     static uint8_t th_data[6] = { 0, 0, 0, 0, 0, 0 };
-    I2CManager::instance().write(ens210_addr, (uint8_t *)&th_read, sizeof(th_read));
-    I2CManager::instance().read(ens210_addr, (uint8_t *)&th_data, sizeof(th_data));
+    I2CManager::instance().write(i2c_addr, (uint8_t *)&th_read, sizeof(th_read));
+    I2CManager::instance().read(i2c_addr, (uint8_t *)&th_data, sizeof(th_data));
 
     uint32_t t_val = (th_data[2]<<16) + (th_data[1]<<8) + (th_data[0]<<0);
     uint32_t h_val = (th_data[5]<<16) + (th_data[4]<<8) + (th_data[3]<<0);
@@ -83,16 +89,15 @@ void ENS210::read() {
 }
 
 void ENS210::update() {
+    if (!devicePresent) return;
     read();
     measure();
 }
 
 void ENS210::init() {
+    if (!devicePresent) return;
     reset();
-
     measure();
     wait();
     read();
-
-    printf("Temperature: %2.2fC Humidity: %3.2f%%\n", double(Temperature()), double(Humidity()*100.0f));
 }
