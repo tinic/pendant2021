@@ -125,10 +125,9 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/GCC/startup_M480.S)
 
 # Generate version.h
-
 find_package(Git)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE GIT_SHORT_SHA  OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE GIT_SHORT_SHA OUTPUT_STRIP_TRAILING_WHITESPACE)
     execute_process(COMMAND ${GIT_EXECUTABLE} rev-list HEAD --count WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE GIT_REV_COUNT OUTPUT_STRIP_TRAILING_WHITESPACE)
     execute_process(COMMAND ${GIT_EXECUTABLE} show -s --format=%ad HEAD --date=iso-strict WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE GIT_COMMIT_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
 else()
@@ -139,6 +138,15 @@ endif()
 
 include_directories(${CMAKE_BINARY_DIR})
 configure_file("${PROJECT_SOURCE_DIR}/version.h.in" "${CMAKE_BINARY_DIR}/version.h" @ONLY)
+
+# Generate font.h
+execute_process(COMMAND gm convert -crop 2048x8+0+8  -rotate 90 -modulate 1000 -depth 1 -background black +matte +adjoin ${PROJECT_SOURCE_DIR}/font.gif ${CMAKE_BINARY_DIR}/font_0_%d.png)
+execute_process(COMMAND gm convert -crop 2048x8+0+16 -rotate 90 -modulate 1000 -depth 1 -background black +matte +adjoin ${PROJECT_SOURCE_DIR}/font.gif ${CMAKE_BINARY_DIR}/font_1_%d.png)
+execute_process(COMMAND gm convert -crop 2048x8+0+24 -rotate 90 -modulate 1000 -depth 1 -background black +matte +adjoin ${PROJECT_SOURCE_DIR}/font.gif ${CMAKE_BINARY_DIR}/font_2_%d.png)
+execute_process(COMMAND gm convert -crop 2048x8+0+32 -rotate 90 -modulate 1000 -depth 1 -background black +matte +adjoin ${PROJECT_SOURCE_DIR}/font.gif ${CMAKE_BINARY_DIR}/font_3_%d.png)
+execute_process(COMMAND gm montage ${CMAKE_BINARY_DIR}/font_0_1.png ${CMAKE_BINARY_DIR}/font_1_1.png ${CMAKE_BINARY_DIR}/font_2_1.png ${CMAKE_BINARY_DIR}/font_3_1.png -geometry +0+0 -tile 1x4 ${CMAKE_BINARY_DIR}/font.png)
+execute_process(COMMAND gm convert ${CMAKE_BINARY_DIR}/font.png -depth 1 -colors 2 pbm:${CMAKE_BINARY_DIR}/font.pbm)
+execute_process(COMMAND xxd -s 10 -i font.pbm WORKING_DIRECTORY ${CMAKE_BINARY_DIR} OUTPUT_FILE ${CMAKE_BINARY_DIR}/font.h) # fragile!!
 
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     message(FATAL_ERROR "Compiler must be GCC.")
