@@ -23,6 +23,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./main.h"
 
 #include "M480.h"
+#include "version.h"
 
 #include <stdio.h>
 
@@ -239,10 +240,12 @@ int main(void)
         "Main"
 #endif  // #if defined(BOOTLOADER)
         " PID(0x%08x) UID(0x%08x%08x%08x)\n", 
+        "Build %s\n",
         (unsigned int)SYS_ReadPDID(),
         (unsigned int)FMC_ReadUID(0),
         (unsigned int)FMC_ReadUID(1),
-        (unsigned int)FMC_ReadUID(2));
+        (unsigned int)FMC_ReadUID(2),
+        "r" GIT_REV_COUNT " (" GIT_SHORT_SHA ") " GIT_COMMIT_DATE);
     printf("--------------------------------------------------------------------------------\n");
 
     FMC_Close();
