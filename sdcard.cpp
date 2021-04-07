@@ -358,11 +358,7 @@ bool SDCard::readTotalBlocks() {
     return true;
 }
 
-void SDCard::init() {
-
-    QSPI_Open(QSPI0, QSPI_MASTER, QSPI_MODE_0, 8, 250000);
-
-    QSPI_SET_SS_HIGH(QSPI0);
+bool SDCard::detectCardType() {
 
     for (size_t c = 0; c < 10; c++) {
         readByte();
@@ -373,7 +369,7 @@ void SDCard::init() {
         for (; std::get<1>(GoIdle()) != 1 ;) {
             if ( (Timeline::instance().SystemTime() - start_time) > 0.5 ) {
                 QSPI_SET_SS_HIGH(QSPI0);
-                return;
+                return false;
             }
         }
     }
@@ -397,13 +393,13 @@ void SDCard::init() {
             for (; std::get<1>(SendCmd(ACMD41, 0x40000000)) != 0 ;) {
                 if ( (Timeline::instance().SystemTime() - start_time) > 0.5 ) {
                     QSPI_SET_SS_HIGH(QSPI0);
-                    return;
+                    return false;
                 }
             }
 
             if ((std::get<1>(SendCmd(CMD58, 0)) & 0x40) != 0) {
                 QSPI_SET_SS_HIGH(QSPI0);
-                return;
+                return false;
             }
 
             if ((readByte() & 0x40) != 0) {
@@ -417,13 +413,31 @@ void SDCard::init() {
             // Do we care?
         }
     }
+    printf("Card type determined!\n");
+    return true;
+}
 
+bool SDCard::setSectorSize() {
     if (std::get<1>(SendCmd(CMD16, 512)) != 0) {
         QSPI_SET_SS_HIGH(QSPI0);
+        return false;
+    }
+    return true;
+}
+
+void SDCard::init() {
+
+    QSPI_Open(QSPI0, QSPI_MASTER, QSPI_MODE_0, 8, 250000);
+
+    QSPI_SET_SS_HIGH(QSPI0);
+
+    if (!detectCardType()) {
         return;
     }
 
-    printf("Card initialized!\n");
+    if (!setSectorSize()) {
+        return;
+    }
 
     if (!readTotalBlocks()) {
         return;
@@ -439,7 +453,7 @@ void SDCard::init() {
 
     QSPI_SET_SS_HIGH(QSPI0);
 
-/*    NVIC_SetPriority(USBD_IRQn, 4);
+/*  NVIC_SetPriority(USBD_IRQn, 4);
     NVIC_EnableIRQ(USBD_IRQn);
 
     USBD_SetConfigCallback(MSC_SetConfig);

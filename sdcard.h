@@ -171,6 +171,8 @@ private:
     bool isSdHcCard = false;
     uint32_t totalBlocks = 0;
     
+    bool detectCardType();
+    bool setSectorSize();
     bool readCID();
     bool readCSD();
     bool readTotalBlocks();
