@@ -25,6 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./sdd1306.h"
 #include "./ens210.h"
 #include "./bq25895.h"
+#include "./model.h"
 
 #include <stdio.h>
 
@@ -61,11 +62,21 @@ void UI::init() {
         mainUI.commitFunc = [=](Timeline::Span &) {
             SDD1306::instance().Display();
         };
-        mainUI.switch1Func = [=](Timeline::Span &, bool) {
+        mainUI.switch1Func = [=](Timeline::Span &, bool up) {
+            if (up) { 
+                printf("SW1\n");
+                Model::instance().SetEffect((Model::instance().Effect() + 1) % Model::instance().EffectCount());
+            }
         };
-        mainUI.switch2Func = [=](Timeline::Span &, bool) {
+        mainUI.switch2Func = [=](Timeline::Span &, bool up) {
+            if (up) { 
+                printf("SW2\n");
+            }
         };
-        mainUI.switch3Func = [=](Timeline::Span &, bool) {
+        mainUI.switch3Func = [=](Timeline::Span &, bool up) {
+            if (up) { 
+                printf("SW3\n");
+            }
         };
         Timeline::instance().Add(mainUI);
     }

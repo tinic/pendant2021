@@ -30,31 +30,37 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern "C" {
 
-static uint64_t systemSeconds = 0;
+static uint32_t systemSeconds = 0;
 
 static bool backgroundReady = false;
 
 void TMR3_IRQHandler(void)
 {
-    systemSeconds++;
-    backgroundReady = true;
-    TIMER_ClearIntFlag(TIMER3);
+    if(TIMER_GetIntFlag(TIMER3)) {
+        TIMER_ClearIntFlag(TIMER3);
+        systemSeconds++;
+        backgroundReady = true;
+    }
 }
 
 static bool effectReady = false;
 
 void TMR2_IRQHandler(void)
 {
-    effectReady = true;
-    TIMER_ClearIntFlag(TIMER2);
+    if(TIMER_GetIntFlag(TIMER2)) {
+        TIMER_ClearIntFlag(TIMER2);
+        effectReady = true;
+    }
 }
 
 static bool displayReady = false;
 
 void TMR1_IRQHandler(void)
 {
-    displayReady = true;
-    TIMER_ClearIntFlag(TIMER1);
+    if(TIMER_GetIntFlag(TIMER1)) {
+        TIMER_ClearIntFlag(TIMER1);
+        displayReady = true;
+    }
 }
 
 }
@@ -262,7 +268,7 @@ Timeline::Span &Timeline::TopDisplay() const
 }
 
 double Timeline::SystemTime() const {
-    return double(uint64_t(systemSeconds) * uint64_t(TIMER3->CMP) + uint64_t(TIMER3->CNT)) / double(TIMER3->CMP);
+    return double(systemSeconds) + (double(TIMER3->CNT) / double(TIMER3->CMP));
 }
 
 bool Timeline::CheckEffectReadyAndClear() {
@@ -310,4 +316,5 @@ void Timeline::init() {
     NVIC_SetPriority(TMR3_IRQn, 1);
     NVIC_EnableIRQ(TMR3_IRQn);
     TIMER_Start(TIMER3);
+
 }

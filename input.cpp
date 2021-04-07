@@ -32,7 +32,7 @@ void GPF_IRQHandler(void)
 {
     if(GPIO_GET_INT_FLAG(PF, BIT2))
     {
-        Timeline::instance().TopEffect().ProcessSwitch1(PF2 ? true : false);
+        Timeline::instance().TopDisplay().ProcessSwitch1(PF2 ? true : false);
         GPIO_CLR_INT_FLAG(PF, BIT2);
     }
 
@@ -53,13 +53,13 @@ void GPB_IRQHandler(void)
 {
     if(GPIO_GET_INT_FLAG(PB, BIT5))
     {
-        Timeline::instance().TopEffect().ProcessSwitch1(PB5 ? true : false);
+        Timeline::instance().TopDisplay().ProcessSwitch2(PB5 ? true : false);
         GPIO_CLR_INT_FLAG(PB, BIT5);
     }
 
     if(GPIO_GET_INT_FLAG(PB, BIT15))
     {
-        Timeline::instance().TopEffect().ProcessSwitch1(PB15 ? true : false);
+        Timeline::instance().TopDisplay().ProcessSwitch3(PB15 ? true : false);
         GPIO_CLR_INT_FLAG(PB, BIT15);
     }
 }

@@ -25,6 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./main.h"
 #include "./leds.h"
 #include "./color.h"
+#include "./model.h"
 
 #include <memory.h>
 
@@ -92,6 +93,8 @@ Leds &Leds::instance() {
     return leds;
 }
 
+struct Leds::Map Leds::map;
+
 const Leds::lut_table Leds::lut;
 
 void Leds::init() {
@@ -144,11 +147,13 @@ void Leds::init() {
 void Leds::prepare() {
     static color::convert converter;
 
+    float brightness = Model::instance().Brightness();
+
     uint32_t *ptr0 = reinterpret_cast<uint32_t *>(circleLedsDMABuf[0].data());
     uint32_t *ptr1 = reinterpret_cast<uint32_t *>(circleLedsDMABuf[1].data());
     for (size_t c = 0; c < circleLedsN; c++) {
-        color::rgba<uint16_t> pixel0(color::rgba<uint16_t>(converter.CIELUV2sRGB(circleLeds[0][c])).fix_for_ws2816());
-        color::rgba<uint16_t> pixel1(color::rgba<uint16_t>(converter.CIELUV2sRGB(circleLeds[1][c])).fix_for_ws2816());
+        color::rgba<uint16_t> pixel0(color::rgba<uint16_t>(converter.CIELUV2sRGB(circleLeds[0][c]*brightness)).fix_for_ws2816());
+        color::rgba<uint16_t> pixel1(color::rgba<uint16_t>(converter.CIELUV2sRGB(circleLeds[1][c]*brightness)).fix_for_ws2816());
 
         auto convert_to_one_wire_spi = [] (uint32_t *p, uint16_t v) {
             *p++ = lut[(v>>8)&0xFF];
@@ -173,8 +178,8 @@ void Leds::prepare() {
     uint32_t *ptr3 = reinterpret_cast<uint32_t *>(birdsLedsDMABuf[1].data());
 #endif  // #ifdef USE_PWM
     for (size_t c = 0; c < birdLedsN; c++) {
-        color::rgba<uint16_t> pixel0(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[0][c])).fix_for_ws2816());
-        color::rgba<uint16_t> pixel1(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[1][c])).fix_for_ws2816());
+        color::rgba<uint16_t> pixel0(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[0][c]*brightness)).fix_for_ws2816());
+        color::rgba<uint16_t> pixel1(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[1][c]*brightness)).fix_for_ws2816());
 
 #ifdef USE_PWM
 

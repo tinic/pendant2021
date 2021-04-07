@@ -53,6 +53,7 @@ void Pendant::init() {
     I2CManager::instance();
     Timeline::instance();
     Input::instance();
+    SDD1306::instance();
     BQ25895::instance();
     ENS210::instance();
     Effects::instance();

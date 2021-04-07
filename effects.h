@@ -23,12 +23,58 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef EFFECTS_H_
 #define EFFECTS_H_
 
+#include <stdint.h>
+
 class Effects {
 public:
     static Effects &instance();
 
 private:
+    class pseudo_random {
+    public:
+        
+        void set_seed(uint32_t seed) {
+            uint32_t i;
+            a = 0xf1ea5eed, b = c = d = seed;
+            for (i=0; i<20; ++i) {
+                (void)get();
+            }
+        }
+
+        #define rot(x,k) (((x)<<(k))|((x)>>(32-(k))))
+        uint32_t get() {
+            uint32_t e = a - rot(b, 27);
+            a = b ^ rot(c, 17);
+            b = c + d;
+            c = d + e;
+            d = e + a;
+            return d;
+        }
+
+        float get(float lower, float upper) {
+            return static_cast<float>(static_cast<double>(get()) * (static_cast<double>(upper-lower)/static_cast<double>(1LL<<32)) ) + lower;
+        }
+
+        int32_t get(int32_t lower, int32_t upper) {
+            return (static_cast<int32_t>(get()) % (upper-lower)) + lower;
+        }
+
+    private:
+        uint32_t a; 
+        uint32_t b; 
+        uint32_t c; 
+        uint32_t d; 
+
+    } random;
+
     void demo();
+
+    void color_walker();
+    void light_walker();
+    void rgb_band();
+    void brilliance();
+
+    void standard_bird();
 
     void init();
     bool initialized = false;
