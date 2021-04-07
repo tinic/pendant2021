@@ -30,7 +30,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern "C" {
 
-static uint32_t systemSeconds = 0;
+static uint64_t systemSeconds = 0;
 
 static bool backgroundReady = false;
 
