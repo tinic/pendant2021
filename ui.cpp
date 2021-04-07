@@ -43,12 +43,13 @@ void UI::init() {
         mainUI.type = Timeline::Span::Display;
         mainUI.time = Timeline::instance().SystemTime();
         mainUI.duration = std::numeric_limits<double>::infinity();
+
         mainUI.calcFunc = [=](Timeline::Span &, Timeline::Span &) {
             SDD1306::instance().ClearChar();
             char str[32];
             sprintf(str,"B:%6.1f%%", 0.0);
             SDD1306::instance().PlaceUTF8String(0,0,str);
-            sprintf(str,"D:%6.1fs", Timeline::instance().SystemTime());
+            sprintf(str,"D:%fs", Timeline::instance().SystemTime());
             SDD1306::instance().PlaceUTF8String(0,1,str);
             sprintf(str,"T:%6.1fC", double(ENS210::instance().Temperature()));
             SDD1306::instance().PlaceUTF8String(0,2,str);

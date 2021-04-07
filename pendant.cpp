@@ -57,6 +57,7 @@ void Pendant::init() {
     ENS210::instance();
     Effects::instance();
     UI::instance();
+    SDCard::instance();
 }
 
 void Pendant::Run() {
@@ -64,9 +65,17 @@ void Pendant::Run() {
         __WFI();
         if (Timeline::instance().CheckEffectReadyAndClear()) {
             Timeline::instance().ProcessEffect();
+            if (Timeline::instance().TopEffect().Valid()) {
+                Timeline::instance().TopEffect().Calc();
+                Timeline::instance().TopEffect().Commit();
+            }
         }
         if (Timeline::instance().CheckDisplayReadyAndClear()) {
             Timeline::instance().ProcessDisplay();
+            if (Timeline::instance().TopDisplay().Valid()) {
+                Timeline::instance().TopDisplay().Calc();
+                Timeline::instance().TopDisplay().Commit();
+            }
         }
         if (Timeline::instance().CheckBackgroundReadyAndClear()) {
             ENS210::instance().update();
