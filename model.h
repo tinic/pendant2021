@@ -29,7 +29,12 @@ class Model {
 public:
     static Model &instance();
 
+    uint32_t Effect() const { return effect; };
+    void SetEffect(uint32_t _effect) { effect = _effect; };
+
 private:
+    uint32_t effect = 0;
+
     void init();
     bool initialized = false;
 };

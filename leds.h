@@ -142,6 +142,11 @@ public:
         return birdLeds[side][index];
     }
 
+    auto getCircle() { return circleLeds; }
+    auto getBird() { return birdLeds; };
+    void setCircle(auto _circleLeds) { circleLeds = _circleLeds; }
+    void setBird(auto _birdLeds) { birdLeds = _birdLeds; }
+
 private:
 
     static const struct lut_table {

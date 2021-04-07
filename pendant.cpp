@@ -32,13 +32,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./sdd1306.h"
 #include "./effects.h"
 #include "./ui.h"
+#include "./model.h"
 
 #include "M480.h"
 
 #ifndef BOOTLOADER
 
 Pendant &Pendant::instance() {
-    
     static Pendant pendant;
     if (!pendant.initialized) {
         pendant.initialized = true;
@@ -48,6 +48,7 @@ Pendant &Pendant::instance() {
 }
 
 void Pendant::init() { 
+    Model::instance();
     Leds::instance();
     I2CManager::instance();
     Timeline::instance();
@@ -59,24 +60,18 @@ void Pendant::init() {
 }
 
 void Pendant::Run() {
-
     while (1) {
-
         __WFI();
-
         if (Timeline::instance().CheckEffectReadyAndClear()) {
             Timeline::instance().ProcessEffect();
         }
-
         if (Timeline::instance().CheckDisplayReadyAndClear()) {
             Timeline::instance().ProcessDisplay();
         }
-
         if (Timeline::instance().CheckBackgroundReadyAndClear()) {
             ENS210::instance().update();
             BQ25895::instance().UpdateState();
         }
-
     }
 }
 

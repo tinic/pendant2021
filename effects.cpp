@@ -23,6 +23,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./effects.h"
 #include "./timeline.h"
 #include "./leds.h"
+#include "./model.h"
 
 static constexpr vector::float4 gradient_rainbow_data[] = {
     color::srgb8_stop({0xff,0x00,0x00}, 0.00f),
@@ -43,25 +44,85 @@ Effects &Effects::instance() {
     return effects;
 }
 
+void Effects::demo() {
+    static float rot = 0.0f;
+    rot+=0.01f;
+    for (size_t c = 0; c < Leds::instance().circleLedsN; c++) {
+        Leds::instance().setCircle(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+        Leds::instance().setCircle(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+    }
+    for (size_t c = 0; c < Leds::instance().birdLedsN; c++) {
+        Leds::instance().setBird(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+        Leds::instance().setBird(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+    }
+}
+
 void Effects::init() {
     static Timeline::Span mainEffect;
+
+    static uint32_t current_effect = 0;
+    static uint32_t previous_effect = 0;
+    
+    static double switch_time = 0;
+
     if (!Timeline::instance().Scheduled(mainEffect)) {
         mainEffect.type = Timeline::Span::Display;
         mainEffect.time = Timeline::instance().SystemTime();
         mainEffect.duration = std::numeric_limits<double>::infinity();
-        mainEffect.calcFunc = [=](Timeline::Span &, Timeline::Span &) {
-            static float rot = 0.0f;
-            rot+=0.01f;
-            for (size_t c = 0; c < Leds::instance().circleLedsN; c++) {
-                Leds::instance().setCircle(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-                Leds::instance().setCircle(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+        mainEffect.calcFunc = [this](Timeline::Span &, Timeline::Span &) {
+
+            if ( current_effect != Model::instance().Effect() ) {
+                previous_effect = current_effect;
+                current_effect = Model::instance().Effect();
+                switch_time = Timeline::instance().SystemTime();
             }
-            for (size_t c = 0; c < Leds::instance().birdLedsN; c++) {
-                Leds::instance().setBird(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-                Leds::instance().setBird(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
+
+            auto calc_effect = [this] (uint32_t effect) mutable {
+                switch (effect) {
+                    case 0:
+                        demo();
+                    break;
+                }
+            };
+
+            double blend_duration = 0.5;
+            double now = Timeline::instance().SystemTime();
+            
+            if ((now - switch_time) < blend_duration) {
+                calc_effect(previous_effect);
+
+                auto circleLedsPrev = Leds::instance().getCircle();
+                auto birdsLedsPrev = Leds::instance().getBird();
+
+                calc_effect(current_effect);
+
+                auto circleLedsNext = Leds::instance().getCircle();
+                auto birdsLedsNext = Leds::instance().getBird();
+
+                float blend = static_cast<float>(now - switch_time) * (1.0f / static_cast<float>(blend_duration));
+
+                for (size_t c = 0; c < circleLedsNext.size(); c++) {
+                    for (size_t d = 0; d < circleLedsNext[c].size(); d++) {
+                        circleLedsNext[c][d] = vector::float4::lerp(circleLedsPrev[c][d], circleLedsNext[c][d], blend);
+                    }
+                }
+
+                Leds::instance().setCircle(circleLedsNext);
+
+                for (size_t c = 0; c < birdsLedsNext.size(); c++) {
+                    for (size_t d = 0; d < birdsLedsNext[c].size(); d++) {
+                        birdsLedsNext[c][d] = vector::float4::lerp(birdsLedsPrev[c][d], birdsLedsNext[c][d], blend);
+                    }
+                }
+
+                Leds::instance().setBird(birdsLedsNext);
+
+            } else {
+                calc_effect(current_effect);
             }
+
         };
-        mainEffect.commitFunc = [=](Timeline::Span &) {
+        mainEffect.commitFunc = [this](Timeline::Span &) {
             Leds::instance().apply();
         };
         Timeline::instance().Add(mainEffect);

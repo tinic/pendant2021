@@ -28,6 +28,8 @@ public:
     static Effects &instance();
 
 private:
+    void demo();
+
     void init();
     bool initialized = false;
 };
