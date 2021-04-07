@@ -44,7 +44,8 @@ public:
 class Timeline {
 public:
 
-    static constexpr double frameRate = 120.0;
+    static constexpr double effectRate = 120.0;
+    static constexpr double displayRate = 10.0;
 
     class Span {
     public:
@@ -98,7 +99,9 @@ public:
     static Timeline &instance();
 
     double SystemTime() const;
-    bool CheckFrameReadyAndClear();
+    bool CheckEffectReadyAndClear();
+    bool CheckDisplayReadyAndClear();
+    bool CheckBackgroundReadyAndClear();
 
     void Add(Timeline::Span &span);
     void Remove(Timeline::Span &span);

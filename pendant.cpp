@@ -80,35 +80,30 @@ void Pendant::DemoPattern() {
 
 void Pendant::Run() {
 
-    SDD1306::instance().DisplayBootScreen();
-    SDD1306::instance().Display();
 
     while (1) {
 
-        static double delta_idle = 0;
-        static double delta_busy = 0;
-        volatile double a = Timeline::instance().SystemTime();
-
         __WFI();
 
-        if (Timeline::instance().CheckFrameReadyAndClear()) {
-            volatile double b = Timeline::instance().SystemTime();
-            delta_idle = b - a;
-            SDCard::instance().process();
+        if (Timeline::instance().CheckEffectReadyAndClear()) {
+            Timeline::instance().ProcessEffect();
+        }
 
-            DemoPattern();
+        if (Timeline::instance().CheckDisplayReadyAndClear()) {
+            Timeline::instance().ProcessDisplay();
+        }
 
-            Leds::instance().apply();
-            volatile double c = Timeline::instance().SystemTime();
-            delta_busy = c - b;
+        if (Timeline::instance().CheckBackgroundReadyAndClear()) {
+            ENS210::instance().update();
+            BQ25895::instance().UpdateState();
+        }
 
+#if 0
             static double last_printf = 0;
             if ( (Timeline::instance().SystemTime() - last_printf ) > (1.0/10.0)) {     
-                ENS210::instance().update();
-                BQ25895::instance().UpdateState();
-
+                Timeline::ProcessDisplay();
                 last_printf = Timeline::instance().SystemTime();      
-                SDD1306::instance().ClearCache();
+                SDD1306::instance().ClearChar();
                 char str[32];
                 sprintf(str,"B:%6.1f%%", (delta_busy/(delta_idle+delta_busy))*100.0);
                 SDD1306::instance().PlaceUTF8String(0,0,str);
@@ -123,7 +118,11 @@ void Pendant::Run() {
 
                 SDD1306::instance().Display();
             }
+            if ( (Timeline::instance().SystemTime() - last_printf ) > (1.0/10.0)) {     
+            }
         }
+#endif  // #if 0
+
     }
 }
 

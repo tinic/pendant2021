@@ -75,7 +75,6 @@ SDD1306 &SDD1306::instance() {
     return sdd1306;
 }
 
-
 void SDD1306::Clear() {
     memset(text_buffer_cache, 0, sizeof(text_buffer_cache));
     memset(text_buffer_screen, 0xFFFF, sizeof(text_buffer_screen));
@@ -89,7 +88,7 @@ void SDD1306::ClearAttr() {
     memset(text_attr_cache, 0, sizeof(text_attr_cache));
 }
     
-void SDD1306::ClearCache() {
+void SDD1306::ClearChar() {
     memset(text_buffer_cache, 0, sizeof(text_buffer_cache));
 }
 
@@ -102,7 +101,6 @@ void SDD1306::DisplayBootScreen() {
 void SDD1306::SetCenterFlip(int8_t progression) {
     center_flip_cache = progression;
 }
-
 
 void SDD1306::PlaceUTF8String(uint32_t x, uint32_t y, const char *s) {
     if (y>=text_y_size || x>=text_x_size) return;
@@ -296,7 +294,6 @@ void SDD1306::Init() {
 }
 
 void SDD1306::DisplayCenterFlip() {
-    if (!devicePresent) return;
     uint8_t buf[0x61];
     buf[0] = 0x40;
     for (uint32_t y=0; y<text_y_size; y++) {
@@ -329,11 +326,7 @@ void SDD1306::DisplayCenterFlip() {
 }
     
 void SDD1306::DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr) {
-    if (!devicePresent) return;
-
-    x = x * 8;
-
-    x += 28;
+    x = (x * 8) + 28;
 
     BatchWriteCommand(static_cast<uint8_t>(0x0f&(x   )));
     BatchWriteCommand(static_cast<uint8_t>(0x10|(x>>4)));
@@ -391,13 +384,11 @@ void SDD1306::DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr) {
 }
 
 void SDD1306::BatchWriteCommand(uint8_t cmd_val) const {
-    if (!devicePresent) return;
     uint8_t cmd[2] = { 0x00, cmd_val };
     I2CManager::instance().queueBatchWrite(i2c_addr, cmd, sizeof(cmd));
 }
 
 void SDD1306::WriteCommand(uint8_t cmd_val) const {
-    if (!devicePresent) return;
     uint8_t cmd[2] = { 0x00, cmd_val };
     I2CManager::instance().write(i2c_addr, cmd, sizeof(cmd));
 }

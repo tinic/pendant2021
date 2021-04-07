@@ -33,9 +33,8 @@ public:
 
     static SDD1306 &instance();
     
-    void Clear();
     void ClearAttr();
-    void ClearCache();
+    void ClearChar();
     void DisplayBootScreen();
     void SetCenterFlip(int8_t progression);
 
@@ -60,6 +59,7 @@ private:
 
     void Init();
 
+    void Clear();
     void DisplayCenterFlip();
     void DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr);
     void WriteCommand(uint8_t v) const;

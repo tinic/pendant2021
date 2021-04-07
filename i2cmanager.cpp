@@ -132,7 +132,7 @@ void I2CManager::probe() {
                     printf("BQ25895 is ready.\n");
                 } break;
             default: {
-                    printf("Uknown I2C device is 0x%02x ready.\n", c);
+                    printf("Unknown I2C device 0x%02x is ready.\n", c);
                 } break;
             }
         }
