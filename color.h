@@ -147,7 +147,7 @@ namespace color {
             for (size_t c = 0; c < 256; c++) {
                 float v = float(c) / 255.0f;
                 if (v > 0.04045f) {
-                    sRGB2lRGB[c] = consteval_pow( (v + 0.055f) / 1.055f, 2.4f);
+                    sRGB2lRGB[c] = constexpr_pow( (v + 0.055f) / 1.055f, 2.4f);
                 } else {
                     sRGB2lRGB[c] = v * ( 25.0f / 323.0f );
                 };
@@ -166,7 +166,7 @@ namespace color {
             const float wu = 0.197839825f;
             const float wv = 0.468336303f;
 
-            float l = ( Y <= 0.008856452f ) ? ( 9.03296296296f * Y) : ( 1.16f * consteval_pow(Y, 1.0f / 3.0f) - 0.16f);
+            float l = ( Y <= 0.008856452f ) ? ( 9.03296296296f * Y) : ( 1.16f * constexpr_pow(Y, 1.0f / 3.0f) - 0.16f);
             float d = X + 15.f * Y + 3.0f * Z;
             float di = 1.0f / d;
 
@@ -193,7 +193,7 @@ namespace color {
         const float wu = 0.197839825f;
         const float wv = 0.468336303f;
 
-        float l = ( Y <= 0.008856452f ) ? ( 9.03296296296f * Y) : ( 1.16f * consteval_pow(Y, 1.0f / 3.0f) - 0.16f);
+        float l = ( Y <= 0.008856452f ) ? ( 9.03296296296f * Y) : ( 1.16f * constexpr_pow(Y, 1.0f / 3.0f) - 0.16f);
         float d = X + 15.f * Y + 3.0f * Z;
         float di = 1.0f / d;
 
@@ -206,7 +206,7 @@ namespace color {
 
         auto sRGB2lRGB = [](float v) {
             if (v > 0.04045f) {
-                return consteval_pow( (v + 0.055f) / 1.055f, 2.4f);
+                return constexpr_pow( (v + 0.055f) / 1.055f, 2.4f);
             } else {
                 return v * ( 25.0f / 323.0f );
             };
@@ -223,7 +223,7 @@ namespace color {
         const float wu = 0.197839825f;
         const float wv = 0.468336303f;
 
-        float l = ( Y <= 0.008856452f ) ? ( 9.03296296296f * Y) : ( 1.16f * consteval_pow(Y, 1.0f / 3.0f) - 0.16f);
+        float l = ( Y <= 0.008856452f ) ? ( 9.03296296296f * Y) : ( 1.16f * constexpr_pow(Y, 1.0f / 3.0f) - 0.16f);
         float d = X + 15.f * Y + 3.0f * Z;
         float di = 1.0f / d;
 

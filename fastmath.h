@@ -33,6 +33,7 @@ static inline float fast_exp2(const float p) {
     const float clipp = (p < -126) ? -126.0f : p;
     const int w = static_cast<int>(clipp);
     const float z = clipp - w + offset;
+    // No std::bitcast yet
     const union { uint32_t i; float f; } v = {
         static_cast<uint32_t>((1 << 23) * (clipp + 121.2740575f + 27.7280233f / (4.84252568f - z) - 1.49012907f * z))
     };
@@ -41,6 +42,7 @@ static inline float fast_exp2(const float p) {
 
 __attribute__ ((hot, optimize("Os"), flatten))
 static inline float fast_log2(const float x) {
+    // No std::bitcast yet
     const union { float f; uint32_t i; } vx = { x };
     const union { uint32_t i; float f; } mx = { (vx.i & 0x007FFFFF) | 0x3f000000 };
     const float y = static_cast<float>(vx.i) * 1.1920928955078125e-7f;
@@ -55,17 +57,17 @@ static inline float fast_pow(const float x, const float p) {
 }
 
 __attribute__ ((hot, optimize("Os"), flatten))
-static inline double frac(double v) {
+static inline double frac(double v) { // same as fmod(v, 1.0)
     return v - std::trunc(v);
 }
 
 __attribute__ ((hot, optimize("Os"), flatten))
-static inline float fracf(float v) {
+static inline float fracf(float v) { // same as fmodf(v, 1.0f)
     return v - std::truncf(v);
 }
 
 __attribute__ ((hot, optimize("Os"), flatten))
-static constexpr float consteval_pow(const float x, const float p) {
+static constexpr float constexpr_pow(const float x, const float p) {
     return ::exp2f(p * ::log2f(x));
 }
 
