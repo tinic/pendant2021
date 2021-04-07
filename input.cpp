@@ -22,6 +22,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./input.h"
 #include "./bq25895.h"
+#include "./timeline.h"
 
 #include "M480.h"
 
@@ -31,8 +32,7 @@ void GPF_IRQHandler(void)
 {
     if(GPIO_GET_INT_FLAG(PF, BIT2))
     {
-        Input::instance().switch1Down = PF2 ? true : false;
-        printf("(SW1) PF.2 IRQ occurred.\n");
+        Timeline::instance().TopEffect().ProcessSwitch1(PF2 ? true : false);
         GPIO_CLR_INT_FLAG(PF, BIT2);
     }
 
@@ -44,7 +44,7 @@ void GPF_IRQHandler(void)
 
     if(GPIO_GET_INT_FLAG(PF, BIT5))
     {
-        printf("(DSEL) PF.5 IRQ occurred.\n");
+        //printf("(DSEL) PF.5 IRQ occurred.\n");
         GPIO_CLR_INT_FLAG(PF, BIT5);
     }
 }
@@ -53,15 +53,13 @@ void GPB_IRQHandler(void)
 {
     if(GPIO_GET_INT_FLAG(PB, BIT5))
     {
-        Input::instance().switch2Down = PB5 ? true : false;
-        printf("(SW2) PB.5 IRQ occurred.\n");
+        Timeline::instance().TopEffect().ProcessSwitch1(PB5 ? true : false);
         GPIO_CLR_INT_FLAG(PB, BIT5);
     }
 
     if(GPIO_GET_INT_FLAG(PB, BIT15))
     {
-        Input::instance().switch2Down = PB15 ? true : false;
-        printf("(SW3) PB.15 IRQ occurred.\n");
+        Timeline::instance().TopEffect().ProcessSwitch1(PB15 ? true : false);
         GPIO_CLR_INT_FLAG(PB, BIT15);
     }
 }

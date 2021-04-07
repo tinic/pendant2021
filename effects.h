@@ -20,27 +20,16 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef INPUT_H_
-#define INPUT_H_
+#ifndef EFFECTS_H_
+#define EFFECTS_H_
 
-#include "./color.h"
-
-extern "C" {
-    void GPB_IRQHandler(void);
-    void GPF_IRQHandler(void);
-}
-
-class Input {
+class Effects {
 public:
-    static Input &instance();
+    static Effects &instance();
 
 private:
-
-    friend void GPB_IRQHandler(void);
-    friend void GPF_IRQHandler(void);
-
     void init();
     bool initialized = false;
 };
 
-#endif /* INPUT_H_ */
+#endif /* EFFECTS_H_ */

@@ -290,19 +290,19 @@ bool Timeline::CheckBackgroundReadyAndClear() {
 }
 
 void Timeline::init() {
-    // Effect Frame rate timer
-    TIMER_Open(TIMER2, TIMER_PERIODIC_MODE, int32_t(effectRate));
-    TIMER_EnableInt(TIMER2);
-    NVIC_SetPriority(TMR2_IRQn, 2);
-    NVIC_EnableIRQ(TMR2_IRQn);
-    TIMER_Start(TIMER2);
-
     // Display Frame rate timer
     TIMER_Open(TIMER1, TIMER_PERIODIC_MODE, int32_t(displayRate));
     TIMER_EnableInt(TIMER1);
     NVIC_SetPriority(TMR1_IRQn, 8);
     NVIC_EnableIRQ(TMR1_IRQn);
     TIMER_Start(TIMER1);
+
+    // Effect Frame rate timer
+    TIMER_Open(TIMER2, TIMER_PERIODIC_MODE, int32_t(effectRate));
+    TIMER_EnableInt(TIMER2);
+    NVIC_SetPriority(TMR2_IRQn, 2);
+    NVIC_EnableIRQ(TMR2_IRQn);
+    TIMER_Start(TIMER2);
 
     // SystemTime timer
     TIMER_Open(TIMER3, TIMER_PERIODIC_MODE, 1);

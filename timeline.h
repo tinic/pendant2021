@@ -69,18 +69,18 @@ public:
         std::function<void (Span &span)> commitFunc;
         std::function<void (Span &span)> doneFunc;
 
-        std::function<void (Span &span)> switch1Func;
-        std::function<void (Span &span)> switch2Func;
-        std::function<void (Span &span)> switch3Func;
+        std::function<void (Span &span, bool down)> switch1Func;
+        std::function<void (Span &span, bool down)> switch2Func;
+        std::function<void (Span &span, bool down)> switch3Func;
 
         void Start() { if (startFunc) startFunc(*this); }
         void Calc() { if (calcFunc) calcFunc(*this, Timeline::instance().Below(this, type)); }
         void Commit() { if (commitFunc) commitFunc(*this); }
         void Done() { if (doneFunc) doneFunc(*this); }
         
-        void ProcessSwitch1() { if (switch1Func) switch1Func(*this); }
-        void ProcessSwitch2() { if (switch2Func) switch2Func(*this); }
-        void ProcessSwitch3() { if (switch3Func) switch3Func(*this); }
+        void ProcessSwitch1(bool down) { if (switch1Func) switch1Func(*this, down); }
+        void ProcessSwitch2(bool down) { if (switch2Func) switch2Func(*this, down); }
+        void ProcessSwitch3(bool down) { if (switch3Func) switch3Func(*this, down); }
 
         bool Valid() const { return type != None; }
 
