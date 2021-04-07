@@ -82,6 +82,7 @@ private:
     uint8_t qBufSeq[2048];
     uint8_t *qBufPtr = 0;
     uint8_t *qBufEnd = 0;
+    uint8_t u8TransferType = 0;
 
 };
 

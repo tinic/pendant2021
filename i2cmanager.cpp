@@ -161,11 +161,13 @@ void I2CManager::waitForFinish() {
         fflush(stdout);
     }
     if ((Timeline::FastSystemTime() - now) > max_wait_time) {
-        printf("Hit at %08x %08x %f\n", int(I2C_GET_STATUS(I2C0)), int(u8Ctrl), Timeline::SystemTime());
+        printf("Hit at %08x %08x %02x %f\n", int(I2C_GET_STATUS(I2C0)), int(u8Ctrl), u8TransferType, Timeline::SystemTime());
         fflush(stdout);
     }
 #endif  // #ifdef DEBUG_TIMEOUT
-    
+
+    u8TransferType = 0;
+
 }
 
 void I2CManager::prepareBatchWrite() {
@@ -212,6 +214,8 @@ void I2CManager::performBatchWrite() {
     
     u8SlaveAddr = *qBufPtr++;
     u32wLen = *qBufPtr++;
+
+    u8TransferType = 1;
 
     s_I2C0HandlerFn = batchWriteIRQHandler;
 
@@ -326,6 +330,8 @@ void I2CManager::write(uint8_t _u8SlaveAddr, uint8_t data[], size_t _u32wLen) {
 
     memcpy(txBuf, data, u32wLen);
 
+    u8TransferType = 2;
+
     s_I2C0HandlerFn = writeIRQHandler;
 
     I2C_START(I2C0);                                              /* Send START */
@@ -400,6 +406,8 @@ uint8_t I2CManager::read(uint8_t _u8SlaveAddr, uint8_t rdata[], size_t _u32rLen)
     u32rxLen = 0u;
     u32rLen = _u32rLen;
     u8SlaveAddr = _u8SlaveAddr;
+
+    u8TransferType = 3;
 
     s_I2C0HandlerFn = readIRQHandler;
 
@@ -476,6 +484,8 @@ uint8_t I2CManager::getReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr) {
     u8Ctrl = 0u;
     u8DataAddr = _u8DataAddr;
     u8SlaveAddr = _u8SlaveAddr;
+
+    u8TransferType = 4;
 
     s_I2C0HandlerFn = getReg8IRQHandler;
 
@@ -558,6 +568,8 @@ void I2CManager::setReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr, uint8_t _u8W
     u8DataAddr = _u8DataAddr;
     u8SlaveAddr = _u8SlaveAddr;
     u8WData = _u8WData; 
+
+    u8TransferType = 5;
 
     s_I2C0HandlerFn = setReg8IRQHandler;
 
