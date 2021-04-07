@@ -67,8 +67,6 @@ private:
 
     } random;
 
-    void demo();
-
     void color_walker();
     void light_walker();
     void rgb_band();

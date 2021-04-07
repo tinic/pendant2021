@@ -30,6 +30,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <array>
 
 #include "./vector.h"
+#include "./fastmath.h"
 
 namespace color {
 
@@ -105,23 +106,6 @@ namespace color {
         return v < 0.0f ? uint16_t(0) : ( v > 1.0f ? uint16_t(0xFFFF) : uint16_t( v * 65535.f ) );
     }
 
-    template<> __attribute__((always_inline)) inline uint8_t *rgba<uint8_t>::write_grb_bytes(uint8_t *dst) {
-        *dst++ = g;
-        *dst++ = r;
-        *dst++ = b;
-        return dst;
-    }
-
-    template<> inline uint8_t *rgba<uint16_t>::write_grb_bytes(uint8_t *dst) {
-        *dst++ = (g >> 8) & 0xFF;
-        *dst++ = (g >> 0) & 0xFF;
-        *dst++ = (r >> 8) & 0xFF;
-        *dst++ = (r >> 0) & 0xFF;
-        *dst++ = (b >> 8) & 0xFF;
-        *dst++ = (b >> 0) & 0xFF;
-        return dst;
-    }
-
     class gradient {
     public:
         consteval gradient(const vector::float4 stops[], const size_t n) {
@@ -155,10 +139,6 @@ namespace color {
 
         vector::float4 colors[colors_n];
     };
-
-    static constexpr float consteval_pow(const float x, const float p) {
-        return ::exp2f(p * ::log2f(x));
-    }
 
     class convert {
     public:

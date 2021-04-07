@@ -25,49 +25,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./leds.h"
 #include "./model.h"
 #include "./color.h"
+#include "./fastmath.h"
 
 #include <random>
 #include <array>
 #include <limits>
 #include <math.h>
-
-__attribute__ ((hot, optimize("Os"), flatten))
-static inline float fast_exp2(const float p) {
-    const float offset = (p < 0) ? 1.0f : 0.0f;
-    const float clipp = (p < -126) ? -126.0f : p;
-    const int w = static_cast<int>(clipp);
-    const float z = clipp - w + offset;
-    const union { uint32_t i; float f; } v = {
-        static_cast<uint32_t>((1 << 23) * (clipp + 121.2740575f + 27.7280233f / (4.84252568f - z) - 1.49012907f * z))
-    };
-    return v.f;
-}
-
-__attribute__ ((hot, optimize("Os"), flatten))
-static inline float fast_log2(const float x) {
-    const union { float f; uint32_t i; } vx = { x };
-    const union { uint32_t i; float f; } mx = { (vx.i & 0x007FFFFF) | 0x3f000000 };
-    const float y = static_cast<float>(vx.i) * 1.1920928955078125e-7f;
-    return y - 124.22551499f
-             - 1.498030302f * mx.f
-             - 1.72587999f / (0.3520887068f + mx.f);
-}
-
-__attribute__ ((hot, optimize("Os"), flatten))
-static inline float fast_pow(const float x, const float p) {
-    return fast_exp2(p * fast_log2(x));
-}
-
-
-__attribute__ ((hot, optimize("Os"), flatten))
-static inline double frac(double v) {
-    return v - std::trunc(v);
-}
-
-__attribute__ ((hot, optimize("Os"), flatten))
-static inline float fracf(float v) {
-    return v - std::truncf(v);
-}
 
 static constexpr vector::float4 gradient_rainbow_data[] = {
     color::srgb8_stop({0xff,0x00,0x00}, 0.00f),
@@ -283,20 +246,6 @@ void Effects::brilliance() {
     });*/
 }
 
-void Effects::demo() {
-    static float rot = 0.0f;
-    rot+=0.01f;
-    Leds &leds(Leds::instance());
-    for (size_t c = 0; c < Leds::instance().circleLedsN; c++) {
-        leds.setCircle(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-        leds.setCircle(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-    }
-    for (size_t c = 0; c < Leds::instance().birdLedsN; c++) {
-        leds.setBird(0,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-        leds.setBird(1,c,gradient_rainbow.repeat(rot+float(c)/float(Leds::instance().circleLedsN)) * 0.1f);
-    }
-}
-
 void Effects::init() {
 
     random.set_seed(0xBEEFEA78);
@@ -320,7 +269,7 @@ void Effects::init() {
                 switch_time = Timeline::instance().SystemTime();
             }
 
-            auto calc_effect = [this] (uint32_t effect) mutable {
+            auto calc_effect = [this] (uint32_t effect) {
                 switch (effect) {
                     case 0:
                         rgb_band();
