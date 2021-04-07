@@ -62,6 +62,7 @@ private:
     bool deviceReady(uint8_t u8SlaveAddr);
     void probe();
     void init();
+    void waitForFinish();
 
     bool initialized = false;
 
