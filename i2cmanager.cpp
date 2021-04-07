@@ -219,13 +219,8 @@ void I2CManager::batchWriteIRQ() {
     }
 #endif  // #ifdef ENABLE_TIMEOUT
 
-    switch(I2C_GET_STATUS(I2C0)) {
-    case 0x08u:
-        I2C_SET_DATA(I2C0, (uint8_t)(u8SlaveAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
-        u8Ctrl = I2C_CTL_SI;                                        /* Clear SI */
-        break;
-    [[likely]] case 0x18u:                                          /* Slave Address ACK */
-    [[likely]] case 0x28u:
+    uint32_t status = I2C_GET_STATUS(I2C0);
+    if (status == 0x28) {
         if(u32txLen < u32wLen) {
             I2C_SET_DATA(I2C0, qBufPtr[u32txLen++]);                /* Write Data to I2CDAT */
             u8Ctrl = I2C_CTL_SI;                                    /* Clear SI */
@@ -246,17 +241,48 @@ void I2CManager::batchWriteIRQ() {
                 qBufPtr = 0;
             }
         }
-        break;
-    case 0x20u:                                                     /* Slave Address NACK */
-    case 0x30u:                                                     /* Master transmit data NACK */
-        u8Ctrl = I2C_CTL_STO_SI;                                    /* Clear SI and send STOP */
-        u8Err = 1u;
-        break;
-    case 0x38u:                                                     /* Arbitration Lost */
-    default:                                                        /* Unknow status */
-        u8Ctrl = I2C_CTL_STO_SI;
-        u8Err = 1u;
-        break;
+        I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                              /* Write controlbit to I2C_CTL register */
+        return;
+    } else {
+        switch(status) {
+        case 0x08u:
+            I2C_SET_DATA(I2C0, (uint8_t)(u8SlaveAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
+            u8Ctrl = I2C_CTL_SI;                                        /* Clear SI */
+            break;
+        case 0x18u:                                                     /* Slave Address ACK */
+        [[likely]] case 0x28u:
+            if(u32txLen < u32wLen) {
+                I2C_SET_DATA(I2C0, qBufPtr[u32txLen++]);                /* Write Data to I2CDAT */
+                u8Ctrl = I2C_CTL_SI;                                    /* Clear SI */
+            } else {
+                u8Ctrl = I2C_CTL_STO_SI;                                /* Clear SI and send STOP */
+                u32txLen = 0u;
+                qBufPtr += u32wLen;
+                u8SlaveAddr = *qBufPtr++;
+                u32wLen = *qBufPtr++;
+                if (qBufPtr < qBufEnd) {
+                    u32txLen = 0;
+                    u8Ctrl = I2C_CTL_STA | I2C_CTL_STO | I2C_CTL_SI;    /* Clear SI and send START&STOP */
+                    I2C_SET_CONTROL_REG(I2C0, u8Ctrl);
+                    return;
+                } else {
+                    u8Xfering = 0u;
+                    qBufEnd = 0;
+                    qBufPtr = 0;
+                }
+            }
+            break;
+        case 0x20u:                                                     /* Slave Address NACK */
+        case 0x30u:                                                     /* Master transmit data NACK */
+            u8Ctrl = I2C_CTL_STO_SI;                                    /* Clear SI and send STOP */
+            u8Err = 1u;
+            break;
+        case 0x38u:                                                     /* Arbitration Lost */
+        default:                                                        /* Unknow status */
+            u8Ctrl = I2C_CTL_STO_SI;
+            u8Err = 1u;
+            break;
+        }
     }
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                              /* Write controlbit to I2C_CTL register */
 }
