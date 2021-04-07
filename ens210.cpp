@@ -28,8 +28,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./timeline.h"
 
 static void delay_us(int usec) {
-    double t = Timeline::instance().SystemTime();
-    while ( ( Timeline::instance().SystemTime() - t ) > (double(usec) * (1.0 / 1000000.0) ) ) { }
+    double t = Timeline::SystemTime();
+    while ( ( Timeline::SystemTime() - t ) > (double(usec) * (1.0 / 1000000.0) ) ) { }
 }
 
 bool ENS210::devicePresent = false;

@@ -71,7 +71,7 @@ void Effects::color_walker() {
 
     Leds &leds(Leds::instance());
 
-    double now = Timeline::instance().SystemTime();
+    double now = Timeline::SystemTime();
 
     const double speed = 1.0;
 
@@ -96,7 +96,7 @@ void Effects::light_walker() {
 
     Leds &leds(Leds::instance());
 
-    double now = Timeline::instance().SystemTime();
+    double now = Timeline::SystemTime();
 
     const double speed = 1.0;
 
@@ -214,7 +214,7 @@ void Effects::rgb_band() {
 void Effects::brilliance() {
     standard_bird();
 
-/*    float now = static_cast<float>(Timeline::instance().SystemTime());
+/*    float now = static_cast<float>(Timeline::SystemTime());
 
     static float next = -1.0f;
     static float dir = 0.0f;
@@ -259,14 +259,14 @@ void Effects::init() {
 
     if (!Timeline::instance().Scheduled(mainEffect)) {
         mainEffect.type = Timeline::Span::Effect;
-        mainEffect.time = Timeline::instance().SystemTime();
+        mainEffect.time = Timeline::SystemTime();
         mainEffect.duration = std::numeric_limits<double>::infinity();
         mainEffect.calcFunc = [this](Timeline::Span &, Timeline::Span &) {
 
             if ( current_effect != Model::instance().Effect() ) {
                 previous_effect = current_effect;
                 current_effect = Model::instance().Effect();
-                switch_time = Timeline::instance().SystemTime();
+                switch_time = Timeline::SystemTime();
             }
 
             auto calc_effect = [this] (uint32_t effect) {
@@ -284,7 +284,7 @@ void Effects::init() {
             };
 
             double blend_duration = 0.5;
-            double now = Timeline::instance().SystemTime();
+            double now = Timeline::SystemTime();
             
             if ((now - switch_time) < blend_duration) {
                 calc_effect(previous_effect);

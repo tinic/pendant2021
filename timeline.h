@@ -98,7 +98,6 @@ public:
 
     static Timeline &instance();
 
-    double SystemTime() const;
     bool CheckEffectReadyAndClear();
     bool CheckDisplayReadyAndClear();
     bool CheckBackgroundReadyAndClear();
@@ -112,6 +111,9 @@ public:
 
     void ProcessDisplay();
     Span &TopDisplay() const;
+
+    static double SystemTime();
+    static uint64_t FastSystemTime();
 
 private:
     void Process(Span::Type type);

@@ -163,9 +163,9 @@ bool SDCard::readCID() {
         return false;
 	}
 
-    double start_time = Timeline::instance().SystemTime();
+    double start_time = Timeline::SystemTime();
     for ( ; readByte() != 0xFE ;) {
-        if ( (Timeline::instance().SystemTime() - start_time) > 0.5 ) {
+        if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
             QSPI_SET_SS_HIGH(QSPI0);
             return false;
         }
@@ -212,9 +212,9 @@ bool SDCard::readCSD() {
         return false;
 	}
 
-    double start_time = Timeline::instance().SystemTime();
+    double start_time = Timeline::SystemTime();
     for ( ; readByte() != 0xFE ;) {
-        if ( (Timeline::instance().SystemTime() - start_time) > 0.5 ) {
+        if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
             QSPI_SET_SS_HIGH(QSPI0);
             return false;
         }
@@ -300,9 +300,9 @@ bool SDCard::readTotalBlocks() {
         return false;
     }
 
-    double start_time = Timeline::instance().SystemTime();
+    double start_time = Timeline::SystemTime();
     for ( ; readByte() != 0xFE ;) {
-        if ( (Timeline::instance().SystemTime() - start_time) > 0.5 ) {
+        if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
             QSPI_SET_SS_HIGH(QSPI0);
             return false;
         }
@@ -365,9 +365,9 @@ bool SDCard::detectCardType() {
     }
 
     {
-        double start_time = Timeline::instance().SystemTime();
+        double start_time = Timeline::SystemTime();
         for (; std::get<1>(GoIdle()) != 1 ;) {
-            if ( (Timeline::instance().SystemTime() - start_time) > 0.5 ) {
+            if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
                 QSPI_SET_SS_HIGH(QSPI0);
                 return false;
             }
@@ -389,9 +389,9 @@ bool SDCard::detectCardType() {
             printf("MMC Card detected!\n");
         }
         if (isSdCard) {
-            double start_time = Timeline::instance().SystemTime();
+            double start_time = Timeline::SystemTime();
             for (; std::get<1>(SendCmd(ACMD41, 0x40000000)) != 0 ;) {
-                if ( (Timeline::instance().SystemTime() - start_time) > 0.5 ) {
+                if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
                     QSPI_SET_SS_HIGH(QSPI0);
                     return false;
                 }

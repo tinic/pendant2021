@@ -208,7 +208,7 @@ Timeline::Span &Timeline::Below(Span *context, Span::Type type) const {
 }
 
 std::tuple<bool, float> Timeline::Span::InAttackPeriod() const {
-    double now = Timeline::instance().SystemTime();
+    double now = Timeline::SystemTime();
     if ( (now - time) < static_cast<double>(attack)) {
         return {true, static_cast<float>((now - time) * (1.0 / static_cast<double>(attack))) };
     }
@@ -216,7 +216,7 @@ std::tuple<bool, float> Timeline::Span::InAttackPeriod() const {
 }
 
 std::tuple<bool, float> Timeline::Span::InDecayPeriod() const {
-    double now = Timeline::instance().SystemTime();
+    double now = Timeline::SystemTime();
     if (!std::get<0>(InAttackPeriod())) {
         if ( (now - time) < static_cast<double>(attack + decay)) {
             return {true, static_cast<float>((now - time) * (1.0 / static_cast<double>(decay))) };
@@ -226,7 +226,7 @@ std::tuple<bool, float> Timeline::Span::InDecayPeriod() const {
 }
 
 std::tuple<bool, float> Timeline::Span::InSustainPeriod() const {
-    double now = Timeline::instance().SystemTime();
+    double now = Timeline::SystemTime();
     if (!std::get<0>(InDecayPeriod())) {
         double sustain = duration - attack - decay - release;
         if ( (now - time) < static_cast<double>(attack + decay + sustain)) {
@@ -237,7 +237,7 @@ std::tuple<bool, float> Timeline::Span::InSustainPeriod() const {
 }
 
 std::tuple<bool, float>  Timeline::Span::InReleasePeriod() const {
-    double now = Timeline::instance().SystemTime();
+    double now = Timeline::SystemTime();
     if (!std::get<0>(InSustainPeriod())) {
         double sustain = duration - attack - decay - release;
         if ( (now - time) < static_cast<double>(attack + decay + sustain + release)) {
@@ -267,8 +267,12 @@ Timeline::Span &Timeline::TopDisplay() const
     return Top(Span::Display);
 }
 
-double Timeline::SystemTime() const {
+double Timeline::SystemTime() {
     return double(systemSeconds) + (double(TIMER3->CNT) / double(TIMER3->CMP));
+}
+
+uint64_t Timeline::FastSystemTime() {
+    return (uint64_t(systemSeconds) * uint64_t(TIMER3->CMP)) + uint64_t(TIMER3->CNT);
 }
 
 bool Timeline::CheckEffectReadyAndClear() {

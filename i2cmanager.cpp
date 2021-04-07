@@ -24,12 +24,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./bq25895.h"
 #include "./ens210.h"
 #include "./sdd1306.h"
+#include "./timeline.h"
 
 #include "M480.h"
 
 #include <memory.h>
 
 #define ENABLE_TIMEOUT 1
+//#define DEBUG_TIMEOUT 1
 //#define LOG_TIMEOUT 1
 
 extern "C" {
@@ -58,7 +60,9 @@ bool I2CManager::deviceReady(uint8_t _u8SlaveAddr) {
 
     I2C_DisableInt(I2C0);
 
+#ifdef ENABLE_TIMEOUT
 retry:
+#endif  // #ifdef ENABLE_TIMEOUT
     I2C_START(I2C0);                                                    /* Send START */
 
     uint8_t ctrl = 0u;
@@ -141,9 +145,26 @@ void I2CManager::probe() {
 
 void I2CManager::waitForFinish() {
 
-    while(u8Xfering && (u8Err == 0u)) { __WFI(); }
+    static constexpr uint64_t max_wait_time = 100ull; // 0.01s
+    uint64_t now = Timeline::FastSystemTime();
+    while((u8Xfering) && 
+          (u8Err == 0u) && 
+          ((Timeline::FastSystemTime() - now) < max_wait_time)) { 
+        __WFI(); 
+    }
 
-    while(I2C0->CTL0 & I2C_CTL0_STO_Msk);
+#ifdef DEBUG_TIMEOUT
+    static size_t retry_period_max = 0;
+    if ((Timeline::FastSystemTime() - now) > retry_period_max) {
+        retry_period_max = (Timeline::FastSystemTime() - now);
+        printf("%d\n",int(retry_period_max));
+        fflush(stdout);
+    }
+    if ((Timeline::FastSystemTime() - now) > max_wait_time) {
+        printf("Hit at %08x %08x %f\n", int(I2C_GET_STATUS(I2C0)), int(u8Ctrl), Timeline::SystemTime());
+        fflush(stdout);
+    }
+#endif  // #ifdef DEBUG_TIMEOUT
     
 }
 
