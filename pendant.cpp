@@ -65,8 +65,8 @@ void Pendant::Run() {
     while (1) {
         __WFI();
         if (Timeline::instance().CheckBackgroundReadyAndClear()) {
-            ENS210::instance().update();
             BQ25895::instance().UpdateState();
+            ENS210::instance().update();
         }
         if (Timeline::instance().CheckEffectReadyAndClear()) {
             Timeline::instance().ProcessEffect();
