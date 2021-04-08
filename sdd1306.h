@@ -35,20 +35,22 @@ public:
     
     void ClearAttr();
     void ClearChar();
-    void DisplayBootScreen();
-    void SetCenterFlip(int8_t progression);
+    void Invalidate();
 
     void PlaceUTF8String(uint32_t x, uint32_t y, const char *str);
-    void Invert();
     void SetAttr(uint32_t x, uint32_t y, uint8_t attr);
     void SetAsciiScrollMessage(const char *str, int32_t offset);
-	void SetBootScreen(bool on, int32_t xpos);
+
     void Display();
+
+    void Invert();
+
+    void SetCenterFlip(int8_t progression);
+	void SetBootScreen(bool on, int32_t xpos);
     void SetVerticalShift(int8_t val);
 
     void DisplayOn();
     void DisplayOff();
-    void DisplayUID();
 
     bool DevicePresent() const { return devicePresent; }
 
@@ -60,13 +62,14 @@ private:
     void Init();
 
     void Clear();
+    void DisplayBootScreen();
     void DisplayCenterFlip();
     void DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr);
     void WriteCommand(uint8_t v) const;
     void BatchWriteCommand(uint8_t v) const;
 
-    static constexpr int32_t text_y_size = 6;
     static constexpr int32_t text_x_size = 9;
+    static constexpr int32_t text_y_size = 5;
 
     int8_t center_flip_screen = 0;
     int8_t center_flip_cache = 0;

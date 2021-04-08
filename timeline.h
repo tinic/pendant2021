@@ -45,10 +45,10 @@ class Timeline {
 public:
 
     static constexpr double effectRate = 120.0;
-    static constexpr double displayRate = 10.0;
+    static constexpr double displayRate = 30.0;
+    static constexpr double backgroundRate = 1.0;
 
-    class Span {
-    public:
+    struct Span {
 
         enum Type {
             None,

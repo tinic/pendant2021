@@ -31,7 +31,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <memory.h>
 
 #define ENABLE_TIMEOUT 1
-//#define DEBUG_TIMEOUT 1
+#define DEBUG_TIMEOUT 1
 //#define LOG_TIMEOUT 1
 
 extern "C" {
@@ -145,7 +145,7 @@ void I2CManager::probe() {
 
 void I2CManager::waitForFinish() {
 
-    static constexpr uint64_t max_wait_time = 100ull; // 0.01s
+    static constexpr uint64_t max_wait_time = 250ull; // 0.025s
     uint64_t now = Timeline::FastSystemTime();
     while((u8Xfering) && 
           (u8Err == 0u) && 
@@ -157,10 +157,10 @@ void I2CManager::waitForFinish() {
     static size_t retry_period_max = 0;
     if ((Timeline::FastSystemTime() - now) > retry_period_max) {
         retry_period_max = (Timeline::FastSystemTime() - now);
-        printf("%d\n",int(retry_period_max));
+        printf("%08x %08x %02x %d\n",int(I2C_GET_STATUS(I2C0)), int(u8Ctrl), u8TransferType,int(retry_period_max));
         fflush(stdout);
     }
-    if ((Timeline::FastSystemTime() - now) > max_wait_time) {
+    if ((Timeline::FastSystemTime() - now) >= max_wait_time) {
         printf("Hit at %08x %08x %02x %f\n", int(I2C_GET_STATUS(I2C0)), int(u8Ctrl), u8TransferType, Timeline::SystemTime());
         fflush(stdout);
     }

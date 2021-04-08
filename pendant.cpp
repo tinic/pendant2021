@@ -71,16 +71,16 @@ void Pendant::Run() {
                 Timeline::instance().TopEffect().Commit();
             }
         }
+        if (Timeline::instance().CheckBackgroundReadyAndClear()) {
+            ENS210::instance().update();
+            BQ25895::instance().UpdateState();
+        }
         if (Timeline::instance().CheckDisplayReadyAndClear()) {
             Timeline::instance().ProcessDisplay();
             if (Timeline::instance().TopDisplay().Valid()) {
                 Timeline::instance().TopDisplay().Calc();
                 Timeline::instance().TopDisplay().Commit();
             }
-        }
-        if (Timeline::instance().CheckBackgroundReadyAndClear()) {
-            ENS210::instance().update();
-            BQ25895::instance().UpdateState();
         }
     }
 }
