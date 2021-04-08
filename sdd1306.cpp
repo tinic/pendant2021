@@ -85,8 +85,8 @@ void SDD1306::Clear() {
 }
 
 void SDD1306::Invalidate() {
-    memset(text_buffer_cache, 0xffff, sizeof(text_buffer_cache));
-    memset(text_attr_cache, 0xffff, sizeof(text_attr_cache));
+    memset(text_buffer_screen, 0xffff, sizeof(text_buffer_cache));
+    memset(text_attr_screen, 0xffff, sizeof(text_attr_cache));
 }
     
 void SDD1306::ClearAttr() {
@@ -121,7 +121,7 @@ void SDD1306::PlaceUTF8String(uint32_t x, uint32_t y, const char *s) {
 		0x00000000UL, 0x00003080UL, 0x000E2080UL,
 		0x03C82080UL, 0xFA082080UL, 0x82082080UL
 	};
-	
+
     for (uint32_t c=0;;c++) {
     	if (*str == 0) {
     		return;
@@ -302,9 +302,9 @@ void SDD1306::DisplayCenterFlip() {
                 if (rx < 0 || rx >= (text_x_size*8)) {
                     buf[x+1] = 0x00;
                 } else {
-                    uint8_t a = text_attr_screen[y*12+static_cast<uint32_t>(rx/8)];
+                    uint8_t a = text_attr_screen[y*text_x_size+static_cast<uint32_t>(rx/8)];
                     uint8_t r = (a & 4) ? (7-(rx&7)) : (rx&7);
-                    uint8_t v = font_pbm[text_buffer_screen[y*12+static_cast<uint32_t>(rx/8)]*8+r];
+                    uint8_t v = font_pbm[text_buffer_screen[y*text_x_size+static_cast<uint32_t>(rx/8)]*8+r];
                     if (a & 1) {
                         v = ~v;
                     }

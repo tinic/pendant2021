@@ -64,16 +64,16 @@ void Pendant::init() {
 void Pendant::Run() {
     while (1) {
         __WFI();
+        if (Timeline::instance().CheckBackgroundReadyAndClear()) {
+            ENS210::instance().update();
+            BQ25895::instance().UpdateState();
+        }
         if (Timeline::instance().CheckEffectReadyAndClear()) {
             Timeline::instance().ProcessEffect();
             if (Timeline::instance().TopEffect().Valid()) {
                 Timeline::instance().TopEffect().Calc();
                 Timeline::instance().TopEffect().Commit();
             }
-        }
-        if (Timeline::instance().CheckBackgroundReadyAndClear()) {
-            ENS210::instance().update();
-            BQ25895::instance().UpdateState();
         }
         if (Timeline::instance().CheckDisplayReadyAndClear()) {
             Timeline::instance().ProcessDisplay();

@@ -50,13 +50,13 @@ void UI::init() {
             char str[32];
             sprintf(str,"B:      |");
             SDD1306::instance().PlaceUTF8String(0,0,str);
-            sprintf(str,"D:      |");
+            sprintf(str,"D:%fs", Timeline::SystemTime());
             SDD1306::instance().PlaceUTF8String(0,1,str);
-            sprintf(str,"T:      |");
+            sprintf(str,"T:%6.1fC", double(ENS210::instance().Temperature()));
             SDD1306::instance().PlaceUTF8String(0,2,str);
-            sprintf(str,"H:      |");
+            sprintf(str,"H:%6.1f%%", double(ENS210::instance().Humidity())*100.0);
             SDD1306::instance().PlaceUTF8String(0,3,str);
-            sprintf(str,"V:      |");
+            sprintf(str,"V:%6.1fV", double(BQ25895::instance().BatteryVoltage()));
             SDD1306::instance().PlaceUTF8String(0,4,str);
         };
         mainUI.commitFunc = [=](Timeline::Span &) {
@@ -84,7 +84,7 @@ void UI::init() {
     static Timeline::Span bootScreen;
     bootScreen.type = Timeline::Span::Display;
     bootScreen.time = Timeline::SystemTime();
-    bootScreen.duration = 2.0; // timeout
+    bootScreen.duration = 1.0; // timeout
 
 	static Timeline::Span moveOut;
 	moveOut.type = Timeline::Span::Display;

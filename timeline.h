@@ -45,7 +45,7 @@ class Timeline {
 public:
 
     static constexpr double effectRate = 120.0;
-    static constexpr double displayRate = 30.0;
+    static constexpr double displayRate = 60.0;
     static constexpr double backgroundRate = 1.0;
 
     struct Span {
