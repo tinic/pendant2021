@@ -2,8 +2,8 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "cwd": "${workspaceRoot}",
-            "executable": "build/pendant2021-testing.elf",
+            "cwd": "${workspaceFolder}/openocd",
+            "executable": "${workspaceFolder}/build/pendant2021-testing.elf",
             "name": "Debug Main Firmware",
             "request": "launch",
             "type": "cortex-debug",
@@ -11,8 +11,8 @@
             "device": "M482ZGCAE",
             "interface": "swd",
             "configFiles": [
-                "interface/stlink-v2.cfg",
-                "target/numicroM4.cfg"
+                "./stlink-v2.cfg",
+                "./numicroM4.cfg"
             ]
         }
     ]

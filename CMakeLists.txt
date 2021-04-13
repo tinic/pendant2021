@@ -174,5 +174,5 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
     COMMAND ${CMAKE_SIZE} ${PROJECT_NAME}.elf
     COMMENT "Building ${HEX_FILE} \nBuilding ${BIN_FILE}")
 
-set(PROGRAM_CMD "openocd -f interface/stlink-v2.cfg -f target/numicroM4.cfg -c \"program ${PROJECT_NAME}.bin ${BASE_ADDRESS} verify reset exit\"")
-install(CODE "execute_process(COMMAND ${PROGRAM_CMD})")
+set(PROGRAM_CMD "./openocd -f ./stlink-v2.cfg -f ./numicroM4.cfg -c \"program ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin ${BASE_ADDRESS} verify reset exit\"")
+install(CODE "execute_process(COMMAND ${PROGRAM_CMD} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/openocd)")
