@@ -23,6 +23,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./i2cmanager.h"
 #include "./bq25895.h"
 #include "./ens210.h"
+#include "./stm32wl.h"
 #include "./sdd1306.h"
 #include "./timeline.h"
 
@@ -134,6 +135,10 @@ void I2CManager::probe() {
                 case BQ25895::i2c_addr: {
                     BQ25895::devicePresent = true;
                     printf("BQ25895 is ready.\n");
+                } break;
+                case STM32WL::i2c_addr: {
+                    STM32WL::devicePresent = true;
+                    printf("STM32WL is ready.\n");
                 } break;
             default: {
                     printf("Unknown I2C device 0x%02x is ready.\n", c);

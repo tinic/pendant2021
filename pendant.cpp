@@ -29,6 +29,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./input.h"
 #include "./bq25895.h"
 #include "./ens210.h"
+#include "./stm32wl.h"
 #include "./sdd1306.h"
 #include "./effects.h"
 #include "./ui.h"
@@ -56,6 +57,7 @@ void Pendant::init() {
     SDD1306::instance();
     BQ25895::instance();
     ENS210::instance();
+    STM32WL::instance();
     Effects::instance();
     UI::instance();
     SDCard::instance();
