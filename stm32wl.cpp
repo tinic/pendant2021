@@ -43,4 +43,19 @@ void STM32WL::update() {
 
 void STM32WL::init() {
     if (!devicePresent) return;
+    for (size_t c = 0; c < sizeof(devEUI); c++) {
+         devEUI[c] = I2CManager::instance().getReg8(i2c_addr,c);
+    }
+    for (size_t c = 0; c < sizeof(appKey); c++) {
+         appKey[c] = I2CManager::instance().getReg8(i2c_addr,c+8);
+    }
+    printf("STM32WL DevEUI: ");
+    for(size_t c = 0; c < 8; c++) {
+        printf("%02x ",devEUI[c]);
+    }
+    printf("\r\nSTM32WL AppKey: ");
+    for(size_t c = 0; c < 16; c++) {
+        printf("%02x ",appKey[c]);
+    }
+    printf("\r\n");
 }

@@ -113,8 +113,8 @@ static void SYS_Init(void)
     CLK_EnableModuleClock(TMR0_MODULE);
     CLK_SetModuleClock(TMR0_MODULE, CLK_CLKSEL1_TMR0SEL_LIRC, MODULE_NoMsk); // 10Khz
 
-    CLK_EnableModuleClock(TMR1_MODULE);
-    CLK_SetModuleClock(TMR1_MODULE, CLK_CLKSEL1_TMR1SEL_LIRC, MODULE_NoMsk); // 10Khz
+    //CLK_EnableModuleClock(TMR1_MODULE);
+    //CLK_SetModuleClock(TMR1_MODULE, CLK_CLKSEL1_TMR1SEL_LIRC, MODULE_NoMsk); // 10Khz
 
     CLK_EnableModuleClock(TMR2_MODULE);
     CLK_SetModuleClock(TMR2_MODULE, CLK_CLKSEL1_TMR2SEL_LIRC, MODULE_NoMsk); // 10Khz
@@ -180,6 +180,10 @@ static void SYS_DeInit(void)
     CLK_DisableModuleClock(SPI1_MODULE);
     CLK_DisableModuleClock(SPI0_MODULE);
     CLK_DisableModuleClock(UART1_MODULE);
+    CLK_DisableModuleClock(TMR0_MODULE);
+    CLK_DisableModuleClock(TMR1_MODULE);
+    CLK_DisableModuleClock(TMR2_MODULE);
+    CLK_DisableModuleClock(TMR3_MODULE);
 }
 
 int main(void)

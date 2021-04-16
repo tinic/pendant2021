@@ -38,6 +38,9 @@ private:
 
     void init();
     bool initialized = false;
+
+    uint8_t appKey[16];
+    uint8_t devEUI[8];
 };
 
 #endif /* STM32WL_H_ */
