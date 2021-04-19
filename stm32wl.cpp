@@ -48,7 +48,7 @@ void STM32WL::update() {
     for (size_t c = 0; c < sizeof(i2cRegs.devEUI); c++) {
          i2cRegs.devEUI[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,devEUI));
     }
-    for (size_t c = 0; c < sizeof(i2cRegs.appKey); c++) {
+    for (size_t c = 0; c < sizeof(i2cRegs.joinEUI); c++) {
          i2cRegs.joinEUI[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,joinEUI));
     }
     for (size_t c = 0; c < sizeof(i2cRegs.appKey); c++) {
