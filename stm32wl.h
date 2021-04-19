@@ -39,8 +39,16 @@ private:
     void init();
     bool initialized = false;
 
-    uint8_t appKey[16];
-    uint8_t devEUI[8];
+    union I2CRegs {
+        uint8_t regs[256];
+        struct  __attribute__ ((__packed__)) {
+            uint8_t devEUI[8];
+            uint8_t joinEUI[8];
+            uint8_t appKey[16];
+            uint8_t effectN;
+            uint8_t brightness;
+        };
+    } i2cRegs;
 };
 
 #endif /* STM32WL_H_ */

@@ -69,6 +69,7 @@ void Pendant::Run() {
         if (Timeline::instance().CheckBackgroundReadyAndClear()) {
             BQ25895::instance().UpdateState();
             ENS210::instance().update();
+            STM32WL::instance().update();
         }
         if (Timeline::instance().CheckEffectReadyAndClear()) {
             Timeline::instance().ProcessEffect();

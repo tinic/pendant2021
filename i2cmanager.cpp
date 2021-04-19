@@ -581,7 +581,7 @@ void I2CManager::setReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr, uint8_t _u8W
     I2C_START(I2C0);                                             /* Send START */
 
     // Do NOT wait for write
-    //waitForFinish();
+    // waitForFinish();
 }
 
 void I2CManager::setReg8IRQHandler(void) {
@@ -659,7 +659,7 @@ void I2CManager::init() {
                   ( ( HTCTL << I2C_TMCTL_HTCTL_Pos) & I2C_TMCTL_HTCTL_Msk );
 
 #ifdef ENABLE_TIMEOUT
-    I2C_EnableTimeout(I2C0, 1);
+    //I2C_EnableTimeout(I2C0, 1);
 #endif  // #ifdef ENABLE_TIMEOUT
 
     I2C_EnableInt(I2C0);

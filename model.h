@@ -30,7 +30,7 @@ public:
     static Model &instance();
 
     uint32_t Effect() const { return effect; };
-    void SetEffect(uint32_t _effect) { effect = _effect; };
+    void SetEffect(uint32_t _effect) { effect = _effect % EffectCount(); };
     uint32_t EffectCount() const { return 3; }
 
     auto BirdColor() const { return bird_color; }
