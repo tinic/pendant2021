@@ -46,6 +46,7 @@ private:
             uint8_t devEUI[8];
             uint8_t joinEUI[8];
             uint8_t appKey[16];
+            uint16_t systemTime;
             uint8_t effectN;
             uint8_t brightness;
             uint8_t batteryVoltage;

@@ -24,6 +24,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./model.h"
 #include "./bq25895.h"
 #include "./ens210.h"
+#include "./timeline.h"
 
 #include "M480.h"
 
@@ -58,6 +59,10 @@ void STM32WL::update() {
 
     i2cRegs.brightness = uint8_t(Model::instance().Brightness() * 255.0f);
     I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,brightness),i2cRegs.brightness);
+
+    i2cRegs.systemTime = uint16_t(Timeline::SystemTime());
+    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,systemTime)+0,((i2cRegs.systemTime)>>0)&0xFF);
+    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,systemTime)+1,((i2cRegs.systemTime)>>8)&0xFF);
 
     auto f2u8 = [](float v, float min, float max) {
         return static_cast<uint8_t>(std::clamp( ( (v - min) / (max - min) ) * 255.0f, 0.0f, 255.0f));;
