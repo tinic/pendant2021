@@ -162,7 +162,7 @@ void BQ25895::init() {
     OneShotADC();
     SetBoostVoltage(4550);
     SetMinSystemVoltage(3000);
-    SetInputCurrent(500);
+    SetInputCurrent(750);
     UpdateState();
     stats();
 } 
