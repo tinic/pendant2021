@@ -84,9 +84,20 @@ void BQ25895::UpdateState() {
     OneShotADC();
 }
 
+void BQ25895::SetMinSystemVoltage (uint32_t voltageMV) {
+    uint8_t reg =I2CManager::instance().getReg8(i2c_addr, 0x03);
+    if ((voltageMV >= 3000) && (voltageMV <= 3700)) {
+        uint32_t codedValue = voltageMV;
+        codedValue = (codedValue - 3000) / 100;
+        reg &= ~(0x07 << 1);
+        reg |= static_cast<uint8_t>((codedValue & 0x07) << 1);
+        I2CManager::instance().setReg8(i2c_addr, 0x03, reg);
+    }
+}
+
 void BQ25895::SetBoostVoltage (uint32_t voltageMV) {
     if (!devicePresent) return;
-    uint8_t reg =I2CManager::instance().getReg8(i2c_addr, 0x06);
+    uint8_t reg = I2CManager::instance().getReg8(i2c_addr, 0x0A);
     if ((voltageMV >= 4550) && (voltageMV <= 5510)) {
         uint32_t codedValue = voltageMV;
         codedValue = (codedValue - 4550) / 64;
@@ -146,10 +157,11 @@ void BQ25895::stats() {
 
 void BQ25895::init() {
     if (!devicePresent) return;
+    //DisableOTG();
     DisableWatchdog();
-    DisableOTG();
     OneShotADC();
     SetBoostVoltage(4550);
+    SetMinSystemVoltage(3000);
     SetInputCurrent(500);
     UpdateState();
     stats();

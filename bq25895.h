@@ -68,6 +68,8 @@ private:
     void SetBoostVoltage (uint32_t voltageMV);
     uint32_t GetBoostVoltage();
 
+    void SetMinSystemVoltage (uint32_t voltageMV);
+
     void stats();
 
     void init();
