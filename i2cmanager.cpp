@@ -32,7 +32,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <memory.h>
 
 #define ENABLE_TIMEOUT 1
-//#define DEBUG_TIMEOUT 1
+// #define DEBUG_TIMEOUT 1
 //#define LOG_TIMEOUT 1
 
 extern "C" {

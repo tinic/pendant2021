@@ -25,6 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <stdint.h>
 
+
 class STM32WL {
 public:
     static STM32WL &instance();
@@ -47,6 +48,12 @@ private:
             uint8_t appKey[16];
             uint8_t effectN;
             uint8_t brightness;
+            uint8_t batteryVoltage;
+            uint8_t systemVoltage;
+            uint8_t vbusVoltage;
+            uint8_t chargeCurrent;
+            uint8_t temperature;
+            uint8_t humidity;
         };
     } i2cRegs;
 };
