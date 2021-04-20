@@ -30,23 +30,51 @@ public:
     static Model &instance();
 
     uint32_t Effect() const { return effect; };
-    void SetEffect(uint32_t _effect) { effect = _effect % EffectCount(); };
+    void SetEffect(uint32_t _effect) { effect = _effect % EffectCount(); dirty = true; };
     uint32_t EffectCount() const { return 3; }
 
     auto BirdColor() const { return bird_color; }
-    void SetBirdColor(auto _bird_color) { bird_color = _bird_color; }
+    void SetBirdColor(auto _bird_color) { bird_color = _bird_color; dirty = true; }
 
     auto RingColor() const { return ring_color; }
-    void SetRingColor(auto _ring_color) { ring_color = _ring_color; }
+    void SetRingColor(auto _ring_color) { ring_color = _ring_color;  dirty = true; }
 
     float Brightness() const { return brightness; }
-    void SetBrightness(float _brightness) { brightness = _brightness; }
+    void SetBrightness(float _brightness) { brightness = _brightness;  dirty = true; }
+
+    size_t Switch1Count() const { return switch1Count; }
+    void IncSwitch1Count() { switch1Count++; dirty = true; }
+
+    size_t Switch2Count() const { return switch2Count; }
+    void IncSwitch2Count() { switch2Count++; dirty = true; }
+
+    size_t Switch3Count() const { return switch3Count; }
+    void IncSwitch3Count() { switch3Count++; dirty = true; }
+
+    size_t BootCount() const { return bootCount; }
+    void IncBootCount() { bootCount++; dirty = true; }
+
+    size_t IntCount() const { return intCount; }
+    void IncIntCount() { intCount++; dirty = true; }
+
+    size_t DselCount() const { return dselCount; }
+    void IncDselCount() { dselCount++; dirty = true; }
 
 private:
+    bool dirty = false;
+
     uint32_t effect = 0;
     const color::rgba<uint8_t> bird_color{0x7f,0x7f,0x00};
     const color::rgba<uint8_t> ring_color{0x00, 0x17, 0x7F};
     float brightness = 0.1f;
+
+    size_t switch1Count = 0;
+    size_t switch2Count = 0;
+    size_t switch3Count = 0;
+
+    size_t bootCount = 0;
+    size_t intCount = 0;
+    size_t dselCount = 0;
 
     void init();
     bool initialized = false;

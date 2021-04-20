@@ -64,6 +64,7 @@ void Pendant::init() {
 }
 
 void Pendant::Run() {
+    Model::instance().IncBootCount();
     while (1) {
         __WFI();
         if (Timeline::instance().CheckBackgroundReadyAndClear()) {

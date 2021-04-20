@@ -85,6 +85,13 @@ void STM32WL::update() {
 
     i2cRegs.humidity = f2u8(ENS210::instance().Humidity(), 0.0f, 1.0f);
     I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,humidity),i2cRegs.humidity);
+
+    Model::instance().RingColor().write_rgba_bytes(&i2cRegs.ring_color[0]);
+    Model::instance().BirdColor().write_rgba_bytes(&i2cRegs.bird_color[0]);
+    for (size_t c = 0; c < 4; c++) {
+        I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,ring_color)+c,i2cRegs.ring_color[c]);
+        I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,bird_color)+c,i2cRegs.bird_color[c]);
+    }
 }
 
 void STM32WL::init() {

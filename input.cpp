@@ -23,6 +23,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./input.h"
 #include "./bq25895.h"
 #include "./timeline.h"
+#include "./model.h"
 
 #include "M480.h"
 
@@ -33,17 +34,20 @@ void GPF_IRQHandler(void)
     if(GPIO_GET_INT_FLAG(PF, BIT2))
     {
         Timeline::instance().TopDisplay().ProcessSwitch1(PF2 ? true : false);
+        if (PF2) Model::instance().IncSwitch1Count();
         GPIO_CLR_INT_FLAG(PF, BIT2);
     }
 
     if(GPIO_GET_INT_FLAG(PF, BIT4))
     {
-        //BQ25895::instance().UpdateState();
+        if (PF4) Model::instance().IncIntCount();
+        BQ25895::instance().UpdateState();
         GPIO_CLR_INT_FLAG(PF, BIT4);
     }
 
     if(GPIO_GET_INT_FLAG(PF, BIT5))
     {
+        if (PF5) Model::instance().IncDselCount();
         //printf("(DSEL) PF.5 IRQ occurred.\n");
         GPIO_CLR_INT_FLAG(PF, BIT5);
     }
@@ -54,12 +58,14 @@ void GPB_IRQHandler(void)
     if(GPIO_GET_INT_FLAG(PB, BIT5))
     {
         Timeline::instance().TopDisplay().ProcessSwitch2(PB5 ? true : false);
+        if (PB5) Model::instance().IncSwitch2Count();
         GPIO_CLR_INT_FLAG(PB, BIT5);
     }
 
     if(GPIO_GET_INT_FLAG(PB, BIT15))
     {
         Timeline::instance().TopDisplay().ProcessSwitch3(PB15 ? true : false);
+        if (PB15) Model::instance().IncSwitch3Count();
         GPIO_CLR_INT_FLAG(PB, BIT15);
     }
 }
