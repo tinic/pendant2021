@@ -659,7 +659,7 @@ void I2CManager::init() {
                   ( ( HTCTL << I2C_TMCTL_HTCTL_Pos) & I2C_TMCTL_HTCTL_Msk );
 
 #ifdef ENABLE_TIMEOUT
-    //I2C_EnableTimeout(I2C0, 1);
+    I2C_EnableTimeout(I2C0, 1);
 #endif  // #ifdef ENABLE_TIMEOUT
 
     I2C_EnableInt(I2C0);
