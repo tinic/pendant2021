@@ -51,6 +51,7 @@ public:
 
     void DisplayOn();
     void DisplayOff();
+    bool IsDisplayOn() const { return devicePresent && displayOn; };
 
     bool DevicePresent() const { return devicePresent; }
 
@@ -79,6 +80,7 @@ private:
     uint8_t text_attr_screen[text_x_size*text_y_size];
     
     bool display_boot_screen = false;
+    bool displayOn = false;
     int32_t boot_screen_offset = 0;
     int32_t vertical_shift = 0;
 

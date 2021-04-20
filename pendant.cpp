@@ -57,10 +57,11 @@ void Pendant::init() {
     SDD1306::instance();
     BQ25895::instance();
     ENS210::instance();
-    STM32WL::instance();
     Effects::instance();
     UI::instance();
     SDCard::instance();
+    SDD1306::instance().DisplayOff();
+    STM32WL::instance();
 }
 
 void Pendant::Run() {
@@ -79,7 +80,8 @@ void Pendant::Run() {
                 Timeline::instance().TopEffect().Commit();
             }
         }
-        if (Timeline::instance().CheckDisplayReadyAndClear()) {
+        if (SDD1306::instance().IsDisplayOn() && 
+            Timeline::instance().CheckDisplayReadyAndClear()) {
             Timeline::instance().ProcessDisplay();
             if (Timeline::instance().TopDisplay().Valid()) {
                 Timeline::instance().TopDisplay().Calc();

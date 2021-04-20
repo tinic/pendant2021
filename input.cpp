@@ -41,6 +41,7 @@ void GPF_IRQHandler(void)
     if(GPIO_GET_INT_FLAG(PF, BIT4))
     {
         if (PF4) Model::instance().IncIntCount();
+        printf("(INT) PF.4 IRQ occurred.\n");
         BQ25895::instance().UpdateState();
         GPIO_CLR_INT_FLAG(PF, BIT4);
     }
@@ -48,7 +49,7 @@ void GPF_IRQHandler(void)
     if(GPIO_GET_INT_FLAG(PF, BIT5))
     {
         if (PF5) Model::instance().IncDselCount();
-        //printf("(DSEL) PF.5 IRQ occurred.\n");
+        printf("(DSEL) PF.5 IRQ occurred.\n");
         GPIO_CLR_INT_FLAG(PF, BIT5);
     }
 }

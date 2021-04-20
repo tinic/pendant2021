@@ -39,6 +39,28 @@ public:
     float VBUSVoltage() const { return vbusVoltage; }
     float ChargeCurrent() const { return chargeCurrent; }
 
+    enum {
+        VBUS_NO_INPUT       = 0b000,
+        VBUS_USB_SDP        = 0b001,
+        VBUS_USB_CDP        = 0b010,
+        VBUS_USB_DCP        = 0b011,
+        VBUS_ADJ_DCP        = 0b100,
+        VBUS_UNKOWN         = 0b101,
+        VBUS_NON_STANDARD   = 0b110,
+        VBUS_OTG            = 0b111
+    };
+
+    uint8_t VBUSStatus() const { return (status >> 5) & 0x7; }
+
+    enum {
+        NOT_CHARGING        = 0b00,
+        PRE_CHARGING        = 0b01,
+        FAST_CHARGING       = 0b10,
+        TERM_CHARGING       = 0b11,
+    };
+
+    uint8_t ChargeStatus() const { return (status >> 3) & 0x3; }
+
 private:
     friend class I2CManager;
     static constexpr uint8_t i2c_addr = 0x6a;
@@ -58,6 +80,8 @@ private:
 
     void DisableWatchdog();
     void DisableOTG();
+    void EnableOTG();
+    void ForceDPDMDetection();
 
     bool ADCActive();
     void OneShotADC();

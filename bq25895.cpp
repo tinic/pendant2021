@@ -49,6 +49,11 @@ void BQ25895::DisableOTG() {
     I2CManager::instance().clearReg8Bits(i2c_addr, 0x03, (1 << 5));
 }
 
+void BQ25895::EnableOTG() {
+    if (!devicePresent) return;
+    I2CManager::instance().setReg8Bits(i2c_addr, 0x03, (1 << 5));
+}
+
 float BQ25895::ReadBatteryVoltage() {
     if (!devicePresent) return 0;
     uint8_t reg = I2CManager::instance().getReg8(i2c_addr,0x0E) & 0x7F;
@@ -122,12 +127,10 @@ void BQ25895::SetInputCurrent(uint32_t currentMA) {
     if (currentMA >= 50 && currentMA <= 3250) {
         uint32_t codedValue = currentMA;
         codedValue = ((codedValue) / 50) - 1;
-        codedValue |= (1 << 6);
         I2CManager::instance().setReg8(i2c_addr, 0x00, static_cast<uint8_t>(codedValue));
     }
     if (currentMA == 0) {
         uint32_t codedValue = 0;
-        codedValue |= (1 << 6);
         I2CManager::instance().setReg8(i2c_addr,0x00, static_cast<uint8_t>(codedValue));
     }
 }
@@ -148,21 +151,28 @@ uint32_t BQ25895::GetInputCurrent () {
     return ((I2CManager::instance().getReg8(i2c_addr, 0x00) & (0x3F)) * 50);
 }
 
+void BQ25895::ForceDPDMDetection() {
+    if (!devicePresent) return;
+    I2CManager::instance().setReg8Bits(i2c_addr, 0x02, (1 << 1));
+}
+
 void BQ25895::stats() {
     printf("Battery Voltage: %g\n", double(BatteryVoltage()));
     printf("System Voltage: %g\n", double(SystemVoltage()));
     printf("VBUSVoltage Voltage: %g\n", double(VBUSVoltage()));
     printf("Charge Current: %g\n", double(ChargeCurrent()));
+    printf("Status: VBUS(%02x) Charge(%02x)\n", VBUSStatus(), ChargeStatus());
 }
 
 void BQ25895::init() {
     if (!devicePresent) return;
-    //DisableOTG();
+    EnableOTG();
     DisableWatchdog();
     OneShotADC();
     SetBoostVoltage(4550);
     SetMinSystemVoltage(3000);
-    SetInputCurrent(750);
+    SetInputCurrent(1000);
+    ForceDPDMDetection();
     UpdateState();
     stats();
 } 
