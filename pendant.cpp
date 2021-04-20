@@ -57,11 +57,11 @@ void Pendant::init() {
     SDD1306::instance();
     BQ25895::instance();
     ENS210::instance();
-    STM32WL::instance();
     Effects::instance();
     UI::instance();
-    //SDCard::instance();
+    SDCard::instance();
     SDD1306::instance().DisplayOff();
+    STM32WL::instance();
 }
 
 void Pendant::Run() {
