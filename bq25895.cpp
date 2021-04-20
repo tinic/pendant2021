@@ -166,11 +166,11 @@ void BQ25895::stats() {
 
 void BQ25895::init() {
     if (!devicePresent) return;
-    EnableOTG();
+    DisableOTG();
     DisableWatchdog();
     OneShotADC();
     SetBoostVoltage(4550);
-    SetMinSystemVoltage(3000);
+    SetMinSystemVoltage(3500);
     SetInputCurrent(1000);
     ForceDPDMDetection();
     UpdateState();
