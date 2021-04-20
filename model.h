@@ -44,7 +44,7 @@ public:
 
 private:
     uint32_t effect = 0;
-    const color::rgba<uint8_t> bird_color{0x7f,0x7f,0x00};
+    const color::rgba<uint8_t> bird_color{0x7f, 0x7f, 0x00};
     const color::rgba<uint8_t> ring_color{0x00, 0x17, 0x7F};
     float brightness = 0.1f;
 

@@ -58,6 +58,7 @@ private:
 
     void DisableWatchdog();
     void DisableOTG();
+    void EnableOTG();
 
     bool ADCActive();
     void OneShotADC();
