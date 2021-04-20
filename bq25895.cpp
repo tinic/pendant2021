@@ -151,6 +151,11 @@ uint32_t BQ25895::GetInputCurrent () {
     return ((I2CManager::instance().getReg8(i2c_addr, 0x00) & (0x3F)) * 50);
 }
 
+void BQ25895::ForceDPDMDetection() {
+    if (!devicePresent) return;
+    I2CManager::instance().setReg8Bits(i2c_addr, 0x02, (1 << 1));
+}
+
 void BQ25895::stats() {
     printf("Battery Voltage: %g\n", double(BatteryVoltage()));
     printf("System Voltage: %g\n", double(SystemVoltage()));
@@ -167,6 +172,7 @@ void BQ25895::init() {
     SetBoostVoltage(4550);
     SetMinSystemVoltage(3000);
     SetInputCurrent(1000);
+    ForceDPDMDetection();
     UpdateState();
     stats();
 } 

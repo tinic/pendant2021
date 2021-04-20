@@ -38,13 +38,14 @@ void GPF_IRQHandler(void)
 
     if(GPIO_GET_INT_FLAG(PF, BIT4))
     {
-        //BQ25895::instance().UpdateState();
+        printf("(INT) PF.4 IRQ occurred.\n");
+        BQ25895::instance().UpdateState();
         GPIO_CLR_INT_FLAG(PF, BIT4);
     }
 
     if(GPIO_GET_INT_FLAG(PF, BIT5))
     {
-        //printf("(DSEL) PF.5 IRQ occurred.\n");
+        printf("(DSEL) PF.5 IRQ occurred.\n");
         GPIO_CLR_INT_FLAG(PF, BIT5);
     }
 }
