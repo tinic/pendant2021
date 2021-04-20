@@ -156,6 +156,7 @@ void BQ25895::stats() {
     printf("System Voltage: %g\n", double(SystemVoltage()));
     printf("VBUSVoltage Voltage: %g\n", double(VBUSVoltage()));
     printf("Charge Current: %g\n", double(ChargeCurrent()));
+    printf("Status: VBUS(%02x) Charge(%02x)\n", VBUSStatus(), ChargeStatus());
 }
 
 void BQ25895::init() {
