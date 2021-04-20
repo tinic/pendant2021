@@ -64,6 +64,9 @@ void STM32WL::update() {
     I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,systemTime)+0,((i2cRegs.systemTime)>>0)&0xFF);
     I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,systemTime)+1,((i2cRegs.systemTime)>>8)&0xFF);
 
+    i2cRegs.status = BQ25895::instance().Status();
+    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,status),i2cRegs.status);
+
     auto f2u8 = [](float v, float min, float max) {
         return static_cast<uint8_t>(std::clamp( ( (v - min) / (max - min) ) * 255.0f, 0.0f, 255.0f));;
     };
@@ -85,6 +88,7 @@ void STM32WL::update() {
 
     i2cRegs.humidity = f2u8(ENS210::instance().Humidity(), 0.0f, 1.0f);
     I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,humidity),i2cRegs.humidity);
+
 }
 
 void STM32WL::init() {

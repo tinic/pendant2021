@@ -60,7 +60,8 @@ void Pendant::init() {
     STM32WL::instance();
     Effects::instance();
     UI::instance();
-    SDCard::instance();
+    //SDCard::instance();
+    SDD1306::instance().DisplayOff();
 }
 
 void Pendant::Run() {
@@ -78,7 +79,8 @@ void Pendant::Run() {
                 Timeline::instance().TopEffect().Commit();
             }
         }
-        if (Timeline::instance().CheckDisplayReadyAndClear()) {
+        if (SDD1306::instance().IsDisplayOn() && 
+            Timeline::instance().CheckDisplayReadyAndClear()) {
             Timeline::instance().ProcessDisplay();
             if (Timeline::instance().TopDisplay().Valid()) {
                 Timeline::instance().TopDisplay().Calc();

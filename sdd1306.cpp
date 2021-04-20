@@ -223,11 +223,13 @@ void SDD1306::SetVerticalShift(int8_t val) {
 void SDD1306::DisplayOn() {
     if (!devicePresent) return;
     WriteCommand(0xAF);
+    displayOn = true;
 }
 
 void SDD1306::DisplayOff() {
     if (!devicePresent) return;
     WriteCommand(0xAE);
+    displayOn = false;
 }
 
 void SDD1306::Init() {
@@ -263,6 +265,8 @@ void SDD1306::Init() {
     for (size_t c = 0; c < sizeof(startup_sequence); c++) {
         WriteCommand(startup_sequence[c]);
     }
+
+    displayOn = true;
 }
 
 void SDD1306::DisplayBootScreen() {
