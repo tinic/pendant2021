@@ -60,9 +60,12 @@ void STM32WL::update() {
     i2cRegs.brightness = uint8_t(Model::instance().Brightness() * 255.0f);
     I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,brightness),i2cRegs.brightness);
 
-    i2cRegs.systemTime = uint16_t(Timeline::SystemTime());
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,systemTime)+0,((i2cRegs.systemTime)>>0)&0xFF);
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,systemTime)+1,((i2cRegs.systemTime)>>8)&0xFF);
+    auto set16u = [](size_t offset, uint16_t value) {
+        I2CManager::instance().setReg8(i2c_addr,offset+0,(value>>0)&0xFF);
+        I2CManager::instance().setReg8(i2c_addr,offset+1,(value>>8)&0xFF);
+    };
+
+    set16u(offsetof(I2CRegs,systemTime), i2cRegs.systemTime = uint16_t(Timeline::SystemTime()));
 
     i2cRegs.status = BQ25895::instance().Status();
     I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,status),i2cRegs.status);
@@ -95,6 +98,13 @@ void STM32WL::update() {
         I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,ring_color)+c,i2cRegs.ring_color[c]);
         I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,bird_color)+c,i2cRegs.bird_color[c]);
     }
+
+    set16u(offsetof(I2CRegs,switch1Count), i2cRegs.switch1Count = uint16_t(Model::instance().Switch1Count()));
+    set16u(offsetof(I2CRegs,switch2Count), i2cRegs.switch2Count = uint16_t(Model::instance().Switch2Count()));
+    set16u(offsetof(I2CRegs,switch3Count), i2cRegs.switch3Count = uint16_t(Model::instance().Switch3Count()));
+    set16u(offsetof(I2CRegs,bootCount), i2cRegs.bootCount = uint16_t(Model::instance().BootCount()));
+    set16u(offsetof(I2CRegs,intCount), i2cRegs.intCount = uint16_t(Model::instance().IntCount()));
+    set16u(offsetof(I2CRegs,dselCount), i2cRegs.dselCount = uint16_t(Model::instance().DselCount()));
 }
 
 void STM32WL::init() {

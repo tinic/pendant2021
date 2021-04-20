@@ -60,8 +60,17 @@ public:
     size_t DselCount() const { return dselCount; }
     void IncDselCount() { dselCount++; dirty = true; }
 
+    void load();
+    void save();
+
 private:
-    bool dirty = false;
+    static bool dirty;
+    static bool initialized;
+    static constexpr uint32_t dataAddress = 0x3F000; // Last 4KB page
+
+    void init();
+
+    uint32_t version = 0;
 
     uint32_t effect = 0;
     const color::rgba<uint8_t> bird_color{0x7f, 0x7f, 0x00};
@@ -75,9 +84,6 @@ private:
     size_t bootCount = 0;
     size_t intCount = 0;
     size_t dselCount = 0;
-
-    void init();
-    bool initialized = false;
 };
 
 #endif /* MODEL_H_ */
