@@ -45,7 +45,7 @@ STM32WL &STM32WL::instance() {
 
 void STM32WL::update() {
     if (!devicePresent) return;
-    
+
     for (size_t c = 0; c < sizeof(i2cRegs.devEUI); c++) {
          i2cRegs.devEUI[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,devEUI));
     }
@@ -56,32 +56,44 @@ void STM32WL::update() {
          i2cRegs.appKey[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,appKey));
     }
 
-    auto set16u = [](size_t offset, uint16_t value) {
+    auto set8u = [](auto offset, auto value) {
+        static_assert(std::is_same<decltype(offset), size_t>::value, "offset must be uint8_t");
+        static_assert(std::is_same<decltype(value), uint8_t>::value, "value must be uint8_t");
+        I2CManager::instance().setReg8(i2c_addr,offset,value);
+    };
+
+    auto set16u = [](auto offset, auto value) {
+        static_assert(std::is_same<decltype(offset), size_t>::value, "offset must be uint8_t");
+        static_assert(std::is_same<decltype(value), uint16_t>::value, "value must be uint16_t");
         I2CManager::instance().setReg8(i2c_addr,offset+0,(value>>0)&0xFF);
         I2CManager::instance().setReg8(i2c_addr,offset+1,(value>>8)&0xFF);
     };
-    auto f2u8 = [](float v, float min, float max) {
+
+    auto f2u8 = [](auto v, auto min, auto max) {
+        static_assert(std::is_same<decltype(v), float>::value, "v must be float");
+        static_assert(std::is_same<decltype(min), float>::value, "min must be float");
+        static_assert(std::is_same<decltype(max), float>::value, "max must be float");
         return static_cast<uint8_t>(std::clamp( ( (v - min) / (max - min) ) * 255.0f, 0.0f, 255.0f));;
     };
 
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,effectN),i2cRegs.effectN = Model::instance().Effect());
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,brightness),i2cRegs.brightness = uint8_t(Model::instance().Brightness() * 255.0f));
+    set8u(offsetof(I2CRegs,effectN),i2cRegs.effectN = Model::instance().Effect());
+    set8u(offsetof(I2CRegs,brightness),i2cRegs.brightness = uint8_t(Model::instance().Brightness() * 255.0f));
 
     set16u(offsetof(I2CRegs,systemTime), i2cRegs.systemTime = uint16_t(Timeline::SystemTime()));
 
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,status),i2cRegs.status = BQ25895::instance().Status());
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,batteryVoltage),i2cRegs.batteryVoltage = f2u8(BQ25895::instance().BatteryVoltage(), 2.7f, 4.2f));
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,systemVoltage),i2cRegs.systemVoltage = f2u8(BQ25895::instance().SystemVoltage(), 2.7f, 4.2f));
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,vbusVoltage),i2cRegs.vbusVoltage = f2u8(BQ25895::instance().VBUSVoltage(), 0.0f, 5.5f));
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,chargeCurrent),i2cRegs.chargeCurrent = f2u8(BQ25895::instance().ChargeCurrent(), 0.0f, 1000.0f));
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,temperature),i2cRegs.temperature = f2u8(ENS210::instance().Temperature(), 0.0f, 50.0f));
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,humidity),i2cRegs.humidity = f2u8(ENS210::instance().Humidity(), 0.0f, 1.0f));
+    set8u(offsetof(I2CRegs,status),i2cRegs.status = BQ25895::instance().Status());
+    set8u(offsetof(I2CRegs,batteryVoltage),i2cRegs.batteryVoltage = f2u8(BQ25895::instance().BatteryVoltage(), 2.7f, 4.2f));
+    set8u(offsetof(I2CRegs,systemVoltage),i2cRegs.systemVoltage = f2u8(BQ25895::instance().SystemVoltage(), 2.7f, 4.2f));
+    set8u(offsetof(I2CRegs,vbusVoltage),i2cRegs.vbusVoltage = f2u8(BQ25895::instance().VBUSVoltage(), 0.0f, 5.5f));
+    set8u(offsetof(I2CRegs,chargeCurrent),i2cRegs.chargeCurrent = f2u8(BQ25895::instance().ChargeCurrent(), 0.0f, 1000.0f));
+    set8u(offsetof(I2CRegs,temperature),i2cRegs.temperature = f2u8(ENS210::instance().Temperature(), 0.0f, 50.0f));
+    set8u(offsetof(I2CRegs,humidity),i2cRegs.humidity = f2u8(ENS210::instance().Humidity(), 0.0f, 1.0f));
 
     Model::instance().RingColor().write_rgba_bytes(&i2cRegs.ring_color[0]);
     Model::instance().BirdColor().write_rgba_bytes(&i2cRegs.bird_color[0]);
     for (size_t c = 0; c < 4; c++) {
-        I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,ring_color)+c,i2cRegs.ring_color[c]);
-        I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,bird_color)+c,i2cRegs.bird_color[c]);
+        set8u(offsetof(I2CRegs,ring_color)+c,i2cRegs.ring_color[c]);
+        set8u(offsetof(I2CRegs,bird_color)+c,i2cRegs.bird_color[c]);
     }
 
     set16u(offsetof(I2CRegs,switch1Count), i2cRegs.switch1Count = uint16_t(Model::instance().Switch1Count()));
