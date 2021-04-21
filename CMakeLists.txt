@@ -33,6 +33,9 @@ set(CC_FLAGS
     -fdata-sections
     -ffunction-sections
     -Wall
+    -Wextra
+    -Wno-sign-compare
+    -Wno-unused-parameter
     -Wno-strict-aliasing 
     -Wno-format
     -ffast-math)
