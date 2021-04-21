@@ -21,6 +21,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./model.h"
+#include "./leds.h"
 
 #include "NuMicro.h"
 
@@ -74,6 +75,8 @@ void Model::save() {
 
     printf("Saving model.\r\n");
 
+    Leds::instance().forceStop();
+
     dirty = false;
 
     version = currentVersion;
@@ -100,11 +103,13 @@ void Model::save() {
 
     FMC_ENABLE_AP_UPDATE();
 
+    __disable_irq();
     FMC_Erase(dataAddress);
     uint32_t *self = reinterpret_cast<uint32_t *>(this);
     for (size_t c = 0; c < sizeof(Model); c += sizeof(uint32_t)) {
         FMC_Write(dataAddress+c, *self++);
     }
+    __enable_irq();
 
     FMC_DISABLE_AP_UPDATE();
 

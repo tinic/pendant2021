@@ -210,6 +210,7 @@ void SDD1306::Display() {
     
 void SDD1306::SetVerticalShift(int8_t val) {
     if (!devicePresent) return;
+#if 0 // Generates I2C timeouts
 	vertical_shift = static_cast<int32_t>(val);
     WriteCommand(0xD3);
     if (val < 0) {
@@ -218,6 +219,7 @@ void SDD1306::SetVerticalShift(int8_t val) {
     } else {
         WriteCommand(val&0x3F);
     }
+#endif  // #if 0
 }
 
 void SDD1306::DisplayOn() {

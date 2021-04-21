@@ -50,8 +50,8 @@ Pendant &Pendant::instance() {
 
 void Pendant::init() { 
     Model::instance();
-    Leds::instance();
     Timeline::instance();
+    Leds::instance();
     Effects::instance();
     SDCard::instance();
 
@@ -61,8 +61,8 @@ void Pendant::init() {
     ENS210::instance();
     STM32WL::instance();
 
-    UI::instance();
     Input::instance();
+    UI::instance();
 }
 
 void Pendant::Run() {

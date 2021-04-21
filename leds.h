@@ -147,6 +147,8 @@ public:
     void setCircle(auto _circleLeds) { circleLeds = _circleLeds; }
     void setBird(auto _birdLeds) { birdLeds = _birdLeds; }
 
+    void forceStop();
+
 private:
 
     static const struct lut_table {

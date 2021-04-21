@@ -218,6 +218,11 @@ void Leds::prepare() {
     }
 }
 
+void Leds::forceStop() {
+    EPWM_ForceStop(EPWM0, EPWM_CH_3_MASK);
+    EPWM_ForceStop(EPWM1, EPWM_CH_2_MASK);
+}
+
 __attribute__ ((hot, optimize("Os"), flatten))
 void Leds::transfer() {
     prepare();
