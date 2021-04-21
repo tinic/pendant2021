@@ -51,16 +51,18 @@ Pendant &Pendant::instance() {
 void Pendant::init() { 
     Model::instance();
     Leds::instance();
-    I2CManager::instance();
     Timeline::instance();
-    Input::instance();
+    Effects::instance();
+    SDCard::instance();
+
+    I2CManager::instance();
     SDD1306::instance();
     BQ25895::instance();
     ENS210::instance();
-    Effects::instance();
-    UI::instance();
-    SDCard::instance();
     STM32WL::instance();
+
+    UI::instance();
+    Input::instance();
 }
 
 void Pendant::Run() {
@@ -68,6 +70,7 @@ void Pendant::Run() {
     while (1) {
         __WFI();
         if (Timeline::instance().CheckIdleReadyAndClear()) {
+            I2CManager::instance().reprobeCritial();
             Model::instance().save();
         }
         if (Timeline::instance().CheckBackgroundReadyAndClear()) {

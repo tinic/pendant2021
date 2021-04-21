@@ -46,6 +46,8 @@ public:
 
     bool error() const { return u8Err ? true : false; }
 
+    void reprobeCritial();
+
 private:
     static void batchWriteIRQHandler(void);
     static void writeIRQHandler(void);

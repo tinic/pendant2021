@@ -120,6 +120,25 @@ I2CManager &I2CManager::instance() {
     return i2c;
 }
 
+void I2CManager::reprobeCritial() {
+    if (!SDD1306::devicePresent) {
+        SDD1306::devicePresent = deviceReady(SDD1306::i2c_addr);
+        printf("SDD1306 is ready on reprobe.\n");
+    }
+    if (!ENS210::devicePresent) {
+        ENS210::devicePresent = deviceReady(ENS210::i2c_addr);
+        printf("ENS210 is ready on reprobe.\n");
+    }
+    if (!BQ25895::devicePresent) {
+        BQ25895::devicePresent = deviceReady(BQ25895::i2c_addr);
+        printf("BQ25895 is ready on reprobe.\n");
+    }
+    if (!STM32WL::devicePresent) {
+        STM32WL::devicePresent = deviceReady(STM32WL::i2c_addr);
+        printf("STM32WL is ready on reprobe.\n");
+    }
+}
+
 void I2CManager::probe() {
     for (size_t c = 0; c <  127; c++) {
         if (deviceReady(c)) {
