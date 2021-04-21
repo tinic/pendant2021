@@ -38,6 +38,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 extern "C" {
 
 static void nullIRQHandler(void) {
+    
 #ifdef ENABLE_TIMEOUT
     I2C_WAIT_READY(I2C0) { 
         if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
