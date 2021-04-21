@@ -45,6 +45,7 @@ STM32WL &STM32WL::instance() {
 
 void STM32WL::update() {
     if (!devicePresent) return;
+    
     for (size_t c = 0; c < sizeof(i2cRegs.devEUI); c++) {
          i2cRegs.devEUI[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,devEUI));
     }
@@ -54,43 +55,27 @@ void STM32WL::update() {
     for (size_t c = 0; c < sizeof(i2cRegs.appKey); c++) {
          i2cRegs.appKey[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,appKey));
     }
-    i2cRegs.effectN = Model::instance().Effect();
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,effectN),i2cRegs.effectN);
-
-    i2cRegs.brightness = uint8_t(Model::instance().Brightness() * 255.0f);
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,brightness),i2cRegs.brightness);
 
     auto set16u = [](size_t offset, uint16_t value) {
         I2CManager::instance().setReg8(i2c_addr,offset+0,(value>>0)&0xFF);
         I2CManager::instance().setReg8(i2c_addr,offset+1,(value>>8)&0xFF);
     };
-
-    set16u(offsetof(I2CRegs,systemTime), i2cRegs.systemTime = uint16_t(Timeline::SystemTime()));
-
-    i2cRegs.status = BQ25895::instance().Status();
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,status),i2cRegs.status);
-
     auto f2u8 = [](float v, float min, float max) {
         return static_cast<uint8_t>(std::clamp( ( (v - min) / (max - min) ) * 255.0f, 0.0f, 255.0f));;
     };
 
-    i2cRegs.batteryVoltage = f2u8(BQ25895::instance().BatteryVoltage(), 2.7f, 4.2f);
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,batteryVoltage),i2cRegs.batteryVoltage);
+    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,effectN),i2cRegs.effectN = Model::instance().Effect());
+    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,brightness),i2cRegs.brightness = uint8_t(Model::instance().Brightness() * 255.0f));
 
-    i2cRegs.systemVoltage = f2u8(BQ25895::instance().SystemVoltage(), 2.7f, 4.2f);
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,systemVoltage),i2cRegs.systemVoltage);
+    set16u(offsetof(I2CRegs,systemTime), i2cRegs.systemTime = uint16_t(Timeline::SystemTime()));
 
-    i2cRegs.vbusVoltage = f2u8(BQ25895::instance().VBUSVoltage(), 0.0f, 5.5f);
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,vbusVoltage),i2cRegs.vbusVoltage);
-
-    i2cRegs.chargeCurrent = f2u8(BQ25895::instance().ChargeCurrent(), 0.0f, 1000.0f);
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,chargeCurrent),i2cRegs.chargeCurrent);
-
-    i2cRegs.temperature = f2u8(ENS210::instance().Temperature(), 0.0f, 50.0f);
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,temperature),i2cRegs.temperature);
-
-    i2cRegs.humidity = f2u8(ENS210::instance().Humidity(), 0.0f, 1.0f);
-    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,humidity),i2cRegs.humidity);
+    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,status),i2cRegs.status = BQ25895::instance().Status());
+    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,batteryVoltage),i2cRegs.batteryVoltage = f2u8(BQ25895::instance().BatteryVoltage(), 2.7f, 4.2f));
+    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,systemVoltage),i2cRegs.systemVoltage = f2u8(BQ25895::instance().SystemVoltage(), 2.7f, 4.2f));
+    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,vbusVoltage),i2cRegs.vbusVoltage = f2u8(BQ25895::instance().VBUSVoltage(), 0.0f, 5.5f));
+    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,chargeCurrent),i2cRegs.chargeCurrent = f2u8(BQ25895::instance().ChargeCurrent(), 0.0f, 1000.0f));
+    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,temperature),i2cRegs.temperature = f2u8(ENS210::instance().Temperature(), 0.0f, 50.0f));
+    I2CManager::instance().setReg8(i2c_addr,offsetof(I2CRegs,humidity),i2cRegs.humidity = f2u8(ENS210::instance().Humidity(), 0.0f, 1.0f));
 
     Model::instance().RingColor().write_rgba_bytes(&i2cRegs.ring_color[0]);
     Model::instance().BirdColor().write_rgba_bytes(&i2cRegs.bird_color[0]);
@@ -105,6 +90,7 @@ void STM32WL::update() {
     set16u(offsetof(I2CRegs,bootCount), i2cRegs.bootCount = uint16_t(Model::instance().BootCount()));
     set16u(offsetof(I2CRegs,intCount), i2cRegs.intCount = uint16_t(Model::instance().IntCount()));
     set16u(offsetof(I2CRegs,dselCount), i2cRegs.dselCount = uint16_t(Model::instance().DselCount()));
+
 }
 
 void STM32WL::init() {
