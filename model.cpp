@@ -26,7 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <memory.h>
 
-const uint32_t currentVersion = 0x1ED50001;
+const uint32_t currentVersion = 0x1ED50002;
 
 bool Model::dirty = false;
 bool Model::initialized = false;
@@ -55,7 +55,7 @@ void Model::load() {
 
     if (currentVersion == FMC_Read(dataAddress) ) {
         uint32_t *self = reinterpret_cast<uint32_t *>(this);
-        for (size_t c = 0; c < sizeof(this); c += sizeof(uint32_t)) {
+        for (size_t c = 0; c < sizeof(Model); c += sizeof(uint32_t)) {
             *self++ = FMC_Read(dataAddress+c);
         }
     } else {
@@ -102,7 +102,7 @@ void Model::save() {
 
     FMC_Erase(dataAddress);
     uint32_t *self = reinterpret_cast<uint32_t *>(this);
-    for (size_t c = 0; c < sizeof(this); c += sizeof(uint32_t)) {
+    for (size_t c = 0; c < sizeof(Model); c += sizeof(uint32_t)) {
         FMC_Write(dataAddress+c, *self++);
     }
 
