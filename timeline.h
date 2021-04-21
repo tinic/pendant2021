@@ -48,6 +48,8 @@ public:
     static constexpr double displayRate = 60.0;
     static constexpr double backgroundRate = 1.0;
 
+    static constexpr double idleRate = 60.0; // once a minute
+
     struct Span {
 
         enum Type {
@@ -101,6 +103,7 @@ public:
     bool CheckEffectReadyAndClear();
     bool CheckDisplayReadyAndClear();
     bool CheckBackgroundReadyAndClear();
+    bool CheckIdleReadyAndClear();
 
     void Add(Timeline::Span &span);
     void Remove(Timeline::Span &span);

@@ -262,6 +262,7 @@ uint64_t Timeline::FastSystemTime() {
     return (uint64_t(systemSeconds) * uint64_t(TIMER3->CMP)) + uint64_t(TIMER3->CNT);
 }
 
+static bool idleReady = false;
 static bool backgroundReady = false;
 static bool displayReady = false;
 
@@ -269,6 +270,7 @@ bool Timeline::CheckEffectReadyAndClear() {
     static size_t frameCount = 0;
     if (effectReady) {
         effectReady = false;
+        idleReady = (frameCount % size_t(effectRate * idleRate)) == 0;
         backgroundReady = (frameCount % size_t(effectRate / backgroundRate)) == 0;
         displayReady = (frameCount % size_t(effectRate / displayRate)) == 0;
         frameCount ++;
@@ -288,6 +290,14 @@ bool Timeline::CheckDisplayReadyAndClear() {
 bool Timeline::CheckBackgroundReadyAndClear() {
     if (backgroundReady) {
         backgroundReady = false;
+        return true;
+    }
+    return false;
+}
+
+bool Timeline::CheckIdleReadyAndClear() {
+    if (idleReady) {
+        idleReady = false;
         return true;
     }
     return false;

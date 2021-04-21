@@ -60,7 +60,6 @@ void Pendant::init() {
     Effects::instance();
     UI::instance();
     SDCard::instance();
-    SDD1306::instance().DisplayOff();
     STM32WL::instance();
 }
 
@@ -68,6 +67,9 @@ void Pendant::Run() {
     Model::instance().IncBootCount();
     while (1) {
         __WFI();
+        if (Timeline::instance().CheckIdleReadyAndClear()) {
+            Model::instance().save();
+        }
         if (Timeline::instance().CheckBackgroundReadyAndClear()) {
             BQ25895::instance().UpdateState();
             ENS210::instance().update();

@@ -24,6 +24,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "NuMicro.h"
 
+#include <memory.h>
+
 const uint32_t currentVersion = 0x1ED50001;
 
 bool Model::dirty = false;
@@ -43,7 +45,13 @@ void Model::init() {
 }
 
 void Model::load() {
+    SYS_UnlockReg();
+
     FMC_Open();
+
+    uint32_t au32Config[2];
+    memset(au32Config, 0, sizeof(au32Config));
+    FMC_ReadConfig(au32Config, 2);
 
     if (currentVersion == FMC_Read(dataAddress) ) {
         uint32_t *self = reinterpret_cast<uint32_t *>(this);
@@ -55,6 +63,8 @@ void Model::load() {
     }
 
     FMC_Close();
+
+    SYS_LockReg();
 }
 
 void Model::save() {
@@ -62,40 +72,43 @@ void Model::save() {
         return;
     }
 
-    FMC_Open();
+    printf("Saving model.\r\n");
 
     dirty = false;
 
-    FMC_ENABLE_AP_UPDATE();
+    version = currentVersion;
+
+    SYS_UnlockReg();
+
+    FMC_Open();
 
     uint32_t au32Config[2];
+    memset(au32Config, 0, sizeof(au32Config));
     FMC_ReadConfig(au32Config, 2);
 
-    if (!((!(au32Config[0] & 0x1)) && 
-            (au32Config[1] == dataAddress))) {
+    if (!(((au32Config[0] == 0x000003c8)) && 
+           (au32Config[1] == dataAddress))) {
 
-        SYS_UnlockReg();
-
-        FMC_ENABLE_CFG_UPDATE();
-
-        au32Config[0] &= ~0x1;
+        au32Config[0] = 0x000003c8;
         au32Config[1] = dataAddress;
 
         FMC_WriteConfig(au32Config, 2);
-
-        SYS_ResetCPU();
-
-        FMC_DISABLE_CFG_UPDATE();
-
-        SYS_LockReg();
-
-        return;
     }
 
+    memset(au32Config, 0, sizeof(au32Config));
+    FMC_ReadConfig(au32Config, 2);
+
+    FMC_ENABLE_AP_UPDATE();
+
     FMC_Erase(dataAddress);
-    FMC_WriteMultiple(dataAddress, reinterpret_cast<uint32_t *>(this), sizeof(this));
+    uint32_t *self = reinterpret_cast<uint32_t *>(this);
+    for (size_t c = 0; c < sizeof(this); c += sizeof(uint32_t)) {
+        FMC_Write(dataAddress+c, *self++);
+    }
 
     FMC_DISABLE_AP_UPDATE();
 
     FMC_Close();
+
+    SYS_LockReg();
 }
