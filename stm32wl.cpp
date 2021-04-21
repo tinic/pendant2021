@@ -57,13 +57,13 @@ void STM32WL::update() {
     }
 
     auto set8u = [](auto offset, auto value) {
-        static_assert(std::is_same<decltype(offset), size_t>::value, "offset must be uint8_t");
+        static_assert(std::is_same<decltype(offset), size_t>::value, "offset must be size_t");
         static_assert(std::is_same<decltype(value), uint8_t>::value, "value must be uint8_t");
         I2CManager::instance().setReg8(i2c_addr,offset,value);
     };
 
     auto set16u = [](auto offset, auto value) {
-        static_assert(std::is_same<decltype(offset), size_t>::value, "offset must be uint8_t");
+        static_assert(std::is_same<decltype(offset), size_t>::value, "offset must be size_t");
         static_assert(std::is_same<decltype(value), uint16_t>::value, "value must be uint16_t");
         I2CManager::instance().setReg8(i2c_addr,offset+0,(value>>0)&0xFF);
         I2CManager::instance().setReg8(i2c_addr,offset+1,(value>>8)&0xFF);

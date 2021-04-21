@@ -29,7 +29,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 static void delay_us(int usec) {
     double t = Timeline::SystemTime();
-    while ( ( Timeline::SystemTime() - t ) > (double(usec) * (1.0 / 1000000.0) ) ) { }
+    while ( ( Timeline::SystemTime() - t ) < (double(usec) * (1.0 / 1000000.0) ) ) { }
 }
 
 bool ENS210::devicePresent = false;
