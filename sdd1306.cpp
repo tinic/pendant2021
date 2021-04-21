@@ -288,7 +288,7 @@ void SDD1306::DisplayBootScreen() {
             buf[x+1] = font_pbm[0x800*y + cx * 8 + (rx & 0x07)];
         }
 
-        I2CManager::instance().queueBatchWrite(i2c_addr,  buf, 0x61);
+        I2CManager::instance().queueBatchWrite(i2c_addr,  buf, sizeof(buf));
     }
 }
 
@@ -321,7 +321,7 @@ void SDD1306::DisplayCenterFlip() {
                 }
             }
         }
-        I2CManager::instance().queueBatchWrite(i2c_addr,  buf, 0x61);
+        I2CManager::instance().queueBatchWrite(i2c_addr, buf, sizeof(buf));
     }
 }
     
