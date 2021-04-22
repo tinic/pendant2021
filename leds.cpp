@@ -46,7 +46,7 @@ void EPWM0P1_IRQHandler(void) {
     static volatile uint32_t *cnten1 = &EPWM1->CNTEN;
     static volatile uint32_t *gpb_mfpl = &SYS->GPB_MFPL;
     // Set new interval within fewest cycles possible in interrupt
-    *cmr = *pwm0Buf;
+    *cmr = uint32_t(*pwm0Buf) * Leds::pwmMul;
     // Clear zero interrupt flag
     *intsts0 = ((1UL << EPWM_INTEN0_ZIEN0_Pos) << 3);
     // Now check if we are at the end
@@ -70,7 +70,7 @@ void EPWM1P1_IRQHandler(void) {
     static volatile uint32_t *cnten = &EPWM1->CNTEN;
     static volatile uint32_t *gpb_mfpl = &SYS->GPB_MFPL;
     // Set new interval within fewest cycles possible in interrupt
-    *cmr = *pwm1Buf;
+    *cmr = uint32_t(*pwm1Buf) * Leds::pwmMul;
     // Clear zero interrupt flag
     *intsts0 = ((1UL << EPWM_INTEN0_ZIEN0_Pos) << 2);
     // Now check if we are at the end
@@ -186,9 +186,9 @@ void Leds::prepare() {
         auto convert_to_one_wire_pwm = [] (uint8_t *p, uint16_t v) {
             for (uint32_t b = 0; b < 16; b++) {
                 if ( ((1<<(15-b)) & v) != 0 ) {
-                    *p++ = 0x40;
+                    *p++ = 2;
                 } else {
-                    *p++ = 0x20;
+                    *p++ = 1;
                 }
             }
             return p;
@@ -268,8 +268,8 @@ void Leds::transfer() {
     pwm0Buf = birdsLedsDMABuf[0].data();
     pwm0BufEnd = pwm0Buf + birdsLedsDMABuf[0].size();
 
-    EPWM_SET_CNR(EPWM0, 3, 0x80);
-    EPWM_SET_CMR(EPWM0, 3, *pwm0Buf++);
+    EPWM_SET_CNR(EPWM0, 3, uint32_t(         4) * pwmMul);
+    EPWM_SET_CMR(EPWM0, 3, uint32_t(*pwm0Buf++) * pwmMul);
 
     // BOTTOM_LED_BIRD
     PB13 = 0;
@@ -286,8 +286,8 @@ void Leds::transfer() {
     pwm1Buf = birdsLedsDMABuf[1].data();
     pwm1BufEnd = pwm1Buf + birdsLedsDMABuf[1].size();
 
-    EPWM_SET_CNR(EPWM1, 2, 0x80);
-    EPWM_SET_CMR(EPWM1, 2, *pwm1Buf++);
+    EPWM_SET_CNR(EPWM1, 2, uint32_t(         4) * pwmMul);
+    EPWM_SET_CMR(EPWM1, 2, uint32_t(*pwm1Buf++) * pwmMul);
 
     // Start Top
     EPWM_Start(EPWM0, EPWM_CH_3_MASK);

@@ -31,6 +31,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define USE_DMA 1
 #define USE_PWM 1
 
+extern "C" {
+    void EPWM0P1_IRQHandler(void);
+    void EPWM1P1_IRQHandler(void);
+};
+
 class Leds {
 public:
     static constexpr size_t sidesN = 2;
@@ -150,6 +155,10 @@ public:
     void forceStop();
 
 private:
+    friend void EPWM0P1_IRQHandler(void);
+    friend void EPWM1P1_IRQHandler(void);
+
+    static constexpr uint32_t pwmMul = 0x400;
 
     static const struct lut_table {
         consteval lut_table() {
@@ -187,6 +196,7 @@ private:
 
     void init();
     bool initialized = false;
+
 };
 
 #endif /* LEDS_H_ */
