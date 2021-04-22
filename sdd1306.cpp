@@ -256,7 +256,7 @@ void SDD1306::Init() {
         0xA1,           // Set Segment Re-map
         0xC8,           // Set COM Output Scan Direction (flipped)
         0xDA, 0x12,     // Set Pins configuration
-        0x81, 0xFF,     // Set Contrast (0x00-0xFF)
+        0x81, 0x80,     // Set Contrast (0x00-0xFF)
         0xD9, 0x22,     // Set Pre-Charge period
         0xDB, 0x20,     // Adjust Vcomm regulator output
         0xAF            // Display on
