@@ -158,8 +158,6 @@ private:
     friend void EPWM0P1_IRQHandler(void);
     friend void EPWM1P1_IRQHandler(void);
 
-    static constexpr uint32_t pwmMul = 0x400;
-
     static const struct lut_table {
         consteval lut_table() {
             for (uint32_t c = 0; c < 256; c++) {

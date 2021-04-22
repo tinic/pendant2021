@@ -52,11 +52,14 @@ Effects &Effects::instance() {
 }
 
 void Effects::standard_bird() {
+    static float walker = 0.0f;
+    walker += 0.01f;
+    if (walker >= 1.0f) walker = 0.0f;
     auto calc = [](const std::function<vector::float4 (const vector::float4 &pos)> &func) {
         Leds &leds(Leds::instance());
         for (size_t c = 0; c < Leds::birdLedsN; c++) {
             auto pos = Leds::instance().map.getBird(c);
-            auto col = func(pos);
+            auto col = func(pos) * walker;
             leds.setBird(0,c,col);
             leds.setBird(1,c,col);
         }

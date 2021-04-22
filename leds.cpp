@@ -38,7 +38,7 @@ extern "C"
 static uint8_t *pwm0Buf = 0;
 static uint8_t *pwm0BufEnd = 0;
 
-__attribute__ ((optimize("Os"), flatten))
+__attribute__ ((optimize("O3"), flatten))
 void EPWM0P1_IRQHandler(void) {
     static volatile uint32_t *cmr = &EPWM0->CMPDAT[3];
     static volatile uint32_t *intsts0 = &EPWM0->INTSTS0;
@@ -46,7 +46,7 @@ void EPWM0P1_IRQHandler(void) {
     static volatile uint32_t *cnten1 = &EPWM1->CNTEN;
     static volatile uint32_t *gpb_mfpl = &SYS->GPB_MFPL;
     // Set new interval within fewest cycles possible in interrupt
-    *cmr = uint32_t(*pwm0Buf) * Leds::pwmMul;
+    *cmr = *pwm0Buf;
     // Clear zero interrupt flag
     *intsts0 = ((1UL << EPWM_INTEN0_ZIEN0_Pos) << 3);
     // Now check if we are at the end
@@ -63,14 +63,14 @@ void EPWM0P1_IRQHandler(void) {
 static uint8_t *pwm1Buf = 0;
 static uint8_t *pwm1BufEnd = 0;
 
-__attribute__ ((optimize("Os"), flatten))
+__attribute__ ((optimize("O3"), flatten))
 void EPWM1P1_IRQHandler(void) {
     static volatile uint32_t *cmr = &EPWM1->CMPDAT[2];
     static volatile uint32_t *intsts0 = &EPWM1->INTSTS0;
     static volatile uint32_t *cnten = &EPWM1->CNTEN;
     static volatile uint32_t *gpb_mfpl = &SYS->GPB_MFPL;
     // Set new interval within fewest cycles possible in interrupt
-    *cmr = uint32_t(*pwm1Buf) * Leds::pwmMul;
+    *cmr = *pwm1Buf;
     // Clear zero interrupt flag
     *intsts0 = ((1UL << EPWM_INTEN0_ZIEN0_Pos) << 2);
     // Now check if we are at the end
@@ -133,12 +133,12 @@ void Leds::init() {
 #ifdef USE_PWM
 
     // TOP_LED_BIRD
+    CLK_SetModuleClock(EPWM0_MODULE, CLK_CLKSEL2_EPWM0SEL_PLL, 0); // 96Mhz
     CLK_EnableModuleClock(EPWM0_MODULE);
-    CLK_SetModuleClock(EPWM0_MODULE, CLK_CLKSEL2_EPWM0SEL_PLL, 0);
 
     // BOTTOM_LED_BIRD
+    CLK_SetModuleClock(EPWM1_MODULE, CLK_CLKSEL2_EPWM1SEL_PLL, 0); // 96Mhz
     CLK_EnableModuleClock(EPWM1_MODULE);
-    CLK_SetModuleClock(EPWM1_MODULE, CLK_CLKSEL2_EPWM1SEL_PLL, 0);
 
 #endif // #ifdef USE_PWM
 
@@ -186,9 +186,9 @@ void Leds::prepare() {
         auto convert_to_one_wire_pwm = [] (uint8_t *p, uint16_t v) {
             for (uint32_t b = 0; b < 16; b++) {
                 if ( ((1<<(15-b)) & v) != 0 ) {
-                    *p++ = 2;
+                    *p++ = 0x40;
                 } else {
-                    *p++ = 1;
+                    *p++ = 0x20;
                 }
             }
             return p;
@@ -219,8 +219,8 @@ void Leds::prepare() {
 }
 
 void Leds::forceStop() {
-    EPWM_ForceStop(EPWM0, EPWM_CH_3_MASK);
-    EPWM_ForceStop(EPWM1, EPWM_CH_2_MASK);
+    //EPWM_ForceStop(EPWM0, EPWM_CH_3_MASK);
+    //EPWM_ForceStop(EPWM1, EPWM_CH_2_MASK);
 }
 
 __attribute__ ((hot, optimize("Os"), flatten))
@@ -259,7 +259,8 @@ void Leds::transfer() {
     SYS->GPB_MFPL &= ~(SYS_GPB_MFPL_PB2MFP_Msk);
     SYS->GPB_MFPL |= (SYS_GPB_MFPL_PB2MFP_EPWM0_CH3);
 
-    EPWM_ConfigOutputChannel(EPWM0, 3, 8000000, 0);
+    EPWM_ConfigOutputChannel(EPWM0, 3, 800000, 0);
+    EPWM_SET_PRESCALER(EPWM0, 3, 0);
     EPWM_EnableOutput(EPWM0, EPWM_CH_3_MASK);
     EPWM_EnableZeroInt(EPWM0, 3);
     NVIC_SetPriority(EPWM0P1_IRQn, 0);
@@ -268,8 +269,8 @@ void Leds::transfer() {
     pwm0Buf = birdsLedsDMABuf[0].data();
     pwm0BufEnd = pwm0Buf + birdsLedsDMABuf[0].size();
 
-    EPWM_SET_CNR(EPWM0, 3, uint32_t(         4) * pwmMul);
-    EPWM_SET_CMR(EPWM0, 3, uint32_t(*pwm0Buf++) * pwmMul);
+    EPWM_SET_CNR(EPWM0, 3, 0x100);
+    EPWM_SET_CMR(EPWM0, 3, *pwm0Buf++);
 
     // BOTTOM_LED_BIRD
     PB13 = 0;
@@ -278,6 +279,7 @@ void Leds::transfer() {
     SYS->GPB_MFPH |= (SYS_GPB_MFPH_PB13MFP_EPWM1_CH2);
 
     EPWM_ConfigOutputChannel(EPWM1, 2, 800000, 0);
+    EPWM_SET_PRESCALER(EPWM1, 2, 0);
     EPWM_EnableOutput(EPWM1, BPWM_CH_2_MASK);
     EPWM_EnableZeroInt(EPWM1, 2);
     NVIC_SetPriority(EPWM1P1_IRQn, 0);
@@ -286,8 +288,8 @@ void Leds::transfer() {
     pwm1Buf = birdsLedsDMABuf[1].data();
     pwm1BufEnd = pwm1Buf + birdsLedsDMABuf[1].size();
 
-    EPWM_SET_CNR(EPWM1, 2, uint32_t(         4) * pwmMul);
-    EPWM_SET_CMR(EPWM1, 2, uint32_t(*pwm1Buf++) * pwmMul);
+    EPWM_SET_CNR(EPWM1, 2, 0x100);
+    EPWM_SET_CMR(EPWM1, 2, *pwm1Buf++);
 
     // Start Top
     EPWM_Start(EPWM0, EPWM_CH_3_MASK);
@@ -302,10 +304,28 @@ void Leds::transfer() {
     asm volatile ("nop"::); \
     asm volatile ("nop"::); \
     asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
+    asm volatile ("nop"::); \
     asm volatile ("nop"::);
 
     __disable_irq();
+    PB2 = 0;
+    PB13 = 0;
     for (size_t c = 0; c < birdsLedsDMABuf[0].size(); c++) {
+        DELAY();
         PB2 = (birdsLedsDMABuf[0][c] >> 7) & 1;
         PB13 = (birdsLedsDMABuf[1][c] >> 7) & 1;
         DELAY();
@@ -329,7 +349,6 @@ void Leds::transfer() {
         DELAY();
         PB2 = (birdsLedsDMABuf[0][c] >> 0) & 1;
         PB13 = (birdsLedsDMABuf[1][c] >> 0) & 1;
-        DELAY();
     }
     PB2 = 0;
     PB13 = 0;

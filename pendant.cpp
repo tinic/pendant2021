@@ -39,6 +39,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifndef BOOTLOADER
 
+static void delay_us(int usec) {
+   double t = Timeline::SystemTime();
+   while ( ( Timeline::SystemTime() - t ) < (double(usec) * (1.0 / 1000000.0) ) ) { }
+}
+
 Pendant &Pendant::instance() {
     static Pendant pendant;
     if (!pendant.initialized) {
@@ -49,8 +54,11 @@ Pendant &Pendant::instance() {
 }
 
 void Pendant::init() { 
-    Model::instance();
     Timeline::instance();
+
+    delay_us(5000000);
+
+    Model::instance();
     Leds::instance();
     Effects::instance();
     SDCard::instance();
