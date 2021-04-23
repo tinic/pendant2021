@@ -30,14 +30,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CORE_CLOCK 96000000UL
 
 void delay_us(int usec) {
-    /* TIMER0 clock from LIRC */
-    TIMER0->INTSTS = (TIMER_INTSTS_TIF_Msk | TIMER_INTSTS_TWKF_Msk);   /* write 1 to clear for safety */
-    TIMER0->CNT = 0;
-    while ((TIMER0->CNT&TIMER_CNT_RSTACT_Msk) == TIMER_CNT_RSTACT_Msk) { };
-    TIMER0->CMP = usec / 100;
-    TIMER0->CTL = (11 << TIMER_CTL_PSC_Pos) | TIMER_ONESHOT_MODE | TIMER_CTL_CNTEN_Msk;
-    while (!TIMER0->INTSTS) { };
-    for (size_t c = 0; c < 20000; c++) { asm volatile ("nop"::); } // Prevent hang
+    if (usec >= 100) {
+        /* TIMER0 clock from LIRC */
+        TIMER0->INTSTS = (TIMER_INTSTS_TIF_Msk | TIMER_INTSTS_TWKF_Msk);   /* write 1 to clear for safety */
+        TIMER0->CNT = 0;
+        while ((TIMER0->CNT&TIMER_CNT_RSTACT_Msk) == TIMER_CNT_RSTACT_Msk) { };
+        TIMER0->CMP = usec / 100;
+        TIMER0->CTL = (11 << TIMER_CTL_PSC_Pos) | TIMER_ONESHOT_MODE | TIMER_CTL_CNTEN_Msk;
+        while (!TIMER0->INTSTS) { };
+    }
+    // Prevent hang when we call delay_us() in quick succession 
+    // as we can't reload timer before periphial is ready internally.
+    // TIMER0 runs at 10Khz vs CPU at 96Mhz which is _way_ too fast.
+    for (size_t c = 0; c < 20000; c++) { asm volatile ("nop"::); } 
 }
 
 #ifdef BOOTLOADER
