@@ -158,7 +158,9 @@ std::tuple<bool, uint8_t> SDCard::SendCmd(uint8_t cmd, uint32_t data) {
 }
 
 bool SDCard::readCID() {
-    if (std::get<1>(SendCmd(CMD10, 0)) != 0) {
+
+    auto [success, result] = SendCmd(CMD10, 0);
+    if (!success || result != 0) {
         QSPI_SET_SS_HIGH(QSPI0);
         return false;
 	}
@@ -207,7 +209,8 @@ bool SDCard::readCID() {
 }
 
 bool SDCard::readCSD() {
-    if (std::get<1>(SendCmd(CMD9, 0)) != 0) {
+    auto [success, result] = SendCmd(CMD9, 0);
+    if (!success || result != 0) {
         QSPI_SET_SS_HIGH(QSPI0);
         return false;
 	}
@@ -295,7 +298,8 @@ bool SDCard::readCSD() {
 }
 
 bool SDCard::readTotalBlocks() {
-    if (std::get<1>(SendCmd(CMD9, 0)) != 0) {
+    auto [success, result] = SendCmd(CMD9, 0);
+    if (!success || result != 0) {
         QSPI_SET_SS_HIGH(QSPI0);
         return false;
     }
@@ -374,10 +378,9 @@ bool SDCard::detectCardType() {
         }
     }
 
-    auto res = CheckVoltage();
-
-    if (std::get<0>(res)) {
-        if ( (std::get<1>(res) & 0x04 ) == 0) {
+    auto [success, result] = CheckVoltage();
+    if (success) {
+        if ( (result & 0x04 ) == 0) {
             readByte();
             readByte();
             if (readByte() == 0x01 &&
@@ -390,7 +393,7 @@ bool SDCard::detectCardType() {
         }
         if (isSdCard) {
             double start_time = Timeline::SystemTime();
-            for (; std::get<1>(SendCmd(ACMD41, 0x40000000)) != 0 ;) {
+            for (;std::get<1>(SendCmd(ACMD41, 0x40000000)) != 0 ;) {
                 if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
                     QSPI_SET_SS_HIGH(QSPI0);
                     return false;
@@ -418,7 +421,8 @@ bool SDCard::detectCardType() {
 }
 
 bool SDCard::setSectorSize() {
-    if (std::get<1>(SendCmd(CMD16, 512)) != 0) {
+    auto [success, result] = SendCmd(CMD16, 512);
+    if (!success || result != 0) {
         QSPI_SET_SS_HIGH(QSPI0);
         return false;
     }

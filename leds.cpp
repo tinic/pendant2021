@@ -38,7 +38,7 @@ extern "C"
 static uint8_t *pwm0Buf = 0;
 static uint8_t *pwm0BufEnd = 0;
 
-__attribute__ ((optimize("O3"), flatten))
+__attribute__ ((optimize("Os"), flatten))
 void EPWM0P1_IRQHandler(void) {
     static volatile uint32_t *cmr = &EPWM0->CMPDAT[3];
     static volatile uint32_t *intsts0 = &EPWM0->INTSTS0;
@@ -63,7 +63,7 @@ void EPWM0P1_IRQHandler(void) {
 static uint8_t *pwm1Buf = 0;
 static uint8_t *pwm1BufEnd = 0;
 
-__attribute__ ((optimize("O3"), flatten))
+__attribute__ ((optimize("Os"), flatten))
 void EPWM1P1_IRQHandler(void) {
     static volatile uint32_t *cmr = &EPWM1->CMPDAT[2];
     static volatile uint32_t *intsts0 = &EPWM1->INTSTS0;
