@@ -107,6 +107,7 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/sdd1306.cpp
     ${PROJECT_SOURCE_DIR}/effects.cpp
     ${PROJECT_SOURCE_DIR}/ui.cpp
+    ${PROJECT_SOURCE_DIR}/seed.cpp
     ${PROJECT_SOURCE_DIR}/stubs.c
     ${PROJECT_SOURCE_DIR}/descriptors.c
     ${PROJECT_SOURCE_DIR}/msc.c
@@ -117,8 +118,6 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/gpio.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/i2c.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/pdma.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/retarget.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/rtc.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/spi.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/sys.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/timer.c
@@ -126,6 +125,7 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/epwm.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/usbd.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/qspi.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/trng.c
     ${USB_CORE_SRC}
     ${NUVOTON0_SRC}
     ${NUVOTON1_SRC}

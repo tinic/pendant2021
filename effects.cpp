@@ -26,6 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./model.h"
 #include "./color.h"
 #include "./fastmath.h"
+#include "./seed.h"
 
 #include <random>
 #include <array>
@@ -251,7 +252,7 @@ void Effects::brilliance() {
 
 void Effects::init() {
 
-    random.set_seed(0xBEEFEA78);
+    random.set_seed(Seed::instance().seedU32());
 
     static Timeline::Span mainEffect;
 

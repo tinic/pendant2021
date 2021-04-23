@@ -34,6 +34,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./effects.h"
 #include "./ui.h"
 #include "./model.h"
+#include "./seed.h"
 
 #include "M480.h"
 
@@ -48,7 +49,8 @@ Pendant &Pendant::instance() {
     return pendant;
 }
 
-void Pendant::init() { 
+void Pendant::init() {
+    Seed::instance(); 
     Model::instance();
     Timeline::instance();
     Leds::instance();

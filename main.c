@@ -136,7 +136,6 @@ static void SYS_Init(void)
 
     CLK_EnableModuleClock(I2C0_MODULE); // PCLK0, 6Mhz
     CLK_EnableModuleClock(PDMA_MODULE); // HCLK, 96Mhz
-    CLK_EnableModuleClock(TRNG_MODULE); // PCLK1, 6Mhz
 
     CLK_EnableSysTick(CLK_CLKSEL0_STCLKSEL_HIRC_DIV2, 0); // 6Mhz
 
