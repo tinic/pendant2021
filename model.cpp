@@ -89,13 +89,17 @@ void Model::save() {
     memset(au32Config, 0, sizeof(au32Config));
     FMC_ReadConfig(au32Config, 2);
 
-    if (!(((au32Config[0] == 0x000003c8)) && 
+    if (!(((au32Config[0] & 1) == 0) && 
            (au32Config[1] == dataAddress))) {
 
-        au32Config[0] = 0x000003c8;
-        au32Config[1] = dataAddress;
+        au32Config[0] &= ~1;
+        au32Config[1]  = dataAddress;
 
         FMC_WriteConfig(au32Config, 2);
+
+        SYS_ResetChip();
+
+        for(;;) { }
     }
 
     memset(au32Config, 0, sizeof(au32Config));
@@ -116,4 +120,5 @@ void Model::save() {
     FMC_Close();
 
     SYS_LockReg();
+
 }

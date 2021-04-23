@@ -232,7 +232,7 @@ int main(void)
         
         FMC_SetVectorPageAddr(FIRMWARE_ADDR + FIRMWARE_START);
 
-        SYS_ResetCPU();
+        SYS_ResetChip();
 
         for (;;) { }
     }
