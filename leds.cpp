@@ -98,6 +98,10 @@ struct Leds::Map Leds::map;
 const Leds::lut_table Leds::lut;
 
 void Leds::init() {
+
+    // LED_ON
+    GPIO_SetMode(PF, BIT3, GPIO_MODE_OUTPUT);
+
     half();
 
     // Turn Mosfet on

@@ -27,8 +27,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <stdio.h>
 
-#define CORE_CLOCK 96000000UL
-
 void delay_us(int usec) {
     if (usec >= 100) {
         /* TIMER0 clock from LIRC */
@@ -111,18 +109,18 @@ static void SYS_Init(void)
 
     CLK_DisablePLL();
 
-    CLK_SetCoreClock(CORE_CLOCK);
+    CLK_SetCoreClock(96000000UL);
 
     CLK->PCLKDIV = CLK_PCLKDIV_APB0DIV_DIV16 | CLK_PCLKDIV_APB1DIV_DIV16; // 6Mhz
 
     CLK_EnableModuleClock(TMR0_MODULE);
     CLK_SetModuleClock(TMR0_MODULE, CLK_CLKSEL1_TMR0SEL_LIRC, MODULE_NoMsk); // 10Khz
 
+    CLK_EnableModuleClock(TMR1_MODULE);
+    CLK_SetModuleClock(TMR1_MODULE, CLK_CLKSEL1_TMR1SEL_LIRC, MODULE_NoMsk); // 10Khz
+
     CLK_EnableModuleClock(TMR2_MODULE);
     CLK_SetModuleClock(TMR2_MODULE, CLK_CLKSEL1_TMR2SEL_LIRC, MODULE_NoMsk); // 10Khz
-
-    CLK_EnableModuleClock(TMR3_MODULE);
-    CLK_SetModuleClock(TMR3_MODULE, CLK_CLKSEL1_TMR3SEL_LIRC, MODULE_NoMsk); // 10Khz
 
     CLK_EnableModuleClock(UART1_MODULE);
     CLK_SetModuleClock(UART1_MODULE, CLK_CLKSEL1_UART1SEL_HIRC, CLK_CLKDIV0_UART1(2)); // 6Mhz
@@ -142,26 +140,11 @@ static void SYS_Init(void)
     CLK_EnableModuleClock(QSPI0_MODULE);
     CLK_SetModuleClock(QSPI0_MODULE, CLK_CLKSEL2_QSPI0SEL_PLL, MODULE_NoMsk); // 96Mhz
 
-    // LED_ON
-    GPIO_SetMode(PF, BIT3, GPIO_MODE_OUTPUT);
-    // OLED_CS
-    GPIO_SetMode(PB, BIT1, GPIO_MODE_OUTPUT);
-    // OLED_RESET
-    GPIO_SetMode(PB, BIT0, GPIO_MODE_OUTPUT);
-
-    // >>>>>> USB ----------------------------------
-
-    CLK->PWRCTL |= CLK_PWRCTL_HIRC48MEN_Msk;
-    CLK->CLKSEL0 &= ~CLK_CLKSEL0_USBSEL_Msk;
-
-    SYS->USBPHY = (SYS->USBPHY & ~SYS_USBPHY_USBROLE_Msk) | SYS_USBPHY_USBEN_Msk | SYS_USBPHY_SBO_Msk;
-
     CLK_EnableModuleClock(USBD_MODULE);
+    CLK_SetModuleClock(USBD_MODULE, CLK_CLKSEL0_USBSEL_RC48M, MODULE_NoMsk); // 48Mhz
 
-    // <<<<<< USB ----------------------------------
-
-    CLK->CLKSEL1 = (CLK->CLKSEL1 & (~CLK_CLKSEL1_TMR0SEL_Msk)) | CLK_CLKSEL1_TMR0SEL_LIRC;
-    CLK->APBCLK0 |= CLK_APBCLK0_TMR0CKEN_Msk;
+    // Enable USB FS phy
+    SYS->USBPHY = (SYS->USBPHY & ~SYS_USBPHY_USBROLE_Msk) | SYS_USBPHY_USBEN_Msk | SYS_USBPHY_SBO_Msk;
 
     SystemCoreClockUpdate();
 
@@ -184,7 +167,6 @@ static void SYS_DeInit(void)
     CLK_DisableModuleClock(TMR0_MODULE);
     CLK_DisableModuleClock(TMR1_MODULE);
     CLK_DisableModuleClock(TMR2_MODULE);
-    CLK_DisableModuleClock(TMR3_MODULE);
 }
 
 int main(void)

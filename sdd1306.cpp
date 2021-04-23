@@ -230,6 +230,12 @@ void SDD1306::DisplayOff() {
 
 void SDD1306::Init() {
     if (!devicePresent) return;
+
+    // OLED_CS
+    GPIO_SetMode(PB, BIT1, GPIO_MODE_OUTPUT);
+    // OLED_RESET
+    GPIO_SetMode(PB, BIT0, GPIO_MODE_OUTPUT);
+
     // Reset OLED screen
     PB1 = 0; // OLED_CS
     PB0 = 1; // OLED_RESET

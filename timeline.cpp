@@ -30,23 +30,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern "C" {
 
-static uint32_t systemSeconds = 0;
+static bool effectReady = false;
 
-void TMR3_IRQHandler(void)
+void TMR1_IRQHandler(void)
 {
-    if(TIMER_GetIntFlag(TIMER3)) {
-        TIMER_ClearIntFlag(TIMER3);
-        systemSeconds++;
+    if(TIMER_GetIntFlag(TIMER1)) {
+        TIMER_ClearIntFlag(TIMER1);
+        effectReady = true;
     }
 }
 
-static bool effectReady = false;
+static uint32_t systemSeconds = 0;
 
 void TMR2_IRQHandler(void)
 {
     if(TIMER_GetIntFlag(TIMER2)) {
         TIMER_ClearIntFlag(TIMER2);
-        effectReady = true;
+        systemSeconds++;
     }
 }
 
@@ -306,17 +306,17 @@ bool Timeline::CheckIdleReadyAndClear() {
 void Timeline::init() {
 
     // Effect Frame rate timer
-    TIMER_Open(TIMER2, TIMER_PERIODIC_MODE, int32_t(effectRate));
-    TIMER_EnableInt(TIMER2);
-    NVIC_SetPriority(TMR2_IRQn, 2);
-    NVIC_EnableIRQ(TMR2_IRQn);
-    TIMER_Start(TIMER2);
+    TIMER_Open(TIMER1, TIMER_PERIODIC_MODE, int32_t(effectRate));
+    TIMER_EnableInt(TIMER1);
+    NVIC_SetPriority(TMR1_IRQn, 2);
+    NVIC_EnableIRQ(TMR1_IRQn);
+    TIMER_Start(TIMER1);
 
     // SystemTime timer
-    TIMER_Open(TIMER3, TIMER_PERIODIC_MODE, 1);
-    TIMER_EnableInt(TIMER3);
-    NVIC_SetPriority(TMR3_IRQn, 1);
-    NVIC_EnableIRQ(TMR3_IRQn);
-    TIMER_Start(TIMER3);
+    TIMER_Open(TIMER2, TIMER_PERIODIC_MODE, 1);
+    TIMER_EnableInt(TIMER2);
+    NVIC_SetPriority(TMR2_IRQn, 1);
+    NVIC_EnableIRQ(TMR2_IRQn);
+    TIMER_Start(TIMER2);
 
 }
