@@ -21,16 +21,12 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./ens210.h"
+#include "./main.h"
 
 #include "M480.h"
 
 #include "./i2cmanager.h"
 #include "./timeline.h"
-
-static void delay_us(int usec) {
-    double t = Timeline::SystemTime();
-    while ( ( Timeline::SystemTime() - t ) < (double(usec) * (1.0 / 1000000.0) ) ) { }
-}
 
 bool ENS210::devicePresent = false;
 

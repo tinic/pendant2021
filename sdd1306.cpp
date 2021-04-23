@@ -21,6 +21,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./sdd1306.h"
+#include "./main.h"
 #include "./i2cmanager.h"
 #include "./timeline.h"
 
@@ -30,11 +31,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 static constexpr
 #include "font.h"
-
-static void delay_us(int usec) {
-   double t = Timeline::SystemTime();
-   while ( ( Timeline::SystemTime() - t ) < (double(usec) * (1.0 / 1000000.0) ) ) { }
-}
 
 static const uint8_t rev_bits[] =
 {

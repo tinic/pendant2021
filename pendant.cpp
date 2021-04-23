@@ -39,11 +39,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifndef BOOTLOADER
 
-static void delay_us(int usec) {
-   double t = Timeline::SystemTime();
-   while ( ( Timeline::SystemTime() - t ) < (double(usec) * (1.0 / 1000000.0) ) ) { }
-}
-
 Pendant &Pendant::instance() {
     static Pendant pendant;
     if (!pendant.initialized) {
@@ -54,23 +49,32 @@ Pendant &Pendant::instance() {
 }
 
 void Pendant::init() { 
-    Timeline::instance();
-
-    delay_us(5000000);
-
     Model::instance();
+    printf("Model::instance()\r\n");
+    Timeline::instance();
+    printf("Timeline::instance()\r\n");
     Leds::instance();
+    printf("Leds::instance()\r\n");
     Effects::instance();
+    printf("Effects::instance()\r\n");
     SDCard::instance();
+    printf("SDCard::instance()\r\n");
 
     I2CManager::instance();
+    printf("I2CManager::instance()\r\n");
     SDD1306::instance();
+    printf("SDD1306::instance()\r\n");
     BQ25895::instance();
+    printf("BQ25895::instance()\r\n");
     ENS210::instance();
+    printf("ENS210::instance()\r\n");
     STM32WL::instance();
+    printf("STM32WL::instance()\r\n");
 
     Input::instance();
+    printf("Input::instance()\r\n");
     UI::instance();
+    printf("UI::instance()\r\n");
 }
 
 void Pendant::Run() {

@@ -23,6 +23,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern void delay_us(int usec);
+#ifdef __cplusplus
+}
+#endif
+
 #ifdef BOOTLOADER
 #define BOOTLOADER_SIZE (48*1024)
 #define FIRMWARE_SIZE   ((256*1024)-BOOTLOADER_SIZE)
