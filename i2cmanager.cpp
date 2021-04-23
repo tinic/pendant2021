@@ -40,7 +40,11 @@ extern "C" {
 static void nullIRQHandler(void) {
 
 #ifdef ENABLE_TIMEOUT
+    volatile size_t retry_count = 0;
     I2C_WAIT_READY(I2C0) { 
+        if (retry_count++ == size_t(10'000'000)) {
+            break;
+        }
         if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
             I2C_ClearTimeoutFlag(I2C0);
             return;
@@ -74,7 +78,11 @@ retry:
 
     while(!done) {
 #ifdef ENABLE_TIMEOUT
+        volatile size_t retry_count = 0;
         I2C_WAIT_READY(I2C0) { 
+            if (retry_count++ == size_t(10'000'000)) {
+                break;
+            }
             if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
                 I2C_ClearTimeoutFlag(I2C0);
 #ifdef LOG_TIMEOUT
