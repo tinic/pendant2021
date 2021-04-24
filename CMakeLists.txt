@@ -113,6 +113,7 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/msc.c
     ${PROJECT_SOURCE_DIR}/emfat.c
     ${PROJECT_SOURCE_DIR}/main.c
+    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/retarget.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/clk.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/fmc.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/gpio.c
@@ -125,7 +126,6 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/epwm.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/usbd.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/qspi.c
-    ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/trng.c
     ${USB_CORE_SRC}
     ${NUVOTON0_SRC}
     ${NUVOTON1_SRC}

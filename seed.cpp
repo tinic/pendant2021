@@ -22,6 +22,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./seed.h"
 
+#include "main.h"
 #include "M480.h"
 #include "trng.h"
 
@@ -35,11 +36,6 @@ Seed &Seed::instance() {
 }
 
 void Seed::init() {
-    CLK_EnableModuleClock(TRNG_MODULE); // PCLK1, 6Mhz
-
-    TRNG_Open();
-    TRNG_SET_CLKP(0b1011); // 6 ~ 7Mhz
-    TRNG_GenBignum(data.data(), data.size());
-
-    CLK_DisableModuleClock(TRNG_MODULE);
+    // Get seed from STM32WL
 }
+
