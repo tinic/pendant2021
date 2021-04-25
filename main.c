@@ -159,7 +159,6 @@ static void SYS_DeInit(void)
     CLK_DisableModuleClock(UART1_MODULE);
     CLK_DisableModuleClock(TMR0_MODULE);
     CLK_DisableModuleClock(TMR1_MODULE);
-    CLK_DisableModuleClock(TMR2_MODULE);
 }
 
 int main(void)
