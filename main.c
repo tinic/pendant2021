@@ -28,19 +28,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdio.h>
 
 void delay_us(int usec) {
-    if (usec >= 100) {
-        /* TIMER0 clock from LIRC */
-        TIMER0->INTSTS = (TIMER_INTSTS_TIF_Msk | TIMER_INTSTS_TWKF_Msk);   /* write 1 to clear for safety */
-        TIMER0->CNT = 0;
-        while ((TIMER0->CNT&TIMER_CNT_RSTACT_Msk) == TIMER_CNT_RSTACT_Msk) { };
-        TIMER0->CMP = usec / 100;
-        TIMER0->CTL = (11 << TIMER_CTL_PSC_Pos) | TIMER_ONESHOT_MODE | TIMER_CTL_CNTEN_Msk;
-        while (!TIMER0->INTSTS) { };
-    }
-    // Prevent hang when we call delay_us() in quick succession 
-    // as we can't reload timer before periphial is ready internally.
-    // TIMER0 runs at 10Khz vs CPU at 96Mhz which is _way_ too fast.
-    for (size_t c = 0; c < 20000; c++) { asm volatile ("nop"::); } 
+    asm volatile (
+        "1:\n\t"
+#define NOP6 "nop\n\tnop\n\tnop\n\tnop\n\tnop\n\tnop\n\t"
+#define NOP24 NOP6 NOP6 NOP6 NOP6
+#define NOP96 NOP24 NOP24 NOP24 NOP24
+        NOP96
+        "subs %[usec], #1\n\t"
+        "bge 1b\n\t"
+    : : [usec] "r" (usec) : );
 }
 
 #ifdef BOOTLOADER
@@ -118,9 +114,6 @@ static void SYS_Init(void)
 
     CLK_EnableModuleClock(TMR1_MODULE);
     CLK_SetModuleClock(TMR1_MODULE, CLK_CLKSEL1_TMR1SEL_LIRC, MODULE_NoMsk); // 10Khz
-
-    CLK_EnableModuleClock(TMR2_MODULE);
-    CLK_SetModuleClock(TMR2_MODULE, CLK_CLKSEL1_TMR2SEL_LIRC, MODULE_NoMsk); // 10Khz
 
     CLK_EnableModuleClock(UART1_MODULE);
     CLK_SetModuleClock(UART1_MODULE, CLK_CLKSEL1_UART1SEL_HIRC, CLK_CLKDIV0_UART1(2)); // 6Mhz

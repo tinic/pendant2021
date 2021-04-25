@@ -32,24 +32,23 @@ extern "C" {
 
 static uint32_t systemSeconds = 0;
 
-void TMR1_IRQHandler(void)
+void TMR0_IRQHandler(void)
 {
-    if(TIMER_GetIntFlag(TIMER1)) {
-        TIMER_ClearIntFlag(TIMER1);
+    if(TIMER_GetIntFlag(TIMER0)) {
+        TIMER_ClearIntFlag(TIMER0);
         systemSeconds++;
     }
 }
 
 static bool effectReady = false;
 
-void TMR2_IRQHandler(void)
+void TMR1_IRQHandler(void)
 {
-    if(TIMER_GetIntFlag(TIMER2)) {
-        TIMER_ClearIntFlag(TIMER2);
+    if(TIMER_GetIntFlag(TIMER1)) {
+        TIMER_ClearIntFlag(TIMER1);
         effectReady = true;
     }
 }
-
 
 }
 
@@ -256,11 +255,11 @@ Timeline::Span &Timeline::TopDisplay() const
 }
 
 double Timeline::SystemTime() {
-    return double(systemSeconds) + (double(TIMER1->CNT) / double(TIMER1->CMP));
+    return double(systemSeconds) + (double(TIMER0->CNT) / double(TIMER0->CMP));
 }
 
 uint64_t Timeline::FastSystemTime() {
-    return (uint64_t(systemSeconds) * uint64_t(TIMER1->CMP)) + uint64_t(TIMER1->CNT);
+    return (uint64_t(systemSeconds) * uint64_t(TIMER0->CMP)) + uint64_t(TIMER0->CNT);
 }
 
 static bool idleReady = false;
@@ -306,16 +305,16 @@ bool Timeline::CheckIdleReadyAndClear() {
 
 void Timeline::init() {
     // SystemTime timer
-    TIMER_Open(TIMER1, TIMER_PERIODIC_MODE, 1);
-    TIMER_EnableInt(TIMER1);
-    NVIC_SetPriority(TMR1_IRQn, 1);
-    NVIC_EnableIRQ(TMR1_IRQn);
-    TIMER_Start(TIMER1);
+    TIMER_Open(TIMER0, TIMER_PERIODIC_MODE, 1);
+    TIMER_EnableInt(TIMER0);
+    NVIC_SetPriority(TMR0_IRQn, 1);
+    NVIC_EnableIRQ(TMR0_IRQn);
+    TIMER_Start(TIMER0);
 
     // Effect Frame rate timer
-    TIMER_Open(TIMER2, TIMER_PERIODIC_MODE, int32_t(effectRate));
-    TIMER_EnableInt(TIMER2);
-    NVIC_SetPriority(TMR2_IRQn, 2);
-    NVIC_EnableIRQ(TMR2_IRQn);
-    TIMER_Start(TIMER2);
+    TIMER_Open(TIMER1, TIMER_PERIODIC_MODE, int32_t(effectRate));
+    TIMER_EnableInt(TIMER1);
+    NVIC_SetPriority(TMR1_IRQn, 2);
+    NVIC_EnableIRQ(TMR1_IRQn);
+    TIMER_Start(TIMER1);
 }
