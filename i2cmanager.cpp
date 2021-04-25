@@ -150,6 +150,9 @@ void I2CManager::reprobeCritial() {
 }
 
 void I2CManager::probe() {
+
+    SDD1306::InitPins();
+
     for (size_t c = 0; c <  127; c++) {
         if (deviceReady(c)) {
             switch(c) {

@@ -62,6 +62,8 @@ private:
 
     void Init();
 
+    static void InitPins();
+
     void Clear();
     void DisplayBootScreen();
     void DisplayCenterFlip();
