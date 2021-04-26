@@ -79,14 +79,6 @@ set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
 set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
 set(DUMP_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.S)
 
-include_directories(.)
-include_directories(Library/CMSIS/Include)
-include_directories(Library/Device/Nuvoton/M480/Include)
-include_directories(Library/UsbHostLib/inc)
-include_directories(Library/UsbHostLib/src_msc)
-include_directories(Library/UsbHostLib/src_uac)
-include_directories(Library/StdDriver/inc)
-
 file(GLOB_RECURSE USB_CORE_SRC ${PROJECT_SOURCE_DIR}/Library/UsbHostLib/src_core/*.c)
 file(GLOB_RECURSE NUVOTON0_SRC ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/GCC/*.c)
 file(GLOB_RECURSE NUVOTON1_SRC ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/*.c)
@@ -131,6 +123,15 @@ add_executable(${PROJECT_NAME}.elf
     ${NUVOTON1_SRC}
     ${PROJECT_SOURCE_DIR}/Library/Device/Nuvoton/M480/Source/GCC/startup_M480.S)
 
+target_include_directories(${PROJECT_NAME}.elf PRIVATE
+    .
+    Library/CMSIS/Include
+    Library/Device/Nuvoton/M480/Include
+    Library/UsbHostLib/inc
+    Library/UsbHostLib/src_msc
+    Library/UsbHostLib/src_uac
+    Library/StdDriver/inc)
+
 # Generate version.h
 find_package(Git)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
@@ -143,7 +144,7 @@ else()
     set(GIT_COMMIT_DATE "unknown")
 endif()
 
-include_directories(${CMAKE_BINARY_DIR})
+target_include_directories(${PROJECT_NAME}.elf PRIVATE ${CMAKE_BINARY_DIR})
 configure_file("${PROJECT_SOURCE_DIR}/version.h.in" "${CMAKE_BINARY_DIR}/version.h" @ONLY)
 
 # Generate font.h
