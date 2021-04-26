@@ -28,6 +28,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <math.h>
 
 __attribute__ ((hot, optimize("Os"), flatten))
+static inline float fast_rcp(const float x ) {
+    // No std::bitcast yet
+    const union { float f; uint32_t i; } u = { x };
+    const union { uint32_t i; float f; } v = { ( 0xbe6eb3beU - u.i ) >> 1 };
+    return v.f * v.f;
+}
+
+__attribute__ ((hot, optimize("Os"), flatten))
 static inline float fast_exp2(const float p) {
     const float offset = (p < 0) ? 1.0f : 0.0f;
     const float clipp = (p < -126) ? -126.0f : p;
