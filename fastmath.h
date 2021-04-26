@@ -36,6 +36,13 @@ static inline float fast_rcp(const float x ) {
 }
 
 __attribute__ ((hot, optimize("Os"), flatten))
+static inline float fast_rsqrt(const float x) {
+	const union { float f; uint32_t i; } u = { x };
+    const union { uint32_t i; float f; } v = { 0x5f375a86U - ( u.i >> 1 ) };
+	return v.f * (1.5f - ( 0.5f * v.f * v.f ));
+}
+
+__attribute__ ((hot, optimize("Os"), flatten))
 static inline float fast_exp2(const float p) {
     const float offset = (p < 0) ? 1.0f : 0.0f;
     const float clipp = (p < -126) ? -126.0f : p;
