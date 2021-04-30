@@ -38,7 +38,8 @@ set(CC_FLAGS
     -Wno-unused-parameter
     -Wno-strict-aliasing 
     -Wno-format
-    -ffast-math)
+    -ffast-math
+    -fallow-store-data-races)
 
 set(CXX_FLAGS 
     -Wall 
