@@ -164,7 +164,7 @@ if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
 if(CMAKE_CXX_COMPILER_VERSION LESS "10.2")
-    message(FATAL_ERROR "GCC must be version 10.2 or higher (found version '"${CMAKE_CXX_COMPILER_VERSION}"')")
+    message(FATAL_ERROR "GCC must be version 10.2 or higher (found version '" ${CMAKE_CXX_COMPILER_VERSION} "')")
 endif(CMAKE_CXX_COMPILER_VERSION LESS "10.2")
 
 target_compile_definitions(${PROJECT_NAME}.elf PRIVATE ${DEFINITIONS})
