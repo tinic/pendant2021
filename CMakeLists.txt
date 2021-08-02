@@ -149,15 +149,7 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE ${CMAKE_BINARY_DIR})
 configure_file("${PROJECT_SOURCE_DIR}/version.h.in" "${CMAKE_BINARY_DIR}/version.h" @ONLY)
 
 # Generate font.h
-set(GM_ARGS -rotate 90 -modulate 1000 -depth 1 -background black +matte +adjoin)
-foreach(N RANGE 0 4)
-    math(EXPR N8 "${N}*8+8")
-    execute_process(COMMAND gm convert -crop 2048x8+0+${N8} ${GM_ARGS} ${PROJECT_SOURCE_DIR}/font.gif ${CMAKE_BINARY_DIR}/font_${N}_%d.png)
-    set(GM_FILES ${GM_FILES} font_${N}_1.png)
-endforeach()
-execute_process(COMMAND gm montage ${GM_FILES} -geometry +0+0 -tile 1x6 font.png WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-execute_process(COMMAND gm convert font.png -negate -depth 1 -colors 2 pbm:font.pbm WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-execute_process(COMMAND xxd -s 11 -i font.pbm OUTPUT_FILE font.h WORKING_DIRECTORY ${CMAKE_BINARY_DIR} ) # fragile!!
+execute_process(COMMAND ${PROJECT_SOURCE_DIR}/font_convert.py -i ${PROJECT_SOURCE_DIR}/font.gif -o ${CMAKE_BINARY_DIR}/font.h -v font_data)
 
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     message(FATAL_ERROR "Compiler must be GCC.")
