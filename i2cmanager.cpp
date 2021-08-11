@@ -21,8 +21,6 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./i2cmanager.h"
-#include "./bq25895.h"
-#include "./ens210.h"
 #include "./stm32wl.h"
 #include "./sdd1306.h"
 #include "./timeline.h"
@@ -135,14 +133,6 @@ void I2CManager::reprobeCritial() {
         SDD1306::devicePresent = deviceReady(SDD1306::i2c_addr);
         printf("SDD1306 is ready on reprobe.\n");
     }
-    if (!ENS210::devicePresent) {
-        ENS210::devicePresent = deviceReady(ENS210::i2c_addr);
-        printf("ENS210 is ready on reprobe.\n");
-    }
-    if (!BQ25895::devicePresent) {
-        BQ25895::devicePresent = deviceReady(BQ25895::i2c_addr);
-        printf("BQ25895 is ready on reprobe.\n");
-    }
     if (!STM32WL::devicePresent) {
         STM32WL::devicePresent = deviceReady(STM32WL::i2c_addr);
         printf("STM32WL is ready on reprobe.\n");
@@ -159,14 +149,6 @@ void I2CManager::probe() {
                 case SDD1306::i2c_addr: {
                     SDD1306::devicePresent = true;
                     printf("SDD1306 is ready.\n");
-                } break;
-                case ENS210::i2c_addr: {
-                    ENS210::devicePresent = true;
-                    printf("ENS210 is ready.\n");
-                } break;
-                case BQ25895::i2c_addr: {
-                    BQ25895::devicePresent = true;
-                    printf("BQ25895 is ready.\n");
                 } break;
                 case STM32WL::i2c_addr: {
                     STM32WL::devicePresent = true;

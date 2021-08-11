@@ -94,8 +94,6 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/bootloader.cpp
     ${PROJECT_SOURCE_DIR}/sdcard.cpp
     ${PROJECT_SOURCE_DIR}/input.cpp
-    ${PROJECT_SOURCE_DIR}/bq25895.cpp
-    ${PROJECT_SOURCE_DIR}/ens210.cpp
     ${PROJECT_SOURCE_DIR}/stm32wl.cpp
     ${PROJECT_SOURCE_DIR}/sdd1306.cpp
     ${PROJECT_SOURCE_DIR}/effects.cpp

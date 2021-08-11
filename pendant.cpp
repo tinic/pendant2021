@@ -27,8 +27,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./timeline.h"
 #include "./sdcard.h"
 #include "./input.h"
-#include "./bq25895.h"
-#include "./ens210.h"
 #include "./stm32wl.h"
 #include "./sdd1306.h"
 #include "./effects.h"
@@ -59,8 +57,6 @@ void Pendant::init() {
 
     I2CManager::instance();
     SDD1306::instance();
-    BQ25895::instance();
-    ENS210::instance();
     STM32WL::instance();
 
     Input::instance();
@@ -76,8 +72,6 @@ void Pendant::Run() {
             Model::instance().save();
         }
         if (Timeline::instance().CheckBackgroundReadyAndClear()) {
-            BQ25895::instance().UpdateState();
-            ENS210::instance().update();
             STM32WL::instance().update();
         }
         if (Timeline::instance().CheckEffectReadyAndClear()) {

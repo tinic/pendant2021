@@ -22,8 +22,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./stm32wl.h"
 #include "./model.h"
-#include "./bq25895.h"
-#include "./ens210.h"
 #include "./timeline.h"
 
 #include "M480.h"
@@ -80,14 +78,6 @@ void STM32WL::update() {
     set8u(offsetof(I2CRegs,brightness),i2cRegs.brightness = uint8_t(Model::instance().Brightness() * 255.0f));
 
     set16u(offsetof(I2CRegs,systemTime), i2cRegs.systemTime = uint16_t(Timeline::SystemTime()));
-
-    set8u(offsetof(I2CRegs,status),i2cRegs.status = BQ25895::instance().Status());
-    set8u(offsetof(I2CRegs,batteryVoltage),i2cRegs.batteryVoltage = f2u8(BQ25895::instance().BatteryVoltage(), 2.7f, 4.2f));
-    set8u(offsetof(I2CRegs,systemVoltage),i2cRegs.systemVoltage = f2u8(BQ25895::instance().SystemVoltage(), 2.7f, 4.2f));
-    set8u(offsetof(I2CRegs,vbusVoltage),i2cRegs.vbusVoltage = f2u8(BQ25895::instance().VBUSVoltage(), 0.0f, 5.5f));
-    set8u(offsetof(I2CRegs,chargeCurrent),i2cRegs.chargeCurrent = f2u8(BQ25895::instance().ChargeCurrent(), 0.0f, 1000.0f));
-    set8u(offsetof(I2CRegs,temperature),i2cRegs.temperature = f2u8(ENS210::instance().Temperature(), 0.0f, 50.0f));
-    set8u(offsetof(I2CRegs,humidity),i2cRegs.humidity = f2u8(ENS210::instance().Humidity(), 0.0f, 1.0f));
 
     Model::instance().RingColor().write_rgba_bytes(&i2cRegs.ring_color[0]);
     Model::instance().BirdColor().write_rgba_bytes(&i2cRegs.bird_color[0]);

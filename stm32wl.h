@@ -32,6 +32,17 @@ public:
 
     void update();
 
+    static float u82f(uint8_t v, float min, float max) {
+        return ((float(v) * ( 1.0f / 255.0f ) * (max - min) ) + min);
+    }
+
+    float BatteryVoltage() const { return u82f(i2cRegs.batteryVoltage, 2.7f, 4.2f); }
+    float SystemVoltage() const { return u82f(i2cRegs.systemVoltage, 2.7f, 4.2f); }
+    float VBUSVoltage() const { return u82f(i2cRegs.vbusVoltage, 0.0f, 5.5f); }
+    float ChargeCurrent() const { return u82f(i2cRegs.chargeCurrent, 0.0f, 1000.0f); }
+    float Temperature() const { return u82f(i2cRegs.temperature, 0.0f, 50.0f); }
+    float Humidity() const { return u82f(i2cRegs.humidity, 0.0f, 1.0f); }
+
 private:
     friend class I2CManager;
     static constexpr uint8_t i2c_addr = 0x33;

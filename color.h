@@ -105,11 +105,11 @@ namespace color {
     }
 
     template<> __attribute__((always_inline)) inline uint8_t rgba<uint8_t>::clamp_to_type(float v) {
-        return v < 0.0f ? uint8_t(0) : ( v > 1.0f ? uint8_t(0xFF) : uint8_t( v * 255.f ) );
+        return __builtin_arm_usat(uint32_t(v * 255.f), 8);
     }
 
     template<> __attribute__((always_inline)) inline uint16_t rgba<uint16_t>::clamp_to_type(float v) {
-        return v < 0.0f ? uint16_t(0) : ( v > 1.0f ? uint16_t(0xFFFF) : uint16_t( v * 65535.f ) );
+        return __builtin_arm_usat(uint32_t(v * 65535.f), 16);
     }
 
     class gradient {
