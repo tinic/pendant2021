@@ -29,7 +29,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <memory.h>
 
-static constexpr
 #include "font.h"
 
 static const uint8_t rev_bits[] =
@@ -291,7 +290,7 @@ void SDD1306::DisplayBootScreen() {
         for (int32_t x = 0; x < (text_x_size*8); x++) {
             int32_t rx = (boot_screen_offset + x + 0xE8 * 8);
             int32_t cx = rx >> 3;
-            buf[x+1] = font_pbm[0x800*y + cx * 8 + (rx & 0x07)];
+            buf[x+1] = font_data[0x800*y + cx * 8 + (rx & 0x07)];
         }
 
         I2CManager::instance().queueBatchWrite(i2c_addr,  buf, sizeof(buf));
@@ -316,7 +315,7 @@ void SDD1306::DisplayCenterFlip() {
                 } else {
                     uint8_t a = text_attr_screen[y*text_x_size+static_cast<uint32_t>(rx/8)];
                     uint8_t r = (a & 4) ? (7-(rx&7)) : (rx&7);
-                    uint8_t v = font_pbm[text_buffer_screen[y*text_x_size+static_cast<uint32_t>(rx/8)]*8+r];
+                    uint8_t v = font_data[text_buffer_screen[y*text_x_size+static_cast<uint32_t>(rx/8)]*8+r];
                     if (a & 1) {
                         v = ~v;
                     }
@@ -344,21 +343,21 @@ void SDD1306::DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr) {
         if ((attr & 1)) {
             if ((attr & 2)) {
                 for (uint32_t c=0; c<8; c++) {
-                    buf[c+1] = ~rev_bits[font_pbm[ch*8+7-c]];
+                    buf[c+1] = ~rev_bits[font_data[ch*8+7-c]];
                 }
             } else {
                 for (uint32_t c=0; c<8; c++) {
-                    buf[c+1] = ~font_pbm[ch*8+7-c];
+                    buf[c+1] = ~font_data[ch*8+7-c];
                 }
             }
         } else {
             if ((attr & 2)) {
                 for (uint32_t c=0; c<8; c++) {
-                    buf[c+1] =  rev_bits[font_pbm[ch*8+7-c]];
+                    buf[c+1] =  rev_bits[font_data[ch*8+7-c]];
                 }
                 } else {
                 for (uint32_t c=0; c<8; c++) {
-                    buf[c+1] =  font_pbm[ch*8+7-c];
+                    buf[c+1] =  font_data[ch*8+7-c];
                 }
             }
         }
@@ -366,21 +365,21 @@ void SDD1306::DisplayChar(uint32_t x, uint32_t y, uint16_t ch, uint8_t attr) {
         if ((attr & 1)) {
             if ((attr & 2)) {
                 for (uint32_t c=0; c<8; c++) {
-                    buf[c+1] = ~rev_bits[font_pbm[ch*8+c]];
+                    buf[c+1] = ~rev_bits[font_data[ch*8+c]];
                 }
                 } else {
                 for (uint32_t c=0; c<8; c++) {
-                    buf[c+1] = ~font_pbm[ch*8+c];
+                    buf[c+1] = ~font_data[ch*8+c];
                 }
             }
         } else {
             if ((attr & 2)) {
                 for (uint32_t c=0; c<8; c++) {
-                    buf[c+1] =  rev_bits[font_pbm[ch*8+c]];
+                    buf[c+1] =  rev_bits[font_data[ch*8+c]];
                 }
                 } else {
                 for (uint32_t c=0; c<8; c++) {
-                    buf[c+1] =  font_pbm[ch*8+c];
+                    buf[c+1] =  font_data[ch*8+c];
                 }
             }
         }
