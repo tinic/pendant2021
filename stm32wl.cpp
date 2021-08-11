@@ -67,13 +67,6 @@ void STM32WL::update() {
         I2CManager::instance().setReg8(i2c_addr,offset+1,(value>>8)&0xFF);
     };
 
-    auto f2u8 = [](auto v, auto min, auto max) {
-        static_assert(std::is_same<decltype(v), float>::value, "v must be float");
-        static_assert(std::is_same<decltype(min), float>::value, "min must be float");
-        static_assert(std::is_same<decltype(max), float>::value, "max must be float");
-        return static_cast<uint8_t>(std::clamp( ( (v - min) / (max - min) ) * 255.0f, 0.0f, 255.0f));;
-    };
-
     set8u(offsetof(I2CRegs,effectN),i2cRegs.effectN = Model::instance().Effect());
     set8u(offsetof(I2CRegs,brightness),i2cRegs.brightness = uint8_t(Model::instance().Brightness() * 255.0f));
 
