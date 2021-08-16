@@ -147,7 +147,11 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE ${CMAKE_BINARY_DIR})
 configure_file("${PROJECT_SOURCE_DIR}/version.h.in" "${CMAKE_BINARY_DIR}/version.h" @ONLY)
 
 # Generate font.h
-execute_process(COMMAND py ${PROJECT_SOURCE_DIR}/font_convert.py -i ${PROJECT_SOURCE_DIR}/font.gif -o ${CMAKE_BINARY_DIR}/font.h -v font_data)
+if(WIN32)
+	execute_process(COMMAND py ${PROJECT_SOURCE_DIR}/font_convert.py -i ${PROJECT_SOURCE_DIR}/font.gif -o ${CMAKE_BINARY_DIR}/font.h -v font_data)
+else(WIN32)
+	execute_process(COMMAND ${PROJECT_SOURCE_DIR}/font_convert.py -i ${PROJECT_SOURCE_DIR}/font.gif -o ${CMAKE_BINARY_DIR}/font.h -v font_data)
+endif(WIN32)
 
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     message(FATAL_ERROR "Compiler must be GCC.")
