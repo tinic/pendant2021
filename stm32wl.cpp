@@ -27,6 +27,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "M480.h"
 
 #include <cstddef>
+#include <memory.h>
 
 #include "./i2cmanager.h"
 
@@ -100,7 +101,12 @@ void STM32WL::update() {
          i2cRegs.fields.appKey[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,fields.appKey));
     }
 
-    Model::instance().SetIntCount(i2cRegs.fields.intCount = get16u(offsetof(I2CRegs,fields.intCount)));
+    // special register stored persisently by controller but updated by peripheral
+    if (i2cRegs.fields.intCount == 0xFFFF) { // On init copy to peripheral
+        set16u(offsetof(I2CRegs,fields.intCount), i2cRegs.fields.intCount = uint16_t(Model::instance().IntCount()));
+    } else {
+        Model::instance().SetIntCount(i2cRegs.fields.intCount = get16u(offsetof(I2CRegs,fields.intCount)));
+    }
 
     i2cRegs.fields.bq25895Status = get8u(offsetof(I2CRegs,fields.bq25895Status));
     i2cRegs.fields.bq25895FaulState = get8u(offsetof(I2CRegs,fields.bq25895FaulState));
@@ -128,6 +134,8 @@ void STM32WL::update() {
 
 void STM32WL::init() {
     if (!devicePresent) return;
+    memset(this, 0, sizeof(STM32WL));
+    i2cRegs.fields.intCount = 0xFFFF; // Trigger write to peripheral
     update();
     printf("STM32WL DevEUI: ");
     for(size_t c = 0; c < 8; c++) {
