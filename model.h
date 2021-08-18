@@ -55,7 +55,7 @@ public:
     void IncBootCount() { bootCount++; dirty = true; }
 
     size_t IntCount() const { return intCount; }
-    void IncIntCount() { intCount++; dirty = true; }
+    void SetIntCount(uint16_t count) { intCount = count; dirty = true; }
 
     size_t DselCount() const { return dselCount; }
     void IncDselCount() { dselCount++; dirty = true; }

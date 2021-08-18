@@ -44,19 +44,10 @@ STM32WL &STM32WL::instance() {
 void STM32WL::update() {
     if (!devicePresent) return;
 
-    // Get zero register
+    // Get zero register so peripheral will update fields
     I2CManager::instance().getReg8(i2c_addr, 0);
 
-    for (size_t c = 0; c < sizeof(i2cRegs.fields.devEUI); c++) {
-         i2cRegs.fields.devEUI[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,fields.devEUI));
-    }
-    for (size_t c = 0; c < sizeof(i2cRegs.fields.joinEUI); c++) {
-         i2cRegs.fields.joinEUI[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,fields.joinEUI));
-    }
-    for (size_t c = 0; c < sizeof(i2cRegs.fields.appKey); c++) {
-         i2cRegs.fields.appKey[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,fields.appKey));
-    }
-
+    // controller
     auto set8u = [](auto offset, auto value) {
         static_assert(std::is_same<decltype(offset), size_t>::value, "offset must be size_t");
         static_assert(std::is_same<decltype(value), uint8_t>::value, "value must be uint8_t");
@@ -70,10 +61,8 @@ void STM32WL::update() {
         I2CManager::instance().setReg8(i2c_addr,offset+1,(value>>8)&0xFF);
     };
 
-    // controller
     set8u(offsetof(I2CRegs,fields.effectN),i2cRegs.fields.effectN = Model::instance().Effect());
     set8u(offsetof(I2CRegs,fields.brightness),i2cRegs.fields.brightness = uint8_t(Model::instance().Brightness() * 255.0f));
-
     set16u(offsetof(I2CRegs,fields.systemTime), i2cRegs.fields.systemTime = uint16_t(Timeline::SystemTime()));
 
     Model::instance().RingColor().write_rgba_bytes(&i2cRegs.fields.ring_color[0]);
@@ -87,11 +76,54 @@ void STM32WL::update() {
     set16u(offsetof(I2CRegs,fields.switch2Count), i2cRegs.fields.switch2Count = uint16_t(Model::instance().Switch2Count()));
     set16u(offsetof(I2CRegs,fields.switch3Count), i2cRegs.fields.switch3Count = uint16_t(Model::instance().Switch3Count()));
     set16u(offsetof(I2CRegs,fields.bootCount), i2cRegs.fields.bootCount = uint16_t(Model::instance().BootCount()));
-
-    // peripheral
-    set16u(offsetof(I2CRegs,fields.intCount), i2cRegs.fields.intCount = uint16_t(Model::instance().IntCount()));
     set16u(offsetof(I2CRegs,fields.dselCount), i2cRegs.fields.dselCount = uint16_t(Model::instance().DselCount()));
 
+    // peripheral
+    auto get16u = [](auto offset) {
+        static_assert(std::is_same<decltype(offset), size_t>::value, "offset must be size_t");
+        return (uint16_t(I2CManager::instance().getReg8(i2c_addr, offset+0))<<0) |
+               (uint16_t(I2CManager::instance().getReg8(i2c_addr, offset+1))<<8);
+    };
+
+    auto get8u = [](auto offset) {
+        static_assert(std::is_same<decltype(offset), size_t>::value, "offset must be size_t");
+        return I2CManager::instance().getReg8(i2c_addr, offset);
+    };
+
+    for (size_t c = 0; c < sizeof(i2cRegs.fields.devEUI); c++) {
+         i2cRegs.fields.devEUI[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,fields.devEUI));
+    }
+    for (size_t c = 0; c < sizeof(i2cRegs.fields.joinEUI); c++) {
+         i2cRegs.fields.joinEUI[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,fields.joinEUI));
+    }
+    for (size_t c = 0; c < sizeof(i2cRegs.fields.appKey); c++) {
+         i2cRegs.fields.appKey[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,fields.appKey));
+    }
+
+    Model::instance().SetIntCount(i2cRegs.fields.intCount = get16u(offsetof(I2CRegs,fields.intCount)));
+
+    i2cRegs.fields.bq25895Status = get8u(offsetof(I2CRegs,fields.bq25895Status));
+    i2cRegs.fields.bq25895FaulState = get8u(offsetof(I2CRegs,fields.bq25895FaulState));
+    i2cRegs.fields.bq25895BatteryVoltage = get8u(offsetof(I2CRegs,fields.bq25895BatteryVoltage));
+    i2cRegs.fields.bq25895SystemVoltage = get8u(offsetof(I2CRegs,fields.bq25895SystemVoltage));
+    i2cRegs.fields.bq25895VbusVoltage = get8u(offsetof(I2CRegs,fields.bq25895VbusVoltage));
+    i2cRegs.fields.bq25895ChargeCurrent = get8u(offsetof(I2CRegs,fields.bq25895ChargeCurrent));
+
+    i2cRegs.fields.ens210Tmp = get16u(offsetof(I2CRegs,fields.ens210Tmp));
+    i2cRegs.fields.ens210Hmd = get16u(offsetof(I2CRegs,fields.ens210Hmd));
+
+    i2cRegs.fields.lsm6dsmXG = get16u(offsetof(I2CRegs,fields.lsm6dsmXG));
+    i2cRegs.fields.lsm6dsmYG = get16u(offsetof(I2CRegs,fields.lsm6dsmYG));
+    i2cRegs.fields.lsm6dsmZG = get16u(offsetof(I2CRegs,fields.lsm6dsmZG));
+    i2cRegs.fields.lsm6dsmXA = get16u(offsetof(I2CRegs,fields.lsm6dsmXA));
+    i2cRegs.fields.lsm6dsmYA = get16u(offsetof(I2CRegs,fields.lsm6dsmYA));
+    i2cRegs.fields.lsm6dsmZA = get16u(offsetof(I2CRegs,fields.lsm6dsmZA));
+    i2cRegs.fields.lsm6dsmTmp = get16u(offsetof(I2CRegs,fields.lsm6dsmTmp));
+
+    i2cRegs.fields.mmc5633njlXG = get16u(offsetof(I2CRegs,fields.mmc5633njlXG));
+    i2cRegs.fields.mmc5633njlYG = get16u(offsetof(I2CRegs,fields.mmc5633njlYG));
+    i2cRegs.fields.mmc5633njlZG = get16u(offsetof(I2CRegs,fields.mmc5633njlZG));
+    i2cRegs.fields.mmc5633njlTmp = get8u(offsetof(I2CRegs,fields.mmc5633njlTmp));
 }
 
 void STM32WL::init() {

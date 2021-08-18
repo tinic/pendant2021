@@ -62,10 +62,10 @@ private:
             uint16_t switch2Count;
             uint16_t switch3Count;
             uint16_t bootCount;
+            uint16_t dselCount;
 
             // persistent, peripheral
             uint16_t intCount;
-            uint16_t dselCount;
 
             // dynamic only, controller
             uint16_t systemTime;
