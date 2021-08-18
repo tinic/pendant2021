@@ -61,7 +61,7 @@ void I2C0_IRQHandler(void)
 
 }
 
-bool I2CManager::deviceReady(uint8_t _u8SlaveAddr) {
+bool I2CManager::deviceReady(uint8_t _u8PeripheralAddr) {
 
     I2C_DisableInt(I2C0);
 
@@ -94,10 +94,10 @@ retry:
         uint32_t status = I2C_GET_STATUS(I2C0);
         switch(status) {
         case 0x08u:
-            I2C_SET_DATA(I2C0, (uint8_t)((_u8SlaveAddr << 1u) | 0x01u)); /* Write SLA+R to Register I2CDAT */
+            I2C_SET_DATA(I2C0, (uint8_t)((_u8PeripheralAddr << 1u) | 0x01u)); /* Write SLA+R to Register I2CDAT */
             ctrl = I2C_CTL_SI;                                          /* Clear SI */
             break;
-        case 0x40u:                                                     /* Slave Address ACK */
+        case 0x40u:                                                     /* Peripheral Address ACK */
             ctrl = I2C_CTL_SI;                                          /* Clear SI */
             break;
         case 0x58u:                                                     /* Receive Data */
@@ -197,7 +197,7 @@ void I2CManager::prepareBatchWrite() {
     qBufPtr = qBufSeq;
 }
 
-void I2CManager::queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len) {
+void I2CManager::queueBatchWrite(uint8_t peripheralAddr, uint8_t data[], size_t len) {
 
     waitForFinish();
 
@@ -211,7 +211,7 @@ void I2CManager::queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len) 
         return;
     }
 
-    *qBufEnd++ = slaveAddr;
+    *qBufEnd++ = peripheralAddr;
     *qBufEnd++ = len;
     memcpy(qBufEnd, data, len);
     qBufEnd += len;
@@ -231,7 +231,7 @@ void I2CManager::performBatchWrite() {
     u8Ctrl = 0u;
     u32txLen = 0u;
     
-    u8SlaveAddr = *qBufPtr++;
+    u8PeripheralAddr = *qBufPtr++;
     u32wLen = *qBufPtr++;
 
     u8TransferType = 1;
@@ -272,7 +272,7 @@ void I2CManager::batchWriteIRQ() {
             u8Ctrl = I2C_CTL_STO_SI;                                /* Clear SI and send STOP */
             u32txLen = 0u;
             qBufPtr += u32wLen;
-            u8SlaveAddr = *qBufPtr++;
+            u8PeripheralAddr = *qBufPtr++;
             u32wLen = *qBufPtr++;
             if (qBufPtr < qBufEnd) {
                 u32txLen = 0;
@@ -290,10 +290,10 @@ void I2CManager::batchWriteIRQ() {
     } else {
         switch(status) {
         case 0x08u:
-            I2C_SET_DATA(I2C0, (uint8_t)(u8SlaveAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
+            I2C_SET_DATA(I2C0, (uint8_t)(u8PeripheralAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
             u8Ctrl = I2C_CTL_SI;                                        /* Clear SI */
             break;
-        case 0x18u:                                                     /* Slave Address ACK */
+        case 0x18u:                                                     /* Peripheral Address ACK */
         [[likely]] case 0x28u:
             if(u32txLen < u32wLen) {
                 I2C_SET_DATA(I2C0, qBufPtr[u32txLen++]);                /* Write Data to I2CDAT */
@@ -302,7 +302,7 @@ void I2CManager::batchWriteIRQ() {
                 u8Ctrl = I2C_CTL_STO_SI;                                /* Clear SI and send STOP */
                 u32txLen = 0u;
                 qBufPtr += u32wLen;
-                u8SlaveAddr = *qBufPtr++;
+                u8PeripheralAddr = *qBufPtr++;
                 u32wLen = *qBufPtr++;
                 if (qBufPtr < qBufEnd) {
                     u32txLen = 0;
@@ -316,8 +316,8 @@ void I2CManager::batchWriteIRQ() {
                 }
             }
             break;
-        case 0x20u:                                                     /* Slave Address NACK */
-        case 0x30u:                                                     /* Master transmit data NACK */
+        case 0x20u:                                                     /* Peripheral Address NACK */
+        case 0x30u:                                                     /* Controller transmit data NACK */
             u8Ctrl = I2C_CTL_STO_SI;                                    /* Clear SI and send STOP */
             u8Err = 1u;
             break;
@@ -331,7 +331,7 @@ void I2CManager::batchWriteIRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                              /* Write controlbit to I2C_CTL register */
 }
 
-void I2CManager::write(uint8_t _u8SlaveAddr, uint8_t data[], size_t _u32wLen) {
+void I2CManager::write(uint8_t _u8PeripheralAddr, uint8_t data[], size_t _u32wLen) {
 
     // Wait for pending write
     waitForFinish();
@@ -345,7 +345,7 @@ void I2CManager::write(uint8_t _u8SlaveAddr, uint8_t data[], size_t _u32wLen) {
     u8Ctrl = 0u;
     u32txLen = 0u;
     u32wLen = _u32wLen;
-    u8SlaveAddr = _u8SlaveAddr;
+    u8PeripheralAddr = _u8PeripheralAddr;
 
     memcpy(txBuf, data, u32wLen);
 
@@ -380,10 +380,10 @@ void I2CManager::writeIRQ() {
 
     switch(I2C_GET_STATUS(I2C0)) {
     case 0x08u:
-        I2C_SET_DATA(I2C0, (uint8_t)(u8SlaveAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
+        I2C_SET_DATA(I2C0, (uint8_t)(u8PeripheralAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
         u8Ctrl = I2C_CTL_SI;                                        /* Clear SI */
         break;
-    [[likely]] case 0x18u:                                          /* Slave Address ACK */
+    [[likely]] case 0x18u:                                          /* Peripheral Address ACK */
     [[likely]] case 0x28u:
         if(u32txLen < u32wLen)
         {
@@ -396,8 +396,8 @@ void I2CManager::writeIRQ() {
             u8Xfering = 0u;
         }
         break;
-    case 0x20u:                                                     /* Slave Address NACK */
-    case 0x30u:                                                     /* Master transmit data NACK */
+    case 0x20u:                                                     /* Peripheral Address NACK */
+    case 0x30u:                                                     /* Controller transmit data NACK */
         u8Ctrl = I2C_CTL_STO_SI;
         u8Err = 1u;
         break;
@@ -410,7 +410,7 @@ void I2CManager::writeIRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                              /* Write controlbit to I2C_CTL register */
 }
 
-uint8_t I2CManager::read(uint8_t _u8SlaveAddr, uint8_t rdata[], size_t _u32rLen) {
+uint8_t I2CManager::read(uint8_t _u8PeripheralAddr, uint8_t rdata[], size_t _u32rLen) {
 
     // Wait for pending write
     waitForFinish();
@@ -424,7 +424,7 @@ uint8_t I2CManager::read(uint8_t _u8SlaveAddr, uint8_t rdata[], size_t _u32rLen)
     u8Ctrl = 0u;
     u32rxLen = 0u;
     u32rLen = _u32rLen;
-    u8SlaveAddr = _u8SlaveAddr;
+    u8PeripheralAddr = _u8PeripheralAddr;
 
     u8TransferType = 3;
 
@@ -460,13 +460,13 @@ void I2CManager::readIRQ() {
 
     switch(I2C_GET_STATUS(I2C0)) {
     case 0x08u:
-        I2C_SET_DATA(I2C0, (uint8_t)((u8SlaveAddr << 1u) | 0x01u));    /* Write SLA+R to Register I2CDAT */
+        I2C_SET_DATA(I2C0, (uint8_t)((u8PeripheralAddr << 1u) | 0x01u));    /* Write SLA+R to Register I2CDAT */
         u8Ctrl = I2C_CTL_SI;                                    /* Clear SI */
         break;
-    case 0x40u:                                                 /* Slave Address ACK */
+    case 0x40u:                                                 /* Peripheral Address ACK */
         u8Ctrl = I2C_CTL_SI_AA;                                 /* Clear SI and set ACK */
         break;
-    case 0x48u:                                                 /* Slave Address NACK */
+    case 0x48u:                                                 /* Peripheral Address NACK */
         u8Ctrl = I2C_CTL_STO_SI;                                /* Clear SI and send STOP */
         u8Err = 1u;
         break;
@@ -492,7 +492,7 @@ void I2CManager::readIRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                                 /* Write controlbit to I2C_CTL register */
 }
 
-uint8_t I2CManager::getReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr) {
+uint8_t I2CManager::getReg8(uint8_t _u8PeripheralAddr, uint8_t _u8DataAddr) {
 
     // Wait for pending write
     waitForFinish();
@@ -502,7 +502,7 @@ uint8_t I2CManager::getReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr) {
     u8RData = 0u; 
     u8Ctrl = 0u;
     u8DataAddr = _u8DataAddr;
-    u8SlaveAddr = _u8SlaveAddr;
+    u8PeripheralAddr = _u8PeripheralAddr;
 
     u8TransferType = 4;
 
@@ -536,14 +536,14 @@ void I2CManager::getReg8IRQ() {
 
     switch(I2C_GET_STATUS(I2C0)) {
     case 0x08u:
-        I2C_SET_DATA(I2C0, (uint8_t)(u8SlaveAddr << 1u | 0x00u));      /* Write SLA+W to Register I2CDAT */
+        I2C_SET_DATA(I2C0, (uint8_t)(u8PeripheralAddr << 1u | 0x00u));      /* Write SLA+W to Register I2CDAT */
         u8Ctrl = I2C_CTL_SI;                                /* Clear SI */
         break;
-    case 0x18u:                                             /* Slave Address ACK */
+    case 0x18u:                                             /* Peripheral Address ACK */
         I2C_SET_DATA(I2C0, u8DataAddr);                     /* Write Lo byte address of register */
         break;
-    case 0x20u:                                             /* Slave Address NACK */
-    case 0x30u:                                             /* Master transmit data NACK */
+    case 0x20u:                                             /* Peripheral Address NACK */
+    case 0x30u:                                             /* Controller transmit data NACK */
         u8Ctrl = I2C_CTL_STO_SI;                            /* Clear SI and send STOP */
         u8Err = 1u;
         break;
@@ -551,13 +551,13 @@ void I2CManager::getReg8IRQ() {
         u8Ctrl = I2C_CTL_STA_SI;                           /* Send repeat START */
         break;
     case 0x10u:
-        I2C_SET_DATA(I2C0, (uint8_t)((u8SlaveAddr << 1u) | 0x01u));    /* Write SLA+R to Register I2CDAT */
+        I2C_SET_DATA(I2C0, (uint8_t)((u8PeripheralAddr << 1u) | 0x01u));    /* Write SLA+R to Register I2CDAT */
         u8Ctrl = I2C_CTL_SI;                               /* Clear SI */
         break;
-    case 0x40u:                                            /* Slave Address ACK */
+    case 0x40u:                                            /* Peripheral Address ACK */
         u8Ctrl = I2C_CTL_SI;                               /* Clear SI */
         break;
-    case 0x48u:                                            /* Slave Address NACK */
+    case 0x48u:                                            /* Peripheral Address NACK */
         u8Ctrl = I2C_CTL_STO_SI;                           /* Clear SI and send STOP */
         u8Err = 1u;
         break;
@@ -575,7 +575,7 @@ void I2CManager::getReg8IRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                     /* Write controlbit to I2C_CTL register */
 }
 
-void I2CManager::setReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr, uint8_t _u8WData) {
+void I2CManager::setReg8(uint8_t _u8PeripheralAddr, uint8_t _u8DataAddr, uint8_t _u8WData) {
 
     // Wait for pending write
     waitForFinish();
@@ -585,7 +585,7 @@ void I2CManager::setReg8(uint8_t _u8SlaveAddr, uint8_t _u8DataAddr, uint8_t _u8W
     u8Ctrl = 0u;
     u32txLen = 0u;
     u8DataAddr = _u8DataAddr;
-    u8SlaveAddr = _u8SlaveAddr;
+    u8PeripheralAddr = _u8PeripheralAddr;
     u8WData = _u8WData; 
 
     u8TransferType = 5;
@@ -618,14 +618,14 @@ void I2CManager::setReg8IRQ() {
 
     switch(I2C_GET_STATUS(I2C0)) {
     case 0x08u:
-        I2C_SET_DATA(I2C0, (uint8_t)(u8SlaveAddr << 1u | 0x00u));    /* Send Slave address with write bit */
+        I2C_SET_DATA(I2C0, (uint8_t)(u8PeripheralAddr << 1u | 0x00u));    /* Send Peripheral address with write bit */
         u8Ctrl = I2C_CTL_SI;                              /* Clear SI */
         break;
-    case 0x18u:                                           /* Slave Address ACK */
+    case 0x18u:                                           /* Peripheral Address ACK */
         I2C_SET_DATA(I2C0, u8DataAddr);                   /* Write Lo byte address of register */
         break;
-    case 0x20u:                                           /* Slave Address NACK */
-    case 0x30u:                                           /* Master transmit data NACK */
+    case 0x20u:                                           /* Peripheral Address NACK */
+    case 0x30u:                                           /* Controller transmit data NACK */
         u8Ctrl = I2C_CTL_STO_SI;                          /* Clear SI and send STOP */
         u8Err = 1u;
         break;
@@ -651,16 +651,16 @@ void I2CManager::setReg8IRQ() {
     I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                    /* Write controlbit to I2C_CTL register */
 }
 
-void I2CManager::setReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
-    uint8_t value = getReg8(slaveAddr, reg);
+void I2CManager::setReg8Bits(uint8_t peripheralAddr, uint8_t reg, uint8_t mask) {
+    uint8_t value = getReg8(peripheralAddr, reg);
     value |= mask;
-    setReg8(slaveAddr, reg, value);
+    setReg8(peripheralAddr, reg, value);
 }
 
-void I2CManager::clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask) {
-    uint8_t value = getReg8(slaveAddr, reg);
+void I2CManager::clearReg8Bits(uint8_t peripheralAddr, uint8_t reg, uint8_t mask) {
+    uint8_t value = getReg8(peripheralAddr, reg);
     value &= ~mask;
-    setReg8(slaveAddr, reg, value);
+    setReg8(peripheralAddr, reg, value);
 }
 
 void I2CManager::init() {

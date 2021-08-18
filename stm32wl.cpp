@@ -44,14 +44,17 @@ STM32WL &STM32WL::instance() {
 void STM32WL::update() {
     if (!devicePresent) return;
 
-    for (size_t c = 0; c < sizeof(i2cRegs.devEUI); c++) {
-         i2cRegs.devEUI[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,devEUI));
+    // Get zero register
+    I2CManager::instance().getReg8(i2c_addr, 0);
+
+    for (size_t c = 0; c < sizeof(i2cRegs.fields.devEUI); c++) {
+         i2cRegs.fields.devEUI[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,fields.devEUI));
     }
-    for (size_t c = 0; c < sizeof(i2cRegs.joinEUI); c++) {
-         i2cRegs.joinEUI[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,joinEUI));
+    for (size_t c = 0; c < sizeof(i2cRegs.fields.joinEUI); c++) {
+         i2cRegs.fields.joinEUI[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,fields.joinEUI));
     }
-    for (size_t c = 0; c < sizeof(i2cRegs.appKey); c++) {
-         i2cRegs.appKey[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,appKey));
+    for (size_t c = 0; c < sizeof(i2cRegs.fields.appKey); c++) {
+         i2cRegs.fields.appKey[c] = I2CManager::instance().getReg8(i2c_addr,c+offsetof(I2CRegs,fields.appKey));
     }
 
     auto set8u = [](auto offset, auto value) {
@@ -67,24 +70,27 @@ void STM32WL::update() {
         I2CManager::instance().setReg8(i2c_addr,offset+1,(value>>8)&0xFF);
     };
 
-    set8u(offsetof(I2CRegs,effectN),i2cRegs.effectN = Model::instance().Effect());
-    set8u(offsetof(I2CRegs,brightness),i2cRegs.brightness = uint8_t(Model::instance().Brightness() * 255.0f));
+    // controller
+    set8u(offsetof(I2CRegs,fields.effectN),i2cRegs.fields.effectN = Model::instance().Effect());
+    set8u(offsetof(I2CRegs,fields.brightness),i2cRegs.fields.brightness = uint8_t(Model::instance().Brightness() * 255.0f));
 
-    set16u(offsetof(I2CRegs,systemTime), i2cRegs.systemTime = uint16_t(Timeline::SystemTime()));
+    set16u(offsetof(I2CRegs,fields.systemTime), i2cRegs.fields.systemTime = uint16_t(Timeline::SystemTime()));
 
-    Model::instance().RingColor().write_rgba_bytes(&i2cRegs.ring_color[0]);
-    Model::instance().BirdColor().write_rgba_bytes(&i2cRegs.bird_color[0]);
+    Model::instance().RingColor().write_rgba_bytes(&i2cRegs.fields.ring_color[0]);
+    Model::instance().BirdColor().write_rgba_bytes(&i2cRegs.fields.bird_color[0]);
     for (size_t c = 0; c < 4; c++) {
-        set8u(offsetof(I2CRegs,ring_color)+c,i2cRegs.ring_color[c]);
-        set8u(offsetof(I2CRegs,bird_color)+c,i2cRegs.bird_color[c]);
+        set8u(offsetof(I2CRegs,fields.ring_color)+c,i2cRegs.fields.ring_color[c]);
+        set8u(offsetof(I2CRegs,fields.bird_color)+c,i2cRegs.fields.bird_color[c]);
     }
 
-    set16u(offsetof(I2CRegs,switch1Count), i2cRegs.switch1Count = uint16_t(Model::instance().Switch1Count()));
-    set16u(offsetof(I2CRegs,switch2Count), i2cRegs.switch2Count = uint16_t(Model::instance().Switch2Count()));
-    set16u(offsetof(I2CRegs,switch3Count), i2cRegs.switch3Count = uint16_t(Model::instance().Switch3Count()));
-    set16u(offsetof(I2CRegs,bootCount), i2cRegs.bootCount = uint16_t(Model::instance().BootCount()));
-    set16u(offsetof(I2CRegs,intCount), i2cRegs.intCount = uint16_t(Model::instance().IntCount()));
-    set16u(offsetof(I2CRegs,dselCount), i2cRegs.dselCount = uint16_t(Model::instance().DselCount()));
+    set16u(offsetof(I2CRegs,fields.switch1Count), i2cRegs.fields.switch1Count = uint16_t(Model::instance().Switch1Count()));
+    set16u(offsetof(I2CRegs,fields.switch2Count), i2cRegs.fields.switch2Count = uint16_t(Model::instance().Switch2Count()));
+    set16u(offsetof(I2CRegs,fields.switch3Count), i2cRegs.fields.switch3Count = uint16_t(Model::instance().Switch3Count()));
+    set16u(offsetof(I2CRegs,fields.bootCount), i2cRegs.fields.bootCount = uint16_t(Model::instance().BootCount()));
+
+    // peripheral
+    set16u(offsetof(I2CRegs,fields.intCount), i2cRegs.fields.intCount = uint16_t(Model::instance().IntCount()));
+    set16u(offsetof(I2CRegs,fields.dselCount), i2cRegs.fields.dselCount = uint16_t(Model::instance().DselCount()));
 
 }
 
@@ -93,15 +99,15 @@ void STM32WL::init() {
     update();
     printf("STM32WL DevEUI: ");
     for(size_t c = 0; c < 8; c++) {
-        printf("%02x ",i2cRegs.devEUI[c]);
+        printf("%02x ",i2cRegs.fields.devEUI[c]);
     }
     printf("\r\nSTM32WL JoinEUI: ");
     for(size_t c = 0; c < 8; c++) {
-        printf("%02x ",i2cRegs.joinEUI[c]);
+        printf("%02x ",i2cRegs.fields.joinEUI[c]);
     }
     printf("\r\nSTM32WL AppKey: ");
     for(size_t c = 0; c < 16; c++) {
-        printf("%02x ",i2cRegs.appKey[c]);
+        printf("%02x ",i2cRegs.fields.appKey[c]);
     }
     printf("\r\n");
 }

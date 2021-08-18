@@ -30,19 +30,19 @@ public:
     static I2CManager &instance();
 
     void prepareBatchWrite();
-    void queueBatchWrite(uint8_t slaveAddr, uint8_t data[], size_t len);
+    void queueBatchWrite(uint8_t peripheralAddr, uint8_t data[], size_t len);
     void performBatchWrite();
 
     bool inBatchWrite() const { return u8Xfering && (u8Err == 0u) && qBufPtr; }
 
-    void write(uint8_t slaveAddr, uint8_t data[], size_t len);
-    uint8_t read(uint8_t slaveAddr, uint8_t data[], size_t len);
+    void write(uint8_t peripheralAddr, uint8_t data[], size_t len);
+    uint8_t read(uint8_t peripheralAddr, uint8_t data[], size_t len);
 
-    void setReg8(uint8_t slaveAddr, uint8_t reg, uint8_t dat);
-    uint8_t getReg8(uint8_t slaveAddr, uint8_t reg);
+    void setReg8(uint8_t peripheralAddr, uint8_t reg, uint8_t dat);
+    uint8_t getReg8(uint8_t peripheralAddr, uint8_t reg);
 
-    void setReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask);
-    void clearReg8Bits(uint8_t slaveAddr, uint8_t reg, uint8_t mask);
+    void setReg8Bits(uint8_t peripheralAddr, uint8_t reg, uint8_t mask);
+    void clearReg8Bits(uint8_t peripheralAddr, uint8_t reg, uint8_t mask);
 
     bool error() const { return u8Err ? true : false; }
 
@@ -61,14 +61,14 @@ private:
     void setReg8IRQ();
     void getReg8IRQ();
 
-    bool deviceReady(uint8_t u8SlaveAddr);
+    bool deviceReady(uint8_t u8PeripheralAddr);
     void probe();
     void init();
     void waitForFinish();
 
     bool initialized = false;
 
-    uint8_t u8SlaveAddr = 0u;
+    uint8_t u8PeripheralAddr = 0u;
     uint8_t u8Xfering = 0u;
     uint8_t u8Err = 0u;
     uint8_t u8Ctrl = 0u;
