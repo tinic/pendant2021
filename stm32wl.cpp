@@ -136,7 +136,7 @@ void STM32WL::update() {
 void STM32WL::init() {
     if (!devicePresent) return;
 
-    i2cRegs.fields.intCount = 0xFFFF; // Trigger write to peripheral\
+    i2cRegs.fields.intCount = 0xFFFF; // Trigger write to peripheral
 
     update();
 

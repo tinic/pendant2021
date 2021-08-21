@@ -11,7 +11,7 @@
 #include "M480.h"
 #include "./msc.h"
 
-#if 0
+#if 1
 #define DBG_PRINTF      printf
 #else
 #define DBG_PRINTF(...)

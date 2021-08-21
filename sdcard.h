@@ -175,7 +175,6 @@ private:
     bool setSectorSize();
     bool readCID();
     bool readCSD();
-    bool readTotalBlocks();
 
     std::tuple<bool, uint8_t> GoIdle();
     std::tuple<bool, uint8_t> CheckVoltage();

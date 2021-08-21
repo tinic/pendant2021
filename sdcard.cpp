@@ -294,71 +294,17 @@ bool SDCard::readCSD() {
 
     printf("Read CSD!\n");
 
-    return true;
-}
-
-bool SDCard::readTotalBlocks() {
-    auto [success, result] = SendCmd(CMD9, 0);
-    if (!success || result != 0) {
-        QSPI_SET_SS_HIGH(QSPI0);
-        return false;
-    }
-
-    double start_time = Timeline::SystemTime();
-    for ( ; readByte() != 0xFE ;) {
-        if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
-            QSPI_SET_SS_HIGH(QSPI0);
-            return false;
-        }
-    }
-
-	uint8_t csd_structure = readByte() >> 6;
-
-	for (size_t c = 0; c < 5; c++) {
-		readByte();
-	}
-
-	uint8_t b = readByte();
-    uint8_t max_read_bl_len = b & 0x0F;
-
 	totalBlocks = 0;
-	if (csd_structure == 0) {
-
-		uint8_t c_size_high = (b << 2) & 0x0C;
-		b = readByte();
-		c_size_high |= b >> 6;
-		uint8_t c_size_low = b << 2;
-		b = readByte();
-		c_size_low |= b >> 6;
-		readByte();
-		
-		uint8_t c_size_mult;
-		c_size_mult = (b << 1) & 0x06;
-		b = readByte();
-		c_size_mult |= b >> 7;
-
-		totalBlocks = (uint32_t) ((c_size_high << 8 | c_size_low) + 1) * (1 << (c_size_mult + 2));
-		totalBlocks *= (uint32_t) (1 << max_read_bl_len) / 512;
-
-	} else {
-
-		b = readByte();
-		uint8_t c_size_high = b;
-		b = readByte();
-		uint8_t c_size_mid = b;
-		b = readByte();
-		uint8_t c_size_low = b;
-
-		totalBlocks = (uint32_t) (c_size_high << 16 | c_size_mid << 8 | c_size_low) + 1;
+	if (sd_spi_csd.csd_structure == 0) {
+		totalBlocks = (uint32_t) ((sd_spi_csd.cvsi.v1.c_size_high << 8 | sd_spi_csd.cvsi.v1.c_size_low) + 1) * (1 << (sd_spi_csd.cvsi.v1.c_size_mult + 2));
+		totalBlocks *= (uint32_t) (1 << sd_spi_csd.max_read_bl_len) / 512;
+    } else {
+		totalBlocks = (uint32_t) (sd_spi_csd.cvsi.v2.c_size_high << 16 | sd_spi_csd.cvsi.v2.c_size_mid << 8 | sd_spi_csd.cvsi.v2.c_size_low) + 1;
 		totalBlocks <<= 10;
-
-	}
-
-	for (size_t c = 0; c < 7; c++) {
-		readByte();
-	}
+    }
 
     printf("Media is %.2fGB in size!\n", (double(uint64_t(totalBlocks) * 512)) / (1024.0 * 1024.0 * 1024.0));
+
     return true;
 }
 
@@ -443,10 +389,6 @@ void SDCard::init() {
         return;
     }
 
-    if (!readTotalBlocks()) {
-        return;
-    }
-
     if (!readCID()) {
         return;
     }
@@ -457,7 +399,7 @@ void SDCard::init() {
 
     QSPI_SET_SS_HIGH(QSPI0);
 
-/*  NVIC_SetPriority(USBD_IRQn, 4);
+/*    NVIC_SetPriority(USBD_IRQn, 4);
     NVIC_EnableIRQ(USBD_IRQn);
 
     USBD_SetConfigCallback(MSC_SetConfig);
