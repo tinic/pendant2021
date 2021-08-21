@@ -130,13 +130,16 @@ void STM32WL::update() {
     i2cRegs.fields.mmc5633njlYG = get16u(offsetof(I2CRegs,fields.mmc5633njlYG));
     i2cRegs.fields.mmc5633njlZG = get16u(offsetof(I2CRegs,fields.mmc5633njlZG));
     i2cRegs.fields.mmc5633njlTmp = get8u(offsetof(I2CRegs,fields.mmc5633njlTmp));
+
 }
 
 void STM32WL::init() {
     if (!devicePresent) return;
-    memset(this, 0, sizeof(STM32WL));
-    i2cRegs.fields.intCount = 0xFFFF; // Trigger write to peripheral
+
+    i2cRegs.fields.intCount = 0xFFFF; // Trigger write to peripheral\
+
     update();
+
     printf("STM32WL DevEUI: ");
     for(size_t c = 0; c < 8; c++) {
         printf("%02x ",i2cRegs.fields.devEUI[c]);
@@ -150,4 +153,5 @@ void STM32WL::init() {
         printf("%02x ",i2cRegs.fields.appKey[c]);
     }
     printf("\r\n");
+
 }
