@@ -53,6 +53,12 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "numbers": "cpp",
-        "cstring": "cpp"
+        "cstring": "cpp",
+        "span": "cpp",
+        "list": "cpp",
+        "queue": "cpp",
+        "xhash": "cpp",
+        "xstring": "cpp",
+        "xutility": "cpp"
     }
 }

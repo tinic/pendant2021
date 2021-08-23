@@ -62,6 +62,28 @@ SDCard &SDCard::instance() {
 void SDCard::process() {
 }
 
+void SDCard::read(uint32_t blockAddr, uint8_t *buffer, int32_t blockLen) {
+    for (; blockLen > 0 ;) {
+        SendCmd(CMD17, blockAddr);
+        for(size_t c = 0; c < 512; c++) {
+            *buffer++ = readByte();    
+        }
+        blockLen--;
+        blockAddr++;
+    }
+}
+
+void SDCard::write(uint32_t blockAddr, const uint8_t *buffer, int32_t blockLen) {
+    for (; blockLen > 0 ;) {
+        SendCmd(CMD24, blockAddr);
+        for(size_t c = 0; c < 512; c++) {
+            writeByte(*buffer++);    
+        }
+        blockLen--;
+        blockAddr++;
+    }
+}
+
 uint8_t SDCard::readByte() {
     QSPI_WRITE_TX(QSPI0, 0xFF);
     while(QSPI_IS_BUSY(QSPI0));
@@ -306,6 +328,14 @@ bool SDCard::readCSD() {
     printf("Media is %.2fGB in size!\n", (double(uint64_t(totalBlocks) * 512)) / (1024.0 * 1024.0 * 1024.0));
 
     return true;
+}
+
+bool SDCard::inserted() const {
+    return isSdCard;   
+}
+
+uint32_t SDCard::blocks() const {
+    return totalBlocks;
 }
 
 bool SDCard::detectCardType() {

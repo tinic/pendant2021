@@ -32,6 +32,12 @@ public:
 
     void process();
 
+    bool inserted() const;
+    uint32_t blocks() const;
+
+    void read(uint32_t blockAddr, uint8_t *buffer, int32_t blockLen);
+    void write(uint32_t blockAddr, const uint8_t *buffer, int32_t blockLen);
+
 private:
     struct
     {
@@ -175,6 +181,7 @@ private:
     bool setSectorSize();
     bool readCID();
     bool readCSD();
+
 
     std::tuple<bool, uint8_t> GoIdle();
     std::tuple<bool, uint8_t> CheckVoltage();

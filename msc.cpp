@@ -9,6 +9,8 @@
 #include <string.h>
 
 #include "M480.h"
+
+#include "./sdcard.h"
 #include "./msc.h"
 
 #if 1
@@ -290,22 +292,8 @@ void MSC_Init(void)
     g_u32BulkBuf1 = EP2_BUF_BASE;
 
     g_sCSW.dCSWSignature = CSW_SIGNATURE;
-    if (g_u8SdInitFlag)
-    {
-// TODO
-        g_TotalSectors = 0;//SD0.totalSectorN;
-        g_au8SenseKey[0] = 0x0;
-        g_au8SenseKey[1] = 0x0;
-        g_au8SenseKey[2] = 0x0;
-    }
-    else
-    {
-        g_TotalSectors = 0;
-        g_au8SenseKey[0] = 0x03;
-        g_au8SenseKey[1] = 0x30;
-        g_au8SenseKey[2] = 0x01;
-    }
-    //printf("totoal sectors %d\n", SD0.totalSectorN);
+
+    g_TotalSectors = SDCard::instance().blocks();
 }
 
 void MSC_ClassRequest(void)
@@ -411,24 +399,16 @@ void MSC_RequestSense(void)
     else
         tmp[0] = 0xf0;
 
-/*  TODO
-    if (SD0.IsCardInsert)
-    {
-        g_au8SenseKey[0] = 0x0;
-        g_au8SenseKey[1] = 0x0;
-        g_au8SenseKey[2] = 0x0;
-    }
-    else*/
-    {
-        g_au8SenseKey[0] = 0x02;
-        g_au8SenseKey[1] = 0x3a;
-        g_au8SenseKey[2] = 0x00;
-    }
     tmp[2] = g_au8SenseKey[0];
     tmp[7] = 0x0a;
     tmp[12] = g_au8SenseKey[1];
     tmp[13] = g_au8SenseKey[2];
+
     USBD_MemCopy((uint8_t *)(USBD_BUF_BASE + USBD_GET_EP_BUF_ADDR(EP2)), tmp, 20);
+
+    g_au8SenseKey[0] = 0;
+    g_au8SenseKey[1] = 0;
+    g_au8SenseKey[2] = 0;
 }
 
 void MSC_ReadFormatCapacity(void)
@@ -511,7 +491,7 @@ void MSC_Read(void)
             if(u32Len > STORAGE_BUFFER_SIZE)
                 u32Len = STORAGE_BUFFER_SIZE;
 
-            MSC_ReadMedia(g_u32LbaAddress, u32Len, (uint8_t *)STORAGE_DATA_BUF);
+            MSC_ReadMedia(uint64_t(g_u32LbaAddress), uint64_t(u32Len), (uint8_t *)STORAGE_DATA_BUF);
             g_u32BytesInStorageBuf = u32Len;
             g_u32LbaAddress += u32Len;
             g_u32Address = STORAGE_DATA_BUF;
@@ -555,7 +535,7 @@ void MSC_ReadTrig(void)
             if(u32Len > STORAGE_BUFFER_SIZE)
                 u32Len = STORAGE_BUFFER_SIZE;
 
-            MSC_ReadMedia(g_u32LbaAddress, u32Len, (uint8_t *)STORAGE_DATA_BUF);
+            MSC_ReadMedia(uint64_t(g_u32LbaAddress), uint64_t(u32Len), (uint8_t *)STORAGE_DATA_BUF);
             g_u32BytesInStorageBuf = u32Len;
             g_u32LbaAddress += u32Len;
             g_u32Address = STORAGE_DATA_BUF;
@@ -1073,7 +1053,7 @@ void MSC_ProcessCmd(void)
                 if (i > STORAGE_BUFFER_SIZE)
                     i = STORAGE_BUFFER_SIZE;
 
-                MSC_ReadMedia(g_u32Address * UDC_SECTOR_SIZE, i, (uint8_t *)STORAGE_DATA_BUF);
+                MSC_ReadMedia(uint64_t(g_u32Address) * UDC_SECTOR_SIZE, uint64_t(i), (uint8_t *)STORAGE_DATA_BUF);
                 g_u32BytesInStorageBuf = i;
                 g_u32LbaAddress += i;
 
@@ -1285,15 +1265,14 @@ void MSC_AckCmd(void)
         }
         }
 
-/* TODO
-        if (SD0.IsCardInsert == 0)
+        if (!SDCard::instance().inserted())
         {
             if ((g_sCBW.u8OPCode == UFI_INQUIRY) || (g_sCBW.u8OPCode == UFI_REQUEST_SENSE))
                 g_sCSW.bCSWStatus = 0x00;
             else
                 g_sCSW.bCSWStatus = 0x01;
         }
-*/
+
         /* Return the CSW */
         USBD_SET_EP_BUF_ADDR(EP2, g_u32BulkBuf1);
 
@@ -1305,14 +1284,14 @@ void MSC_AckCmd(void)
     }
 }
 
-void MSC_ReadMedia(uint32_t addr, uint32_t size, uint8_t *buffer)
+void MSC_ReadMedia(uint64_t addr, uint64_t size, uint8_t *buffer)
 {
-//    SDH_Read(SDH0, buffer, addr/UDC_SECTOR_SIZE, size/UDC_SECTOR_SIZE);
+    SDCard::instance().read(addr / UDC_SECTOR_SIZE, buffer, size / UDC_SECTOR_SIZE);
 }
 
-void MSC_WriteMedia(uint32_t addr, uint32_t size, uint8_t *buffer)
+void MSC_WriteMedia(uint64_t addr, uint64_t size, uint8_t *buffer)
 {
-//    SDH_Write(SDH0, buffer, addr/UDC_SECTOR_SIZE, size/UDC_SECTOR_SIZE);
+    SDCard::instance().write(addr / UDC_SECTOR_SIZE, buffer, size / UDC_SECTOR_SIZE);
 }
 
 void MSC_SetConfig(void)
