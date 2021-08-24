@@ -93,25 +93,44 @@ void SDCard::process() {
 }
 
 void SDCard::read(uint32_t blockAddr, uint8_t *buffer, int32_t blockLen) {
+    QSPI_SET_SS_LOW(QSPI0);
+
     for (; blockLen > 0 ;) {
         SendCmd(CMD17, blockAddr);
+        while(QSPI_IS_BUSY(QSPI0));
+        QSPI_ClearRxFIFO(QSPI0);
         for(size_t c = 0; c < 512; c++) {
-            *buffer++ = readByte();    
+            QSPI_WRITE_TX(QSPI0, 0xFF);
+            while(QSPI_IS_BUSY(QSPI0));
+            *buffer++ = QSPI_READ_RX(QSPI0);    
         }
+        while(QSPI_IS_BUSY(QSPI0));
         blockLen--;
         blockAddr++;
     }
+
+    QSPI_SET_SS_HIGH(QSPI0);
 }
 
 void SDCard::write(uint32_t blockAddr, const uint8_t *buffer, int32_t blockLen) {
+    QSPI_SET_SS_LOW(QSPI0);
+
     for (; blockLen > 0 ;) {
         SendCmd(CMD24, blockAddr);
-        for(size_t c = 0; c < 512; c++) {
-            writeByte(*buffer++);    
+        int32_t i = 0;
+        for(;;) {
+            if(!QSPI_GET_TX_FIFO_FULL_FLAG(QSPI0)) {
+                QSPI_WRITE_TX(QSPI0, *buffer++);
+                if (i++ >= 512) {
+                    break;
+                }
+            }
         }
         blockLen--;
         blockAddr++;
     }
+
+    QSPI_SET_SS_HIGH(QSPI0);
 }
 
 uint8_t SDCard::readByte() {
@@ -437,7 +456,10 @@ bool SDCard::setSectorSize() {
 
 void SDCard::init() {
 
-    QSPI_Open(QSPI0, QSPI_MASTER, QSPI_MODE_0, 8, 250000);
+    QSPI_Open(QSPI0, QSPI_MASTER, QSPI_MODE_0, 8, 0);
+
+    // Set to max speed, 96Mhz
+    CLK_SetModuleClock(QSPI0_MODULE, CLK_CLKSEL2_QSPI0SEL_PLL, MODULE_NoMsk);
 
     QSPI_SET_SS_HIGH(QSPI0);
 
