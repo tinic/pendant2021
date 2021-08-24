@@ -108,7 +108,7 @@ static void SYS_Init(void)
 
     CLK_SetCoreClock(96000000UL);
 
-    CLK->PCLKDIV = CLK_PCLKDIV_APB0DIV_DIV16 | CLK_PCLKDIV_APB1DIV_DIV16; // 6Mhz
+    CLK->PCLKDIV = CLK_PCLKDIV_APB0DIV_DIV8 | CLK_PCLKDIV_APB1DIV_DIV8; // 12Mhz
 
     CLK_EnableModuleClock(TMR0_MODULE);
     CLK_SetModuleClock(TMR0_MODULE, CLK_CLKSEL1_TMR0SEL_LIRC, MODULE_NoMsk); // 10Khz
@@ -120,15 +120,15 @@ static void SYS_Init(void)
     CLK_SetModuleClock(UART1_MODULE, CLK_CLKSEL1_UART1SEL_HIRC, CLK_CLKDIV0_UART1(12)); // 1Mhz
    
     CLK_EnableModuleClock(SPI0_MODULE);
-    CLK_SetModuleClock(SPI0_MODULE, CLK_CLKSEL2_SPI0SEL_PCLK1, MODULE_NoMsk); // 6Mhz
+    CLK_SetModuleClock(SPI0_MODULE, CLK_CLKSEL2_SPI0SEL_PCLK1, MODULE_NoMsk); // 12Mhz
 
     CLK_EnableModuleClock(SPI1_MODULE);
-    CLK_SetModuleClock(SPI1_MODULE, CLK_CLKSEL2_SPI1SEL_PCLK0, MODULE_NoMsk); // 6Mhz
+    CLK_SetModuleClock(SPI1_MODULE, CLK_CLKSEL2_SPI1SEL_PCLK0, MODULE_NoMsk); // 12Mhz
 
     CLK_EnableModuleClock(FMCIDLE_MODULE);
     CLK_EnableModuleClock(ISP_MODULE);
 
-    CLK_EnableModuleClock(I2C0_MODULE); // PCLK0, 6Mhz
+    CLK_EnableModuleClock(I2C0_MODULE); // PCLK0, 12Mhz
     CLK_EnableModuleClock(PDMA_MODULE); // HCLK, 96Mhz
 
     CLK_EnableModuleClock(QSPI0_MODULE);
