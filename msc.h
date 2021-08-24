@@ -7,6 +7,10 @@
 #ifndef __USBD_MASS_H__
 #define __USBD_MASS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif  // #ifdef __cplusplus
+
 /* Define the vendor id and product id */
 #define USBD_VID        0x0416
 #define USBD_PID        0xB005
@@ -73,10 +77,10 @@
 #define BULK_CSW  0x04
 #define BULK_NORMAL 0xFF
 
-static __INLINE uint32_t get_be32(uint8_t *buf)
+static inline uint32_t get_be32(uint8_t *buf)
 {
     return ((uint32_t) buf[0] << 24) | ((uint32_t) buf[1] << 16) |
-           ((uint32_t) buf[2] << 8) | ((uint32_t) buf[3]);
+           ((uint32_t) buf[2] <<  8) | ((uint32_t) buf[3]);
 }
 
 
@@ -113,9 +117,9 @@ struct CSW
 
 /*-------------------------------------------------------------*/
 #define DATA_FLASH_STORAGE_SIZE    (64*1024)  /* Configure the DATA FLASH storage size */
-#define MASS_BUFFER_SIZE    256                /* Mass Storage command buffer size */
+#define MASS_BUFFER_SIZE    256               /* Mass Storage command buffer size */
 #define STORAGE_BUFFER_SIZE 512               /* Data transfer buffer size in 512 bytes alignment */
-#define UDC_SECTOR_SIZE   512               /* logic sector size */
+#define UDC_SECTOR_SIZE     512               /* logic sector size */
 
 extern uint32_t MassBlock[];
 extern uint32_t Storage_Block[];
@@ -124,6 +128,8 @@ extern uint32_t Storage_Block[];
 #define STORAGE_DATA_BUF   ((uint32_t)&Storage_Block[0])
 
 /*-------------------------------------------------------------*/
+
+void USBD_IRQHandler(void);
 
 /*-------------------------------------------------------------*/
 void DataFlashWrite(uint32_t addr, uint32_t size, uint32_t buffer);
@@ -147,6 +153,10 @@ void MSC_AckCmd(void);
 void MSC_ProcessCmd(void);
 void EP2_Handler(void);
 void EP3_Handler(void);
+
+#ifdef __cplusplus
+} // extern "C" {
+#endif  // #ifdef __cplusplus
 
 #endif  /* __USBD_MASS_H_ */
 /*** (C) COPYRIGHT 2016 Nuvoton Technology Corp. ***/

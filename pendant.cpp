@@ -33,6 +33,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./ui.h"
 #include "./model.h"
 #include "./seed.h"
+#include "./msc.h"
 
 #include "M480.h"
 
@@ -67,6 +68,7 @@ void Pendant::Run() {
     Model::instance().IncBootCount();
     while (1) {
         __WFI();
+        SDCard::instance().process();
         if (Timeline::instance().CheckIdleReadyAndClear()) {
             I2CManager::instance().reprobeCritial();
             Model::instance().save();

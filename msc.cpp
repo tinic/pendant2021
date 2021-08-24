@@ -258,6 +258,8 @@ void EP3_Handler(void)
 
 void MSC_Init(void)
 {
+    DBG_PRINTF("MSC_Init\n");
+
     /* Init setup packet buffer */
     /* Buffer range for setup packet -> [0 ~ 0x7] */
     USBD->STBUFSEG = SETUP_BUF_BASE;
@@ -294,10 +296,15 @@ void MSC_Init(void)
     g_sCSW.dCSWSignature = CSW_SIGNATURE;
 
     g_TotalSectors = SDCard::instance().blocks();
+    g_au8SenseKey[0] = 0x0;
+    g_au8SenseKey[1] = 0x0;
+    g_au8SenseKey[2] = 0x0;
 }
 
 void MSC_ClassRequest(void)
 {
+    DBG_PRINTF("MSC_ClassRequest\n");
+
     uint8_t buf[8];
 
     USBD_GetSetupPacket(buf);
@@ -388,6 +395,8 @@ void MSC_ClassRequest(void)
 
 void MSC_RequestSense(void)
 {
+    DBG_PRINTF("MSC_RequestSense\n");
+
     uint8_t tmp[20];
 
     memset(tmp, 0, 18);
@@ -399,20 +408,22 @@ void MSC_RequestSense(void)
     else
         tmp[0] = 0xf0;
 
+    g_au8SenseKey[0] = 0;
+    g_au8SenseKey[1] = 0;
+    g_au8SenseKey[2] = 0;
+
     tmp[2] = g_au8SenseKey[0];
     tmp[7] = 0x0a;
     tmp[12] = g_au8SenseKey[1];
     tmp[13] = g_au8SenseKey[2];
 
     USBD_MemCopy((uint8_t *)(USBD_BUF_BASE + USBD_GET_EP_BUF_ADDR(EP2)), tmp, 20);
-
-    g_au8SenseKey[0] = 0;
-    g_au8SenseKey[1] = 0;
-    g_au8SenseKey[2] = 0;
 }
 
 void MSC_ReadFormatCapacity(void)
 {
+    DBG_PRINTF("MSC_ReadFormatCapacity\n");
+
     uint8_t *pu8Desc;
 
     pu8Desc = (uint8_t *)MassCMD_BUF;
@@ -457,6 +468,8 @@ void MSC_ReadFormatCapacity(void)
 
 void MSC_Read(void)
 {
+    DBG_PRINTF("MSC_Read\n");
+
     uint32_t u32Len;
 
     if(USBD_GET_EP_BUF_ADDR(EP2) == g_u32BulkBuf1)
@@ -512,6 +525,8 @@ void MSC_Read(void)
 
 void MSC_ReadTrig(void)
 {
+    DBG_PRINTF("MSC_ReadTrig\n");
+
     uint32_t u32Len;
 
     if(g_u32Length)
@@ -572,6 +587,7 @@ void MSC_ReadTrig(void)
 
 void MSC_ReadCapacity(void)
 {
+    DBG_PRINTF("MSC_ReadCapacity\n");
     uint32_t tmp;
 
     memset((uint8_t *)MassCMD_BUF, 0, 36);
@@ -586,6 +602,7 @@ void MSC_ReadCapacity(void)
 
 void MSC_ReadCapacity16(void)
 {
+    DBG_PRINTF("MSC_ReadCapacity16\n");
     uint32_t tmp;
 
     memset((uint8_t *)MassCMD_BUF, 0, 36);
@@ -605,6 +622,7 @@ void MSC_ReadCapacity16(void)
 
 void MSC_ModeSense10(void)
 {
+    DBG_PRINTF("MSC_ModeSense10\n");
     uint8_t i, j;
     uint8_t NumHead, NumSector;
     uint16_t NumCyl = 0;
@@ -683,6 +701,7 @@ void MSC_ModeSense10(void)
 
 void MSC_Write(void)
 {
+    DBG_PRINTF("MSC_Write\n");
     uint32_t lba, len;
 
     if (g_u32OutSkip == 0)
@@ -748,6 +767,7 @@ void MSC_ProcessCmd(void)
 
     if(g_u8EP3Ready)
     {
+        DBG_PRINTF("MSC_ProcessCmd\n");
         g_u8EP3Ready = 0;
 
         if(g_u8BulkState == BULK_CBW)
@@ -1195,6 +1215,7 @@ void MSC_ProcessCmd(void)
 
 void MSC_AckCmd(void)
 {
+    DBG_PRINTF("MSC_AckCmd\n");
     /* Bulk IN */
     if (g_u8BulkState == BULK_CSW)
     {
@@ -1286,16 +1307,19 @@ void MSC_AckCmd(void)
 
 void MSC_ReadMedia(uint64_t addr, uint64_t size, uint8_t *buffer)
 {
+    DBG_PRINTF("MSC_ReadMedia\n");
     SDCard::instance().read(addr / UDC_SECTOR_SIZE, buffer, size / UDC_SECTOR_SIZE);
 }
 
 void MSC_WriteMedia(uint64_t addr, uint64_t size, uint8_t *buffer)
 {
+    DBG_PRINTF("MSC_WriteMedia\n");
     SDCard::instance().write(addr / UDC_SECTOR_SIZE, buffer, size / UDC_SECTOR_SIZE);
 }
 
 void MSC_SetConfig(void)
 {
+    DBG_PRINTF("MSC_SetConfig\n");
     // Clear stall status and ready
     USBD->EP[2].CFGP = 1;
     USBD->EP[3].CFGP = 1;
@@ -1313,12 +1337,9 @@ void MSC_SetConfig(void)
     /* trigger to receive OUT data */
     USBD_SET_PAYLOAD_LEN(EP3, EP3_MAX_PKT_SIZE);
 
-
     USBD_LockEpStall(0);
 
     g_u8BulkState = BULK_CBW;
 
-
     DBG_PRINTF("Set config\n");
-
 }

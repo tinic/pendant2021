@@ -176,6 +176,7 @@ private:
     bool isSdCard = false;
     bool isSdHcCard = false;
     uint32_t totalBlocks = 0;
+    uint32_t u32TrimInit = 0;
     
     bool detectCardType();
     bool setSectorSize();

@@ -24,14 +24,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./emfat.h"
 #include "./main.h"
 #include "./timeline.h"
+#include "./msc.h"
 
 #include "M480.h"
 
-extern "C" {
-#include "./msc.h"
-}
-
 #include <functional>
+
+#define TRIM_INIT (SYS_BASE+0x10C)
 
 enum {
     CMD0    = 0x40 + 0,  // GO_IDLE_STATE
@@ -60,6 +59,37 @@ SDCard &SDCard::instance() {
 }
 
 void SDCard::process() {
+
+    if (((SYS->CSERVER & SYS_CSERVER_VERSION_Msk) == 0x1)) {
+        /* Start USB trim if it is not enabled. */
+        if ((SYS->HIRCTCTL & SYS_HIRCTCTL_FREQSEL_Msk) != 1) {
+            if(USBD->INTSTS & USBD_INTSTS_SOFIF_Msk) {
+                /* Clear SOF */
+                USBD->INTSTS = USBD_INTSTS_SOFIF_Msk;
+
+                /* Re-enable crystal-less */
+                SYS->HIRCTCTL = 0x1;
+                SYS->HIRCTCTL |= SYS_HIRCTCTL_REFCKSEL_Msk;
+            }
+        }
+
+        /* Disable USB Trim when error */
+        if (SYS->HIRCTISTS & (SYS_HIRCTISTS_CLKERRIF_Msk | SYS_HIRCTISTS_TFAILIF_Msk)) {
+            /* Init TRIM */
+            M32(TRIM_INIT) = u32TrimInit;
+
+            /* Disable crystal-less */
+            SYS->HIRCTCTL = 0;
+
+            /* Clear error flags */
+            SYS->HIRCTISTS = SYS_HIRCTISTS_CLKERRIF_Msk | SYS_HIRCTISTS_TFAILIF_Msk;
+
+            /* Clear SOF */
+            USBD->INTSTS = USBD_INTSTS_SOFIF_Msk;
+        }
+    }
+
+    MSC_ProcessCmd();
 }
 
 void SDCard::read(uint32_t blockAddr, uint8_t *buffer, int32_t blockLen) {
@@ -429,11 +459,22 @@ void SDCard::init() {
 
     QSPI_SET_SS_HIGH(QSPI0);
 
-/*    NVIC_SetPriority(USBD_IRQn, 4);
-    NVIC_EnableIRQ(USBD_IRQn);
-
-    USBD_SetConfigCallback(MSC_SetConfig);
     USBD_Open(&gsInfo, MSC_ClassRequest, NULL);
+    USBD_SetConfigCallback(MSC_SetConfig);
 
-    USBD_Start();*/
+    MSC_Init();
+    USBD_Start();
+
+    if (((SYS->CSERVER & SYS_CSERVER_VERSION_Msk) == 0x1)) {
+        /* Start USB trim */
+        USBD->INTSTS = USBD_INTSTS_SOFIF_Msk;
+        while((USBD->INTSTS & USBD_INTSTS_SOFIF_Msk) == 0);
+        SYS->HIRCTCTL = 0x1;
+        SYS->HIRCTCTL |= SYS_HIRCTCTL_REFCKSEL_Msk;
+        /* Backup default trim */
+        u32TrimInit = M32(TRIM_INIT);
+    }
+
+    NVIC_SetPriority(USBD_IRQn, 4);
+    NVIC_EnableIRQ(USBD_IRQn);
 }
