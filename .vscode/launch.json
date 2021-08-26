@@ -11,7 +11,7 @@
             "device": "M482ZGCAE",
             "interface": "swd",
             "configFiles": [
-                "./stlink-v2.cfg",
+                "./stlink.cfg",
                 "./numicroM4.cfg"
             ]
         }

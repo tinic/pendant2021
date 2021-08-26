@@ -132,7 +132,7 @@ static void SYS_Init(void)
     CLK_EnableModuleClock(PDMA_MODULE); // HCLK, 96Mhz
 
     CLK_EnableModuleClock(QSPI0_MODULE);
-    CLK_SetModuleClock(QSPI0_MODULE, CLK_CLKSEL2_QSPI0SEL_PLL, MODULE_NoMsk); // 96Mhz
+    CLK_SetModuleClock(QSPI0_MODULE, CLK_CLKSEL2_QSPI0SEL_PCLK0, MODULE_NoMsk); // 12Mhz
 
     CLK_EnableModuleClock(USBD_MODULE);
     CLK_SetModuleClock(USBD_MODULE, CLK_CLKSEL0_USBSEL_RC48M, MODULE_NoMsk); // 48Mhz
