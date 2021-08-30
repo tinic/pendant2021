@@ -42,6 +42,9 @@ public:
     void read(uint32_t blockAddr, uint8_t *buffer, int32_t blockLen);
     void write(uint32_t blockAddr, const uint8_t *buffer, int32_t blockLen);
 
+    bool readFromDataFile(uint8_t *outBuf, size_t offset, size_t size);
+    bool dataFilePresent() const { return datafile_present; }
+
     bool newFirmwareAvailable() const {  
         return firmware_bootloaded && 
                firmware_release && 
@@ -191,6 +194,8 @@ private:
     uint32_t totalBlocks = 0;
     uint32_t u32TrimInit = 0;
 
+    bool datafile_present = false;
+
     bool firmware_release = false;
     bool firmware_bootloaded = false;
 
@@ -204,6 +209,7 @@ private:
     bool readCSD();
 
     void findFirmware();
+    void findDataFile();
 
     std::tuple<bool, uint8_t> GoIdle();
     std::tuple<bool, uint8_t> CheckVoltage();

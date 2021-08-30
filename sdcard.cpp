@@ -349,7 +349,7 @@ bool SDCard::readCID() {
 	readByte();
 	readByte();
 
-    printf("Read CID!\n");
+    printf("SDCard: Read CID!\n");
 
     return true;
 }
@@ -438,7 +438,7 @@ bool SDCard::readCSD() {
 	readByte();
 	readByte();
 
-    printf("Read CSD!\n");
+    printf("SDCard: Read CSD!\n");
 
 	totalBlocks = 0;
 	if (sd_spi_csd.csd_structure == 0) {
@@ -449,7 +449,7 @@ bool SDCard::readCSD() {
 		totalBlocks <<= 10;
     }
 
-    printf("Media is %.2fGB in size!\n", (double(uint64_t(totalBlocks) * 512)) / (1024.0 * 1024.0 * 1024.0));
+    printf("SDCard: Media is %.2fGB in size!\n", (double(uint64_t(totalBlocks) * 512)) / (1024.0 * 1024.0 * 1024.0));
 
     return true;
 }
@@ -487,9 +487,9 @@ bool SDCard::detectCardType() {
                 readByte() == 0xAA) {
                 isSdCard = true;
             }
-            printf("SD Card detected!\n");
+            printf("SDCard: SD Card detected!\n");
         } else {
-            printf("MMC Card detected!\n");
+            printf("SDCard: MMC Card detected!\n");
         }
         if (isSdCard) {
             double start_time = Timeline::SystemTime();
@@ -506,7 +506,7 @@ bool SDCard::detectCardType() {
             }
 
             if ((readByte() & 0x40) != 0) {
-                printf("SD Card is high capacity!\n");
+                printf("SDCard: SD Card is high capacity!\n");
                 isSdHcCard = true;
             }
             readByte();
@@ -516,7 +516,7 @@ bool SDCard::detectCardType() {
             // Do we care?
         }
     }
-    printf("Card type determined!\n");
+    printf("SDCard: Card type determined!\n");
     return true;
 }
 
@@ -529,6 +529,36 @@ bool SDCard::setSectorSize() {
     return true;
 }
 
+bool SDCard::readFromDataFile(uint8_t *outBuf, size_t offset, size_t size) {
+    if (!datafile_present) {
+        return false;
+    }
+
+    FIL Fil;
+    if (f_open(&Fil, "data.bin", FA_READ | FA_OPEN_EXISTING) == FR_OK) {
+        f_lseek(&Fil, offset);
+        UINT readLen = size;
+        f_read(&Fil, outBuf, readLen, &readLen);
+        f_close(&Fil);
+        return readLen == size;
+    }
+
+    return false;
+}
+
+void SDCard::findDataFile() {
+    if (!mounted) {
+        return;
+    }
+
+    FIL Fil;
+    if (f_open(&Fil, "data.bin", FA_READ | FA_OPEN_EXISTING) == FR_OK) {
+        printf("SDCard: Found data.bin!\n");
+        datafile_present = true;
+        f_close(&Fil);
+    }
+}
+
 void SDCard::findFirmware() {
     if (!mounted) {
         return;
@@ -536,6 +566,7 @@ void SDCard::findFirmware() {
 
     FIL Fil;
     if (f_open(&Fil, "firmware.bin", FA_READ | FA_OPEN_EXISTING) == FR_OK) {
+        printf("SDCard: Found firmware.bin!\n");
         // search somewhere in/after the vector table
         f_lseek(&Fil, 0x180);
         const size_t searchLen = 0x100;
@@ -552,14 +583,17 @@ void SDCard::findFirmware() {
                             buffer[c+3] == ((marker >>  0) & 0xFF);
                 };
                 if (matchMarker(markerBootable)) {
+                    printf("SDCard: Found valid firmware sentinel!\n");
                     c += sizeof(uint32_t);
                     if (matchMarker(markerTesting) ||
                         matchMarker(markerRelease)) {
                         firmware_release = matchMarker(markerRelease);
+                        printf("SDCard: Firmware type %d\n", firmware_release ? 1 : 0);
                         c += sizeof(uint32_t);
                         if (matchMarker(markerBootloader) ||
                             matchMarker(markerBootloaded)) {
                             firmware_bootloaded = matchMarker(markerBootloaded);
+                            printf("SDCard: Firmware variant %d\n", firmware_bootloaded ? 1 : 0);
                             c += sizeof(uint32_t);
                             auto readUint32 = [=](){
                                 return (uint32_t(buffer[c+0])<<24) |
@@ -570,6 +604,7 @@ void SDCard::findFirmware() {
                             firmware_revision = readUint32();
                             firmware_sha_lo = readUint32();
                             firmware_sha_hi = readUint32();
+                            printf("SDCard: Firmware rev %d sha 0x%08x%08x\n", int(firmware_revision), int(firmware_sha_hi), int(firmware_sha_lo));
                         }
                     }
                 }
@@ -604,6 +639,7 @@ void SDCard::init() {
 	if (f_mount(&FatFs, "", 0) == FR_OK) {
         mounted = true;
         findFirmware();
+        findDataFile();
     }
 
     QSPI_SET_SS_HIGH(QSPI0);
