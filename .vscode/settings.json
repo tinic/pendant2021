@@ -59,6 +59,7 @@
         "queue": "cpp",
         "xhash": "cpp",
         "xstring": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "*.in": "cpp"
     }
 }

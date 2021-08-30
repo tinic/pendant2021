@@ -175,7 +175,6 @@ __Vectors:
 	.long	EADC12_IRQHandler     /* 106: EADC12                    */
 	.long	EADC13_IRQHandler     /* 107: EADC13                    */
 	.long	CAN2_IRQHandler       /* 108: CAN2                      */
-
 	.size	__Vectors, . - __Vectors
 
 	.text

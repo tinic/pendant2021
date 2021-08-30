@@ -25,6 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./timeline.h"
 #include "./msc.h"
 #include "./stm32wl.h"
+#include "./version.h"
 
 #include "ff.h"
 #include "diskio.h"
@@ -32,11 +33,38 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <functional>
 
-extern "C" {
-    DWORD get_fattime (void);
-}
+enum {
+    markerBootable   = 0xB007AB1E,
 
-DWORD get_fattime (void)
+    markerTesting    = 0x7E577E57,
+    markerRelease    = 0x5ADD1ED0,
+
+    markerBootloader = 0xB00710AD,
+    markerBootloaded = 0x1ED54B0B,
+};
+
+#define BE_MARKER(data)   \
+((((uint64_t)(data) >> 24) & 0x000000FF) | (((uint64_t)(data) >>  8) & 0x0000FF00) | \
+ (((uint64_t)(data) <<  8) & 0x00FF0000) | (((uint64_t)(data) << 24) & 0xFF000000) ) 
+
+extern "C" const uint32_t __attribute__((used, section (".metadata"))) metadata[] = {
+    BE_MARKER(markerBootable),
+#if defined(TESTING)
+    BE_MARKER(markerTesting),
+#else 
+    BE_MARKER(markerRelease),
+#endif // defined(TESTING)
+#if defined(BOOTLOADER)
+    BE_MARKER(markerBootloader),
+#else  // #if defined(BOOTLOADER)
+    BE_MARKER(markerBootloaded),
+#endif  // #if defined(BOOTLOADER)
+    GIT_REV_COUNT_INT,
+    ((GIT_SHORT_SHA_INT >>  0) & 0xFFFFFFFFULL),
+    ((GIT_SHORT_SHA_INT >> 32) & 0xFFFFFFFFULL),
+};
+
+extern "C" DWORD get_fattime (void)
 {
     return STM32WL::instance().DateTime();
 }
@@ -501,6 +529,56 @@ bool SDCard::setSectorSize() {
     return true;
 }
 
+void SDCard::findFirmware() {
+    if (!mounted) {
+        return;
+    }
+
+    FIL Fil;
+    if (f_open(&Fil, "firmware.bin", FA_READ | FA_OPEN_EXISTING) == FR_OK) {
+        // search somewhere in/after the vector table
+        f_lseek(&Fil, 0x180);
+        const size_t searchLen = 0x100;
+        BYTE buffer[searchLen];
+        UINT readLen = searchLen;
+        f_read(&Fil, buffer, readLen, &readLen);
+        if (readLen == searchLen) {
+            for (size_t c = 0; c < searchLen; c += sizeof(uint32_t)) {
+                auto matchMarker = [=](uint32_t marker) {
+                    // Big-endian
+                    return  buffer[c+0] == ((marker >> 24) & 0xFF) &&
+                            buffer[c+1] == ((marker >> 16) & 0xFF) &&
+                            buffer[c+2] == ((marker >>  8) & 0xFF) &&
+                            buffer[c+3] == ((marker >>  0) & 0xFF);
+                };
+                if (matchMarker(markerBootable)) {
+                    c += sizeof(uint32_t);
+                    if (matchMarker(markerTesting) ||
+                        matchMarker(markerRelease)) {
+                        firmware_release = matchMarker(markerRelease);
+                        c += sizeof(uint32_t);
+                        if (matchMarker(markerBootloader) ||
+                            matchMarker(markerBootloaded)) {
+                            firmware_bootloaded = matchMarker(markerBootloaded);
+                            c += sizeof(uint32_t);
+                            auto readUint32 = [=](){
+                                return (uint32_t(buffer[c+0])<<24) |
+                                       (uint32_t(buffer[c+1])<<16) |
+                                       (uint32_t(buffer[c+2])<< 8) |
+                                       (uint32_t(buffer[c+3])<< 0);
+                            };
+                            firmware_revision = readUint32();
+                            firmware_sha_lo = readUint32();
+                            firmware_sha_hi = readUint32();
+                        }
+                    }
+                }
+            }
+        }
+        f_close(&Fil);
+    }
+}
+
 void SDCard::init() {
 
     QSPI_Open(QSPI0, QSPI_MASTER, QSPI_MODE_0, 8, 10000000);
@@ -524,17 +602,8 @@ void SDCard::init() {
     }
 
 	if (f_mount(&FatFs, "", 0) == FR_OK) {
-        FIL Fil;
-        if (f_open(&Fil, "firmware.bin", FA_READ | FA_OPEN_EXISTING) == FR_OK) {
-            BYTE buffer[64];
-            UINT readLen = 64;
-            f_read(&Fil, buffer, readLen, &readLen);
-            if (readLen == 64) {
-                // extract version numner;
-            }
-            f_close(&Fil);
-        }
-        return;
+        mounted = true;
+        findFirmware();
     }
 
     QSPI_SET_SS_HIGH(QSPI0);

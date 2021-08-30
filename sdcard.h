@@ -23,6 +23,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef SDCARD_H_
 #define SDCARD_H_
 
+#include "./version.h"
+
 #include <stdint.h>
 #include <tuple>
 
@@ -39,6 +41,12 @@ public:
 
     void read(uint32_t blockAddr, uint8_t *buffer, int32_t blockLen);
     void write(uint32_t blockAddr, const uint8_t *buffer, int32_t blockLen);
+
+    bool newFirmwareAvailable() const {  
+        return firmware_bootloaded && 
+               firmware_release && 
+               firmware_revision > GIT_REV_COUNT_INT; 
+    }
 
 private:
     struct
@@ -176,17 +184,26 @@ private:
     } sd_spi_csd;
 
     FATFS FatFs;
+    bool mounted = false;
 
     bool isSdCard = false;
     bool isSdHcCard = false;
     uint32_t totalBlocks = 0;
     uint32_t u32TrimInit = 0;
+
+    bool firmware_release = false;
+    bool firmware_bootloaded = false;
+
+    uint32_t firmware_revision = 0;
+    uint32_t firmware_sha_lo = 0;
+    uint32_t firmware_sha_hi = 0;
     
     bool detectCardType();
     bool setSectorSize();
     bool readCID();
     bool readCSD();
 
+    void findFirmware();
 
     std::tuple<bool, uint8_t> GoIdle();
     std::tuple<bool, uint8_t> CheckVoltage();

@@ -51,6 +51,8 @@ SECTIONS
 		__Vectors_Size = __Vectors_End - __Vectors;
 		__end__ = .;
 
+		KEEP(*(.metadata*))
+
 		*(.text*)
 
 		KEEP(*(.init))
