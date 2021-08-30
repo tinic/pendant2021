@@ -21,14 +21,76 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./sdcard.h"
-#include "./emfat.h"
 #include "./main.h"
 #include "./timeline.h"
 #include "./msc.h"
+#include "./stm32wl.h"
 
+#include "ff.h"
+#include "diskio.h"
 #include "M480.h"
 
 #include <functional>
+
+extern "C" {
+    DWORD get_fattime (void);
+}
+
+DWORD get_fattime (void)
+{
+    return STM32WL::instance().DateTime();
+}
+
+#define DEV_MMC 0
+
+DSTATUS disk_status(BYTE pdrv) {
+    switch (pdrv) {
+    default:
+    case DEV_MMC :
+        return 0;
+    }
+    return STA_NOINIT;
+}
+
+DSTATUS disk_initialize(BYTE pdrv)
+{
+    switch (pdrv) {
+    default:
+    case DEV_MMC :
+        return 0;
+    }
+    return STA_NOINIT;
+}
+
+DRESULT disk_read(BYTE pdrv, BYTE *buff, LBA_t sector, UINT count ) {
+    switch (pdrv) {
+    case DEV_MMC :
+        SDCard::instance().read(sector, buff, count);
+        return RES_OK;
+    }
+    return RES_PARERR;
+}
+
+#if FF_FS_READONLY == 0
+
+DRESULT disk_write(BYTE pdrv, const BYTE *buff, LBA_t sector, UINT count) {
+    switch (pdrv) {
+    case DEV_MMC :
+        SDCard::instance().write(sector, buff, count);
+        return RES_OK;
+    }
+    return RES_PARERR;
+}
+
+#endif
+
+DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff) {
+    switch (pdrv) {
+    case DEV_MMC :
+        return RES_OK;
+    }
+    return RES_PARERR;
+}
 
 #define TRIM_INIT (SYS_BASE+0x10C)
 
@@ -458,8 +520,9 @@ void SDCard::init() {
 
     QSPI_Open(QSPI0, QSPI_MASTER, QSPI_MODE_0, 8, 0);
 
-    // Set to max speed, 96Mhz
-    CLK_SetModuleClock(QSPI0_MODULE, CLK_CLKSEL2_QSPI0SEL_PLL, MODULE_NoMsk);
+    // Set to PCLK0 speed, 12Mhz for now. Sadly there are no clock dividers for QSPI.
+    // TODO: Up this to 24Mhz, if possible.
+    CLK_SetModuleClock(QSPI0_MODULE, CLK_CLKSEL2_QSPI0SEL_PCLK0, MODULE_NoMsk);
 
     QSPI_SET_SS_HIGH(QSPI0);
 
@@ -476,6 +539,20 @@ void SDCard::init() {
     }
 
     if (!readCSD()) {
+        return;
+    }
+
+	if (f_mount(&FatFs, "", 0) == FR_OK) {
+        FIL Fil;
+        if (f_open(&Fil, "firmware.bin", FA_READ | FA_OPEN_EXISTING) == FR_OK) {
+            BYTE buffer[64];
+            UINT readLen = 64;
+            f_read(&Fil, buffer, readLen, &readLen);
+            if (readLen == 64) {
+                // extract version numner;
+            }
+            f_close(&Fil);
+        }
         return;
     }
 

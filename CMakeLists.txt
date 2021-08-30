@@ -102,7 +102,9 @@ add_executable(${PROJECT_NAME}.elf
     ${PROJECT_SOURCE_DIR}/stubs.c
     ${PROJECT_SOURCE_DIR}/descriptors.c
     ${PROJECT_SOURCE_DIR}/msc.cpp
-    ${PROJECT_SOURCE_DIR}/emfat.c
+    ${PROJECT_SOURCE_DIR}/fatfs/ff.c
+    ${PROJECT_SOURCE_DIR}/fatfs/ffsystem.c
+    ${PROJECT_SOURCE_DIR}/fatfs/ffunicode.c
     ${PROJECT_SOURCE_DIR}/main.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/retarget.c
     ${PROJECT_SOURCE_DIR}/Library/StdDriver/src/clk.c
@@ -124,6 +126,7 @@ add_executable(${PROJECT_NAME}.elf
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE
     .
+    fatfs
     Library/CMSIS/Include
     Library/Device/Nuvoton/M480/Include
     Library/UsbHostLib/inc

@@ -38,6 +38,8 @@ public:
     float ChargeCurrent() const { return ( static_cast<float>(i2cRegs.fields.bq25895ChargeCurrent) * 6350.0f ) * ( 1.0f / 127.0f); }
     float Temperature() const { return (float(i2cRegs.fields.ens210Tmp) / 64.f) - 273.15f; }
     float Humidity() const { return (float(i2cRegs.fields.ens210Hmd) / 51200.0f); }
+    uint16_t SystemTime() const { return i2cRegs.fields.systemTime; }
+    uint32_t DateTime() const { return i2cRegs.fields.rtcDateTime; }
 
 private:
     friend class I2CManager;
@@ -98,6 +100,8 @@ private:
             uint16_t mmc5633njlYG;
             uint16_t mmc5633njlZG;
             uint8_t  mmc5633njlTmp;
+
+            uint32_t rtcDateTime;
         } fields;
     } i2cRegs;
 };

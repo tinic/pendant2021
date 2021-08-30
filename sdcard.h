@@ -26,6 +26,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdint.h>
 #include <tuple>
 
+#include "ff.h"
+
 class SDCard {
 public:
     static SDCard &instance();
@@ -172,6 +174,8 @@ private:
         /* Bitfield padding */
         unsigned int:								1;
     } sd_spi_csd;
+
+    FATFS FatFs;
 
     bool isSdCard = false;
     bool isSdHcCard = false;

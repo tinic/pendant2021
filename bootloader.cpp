@@ -21,7 +21,6 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./bootloader.h"
-#include "./emfat.h"
 #include "./main.h"
 #include "./leds.h"
 #include "./i2cmanager.h"
