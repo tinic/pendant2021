@@ -43,21 +43,21 @@ enum {
     markerBootloaded = 0x1ED54B0B,
 };
 
-#define BE_MARKER(data)   \
-((((uint64_t)(data) >> 24) & 0x000000FF) | (((uint64_t)(data) >>  8) & 0x0000FF00) | \
- (((uint64_t)(data) <<  8) & 0x00FF0000) | (((uint64_t)(data) << 24) & 0xFF000000) ) 
+static constexpr uint32_t swap(uint32_t v) {
+    return ((v>>24)&0xFF)|((v&0xFF)<<24)|((v>>8)&0xFF00)|((v&0xFF00)<<8);
+}
 
 extern "C" const uint32_t __attribute__((used, section (".metadata"))) metadata[] = {
-    BE_MARKER(markerBootable),
+    swap(markerBootable),
 #if defined(TESTING)
-    BE_MARKER(markerTesting),
+    swap(markerTesting),
 #else 
-    BE_MARKER(markerRelease),
+    swap(markerRelease),
 #endif // defined(TESTING)
 #if defined(BOOTLOADER)
-    BE_MARKER(markerBootloader),
+    swap(markerBootloader),
 #else  // #if defined(BOOTLOADER)
-    BE_MARKER(markerBootloaded),
+    swap(markerBootloaded),
 #endif  // #if defined(BOOTLOADER)
     GIT_REV_COUNT_INT,
     ((GIT_SHORT_SHA_INT >>  0) & 0xFFFFFFFFULL),
@@ -69,7 +69,7 @@ extern "C" DWORD get_fattime (void)
     return STM32WL::instance().DateTime();
 }
 
-#define DEV_MMC 0
+static constexpr uint8_t DEV_MMC = 0;
 
 DSTATUS disk_status(BYTE pdrv) {
     switch (pdrv) {
