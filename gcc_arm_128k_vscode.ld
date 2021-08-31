@@ -51,8 +51,6 @@ SECTIONS
 		__Vectors_Size = __Vectors_End - __Vectors;
 		__end__ = .;
 
-		KEEP(*(.metadata*))
-
 		*(.text*)
 
 		KEEP(*(.init))
@@ -75,6 +73,7 @@ SECTIONS
 		*(.rodata*)
 
 		KEEP(*(.eh_frame*))
+
 	} > FLASH
 
 	.ARM.extab :
@@ -157,6 +156,13 @@ SECTIONS
 		/* All data end */
 		__data_end__ = .;
 
+	} > RAM
+
+	.metadata :
+	{
+		. = ALIGN(4);
+		KEEP(*(.metadata*))
+		. = ALIGN(4);
 	} > RAM
 
 	.bss :

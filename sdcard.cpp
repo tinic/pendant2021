@@ -40,7 +40,7 @@ enum {
     markerRelease    = 0x5ADD1ED0,
 
     markerBootloader = 0xB00710AD,
-    markerBootloaded = 0x1ED54B0B,
+    markerBootloaded = 0x1ED54B0B, 
 };
 
 static constexpr uint32_t swap(uint32_t v) {
@@ -51,17 +51,15 @@ extern "C" const uint32_t __attribute__((used, section (".metadata"))) metadata[
     swap(markerBootable),
 #if defined(TESTING)
     swap(markerTesting),
-#else 
+#else
     swap(markerRelease),
 #endif // defined(TESTING)
 #if defined(BOOTLOADER)
     swap(markerBootloader),
-#else  // #if defined(BOOTLOADER)
+#else  // #if defined(BOOTLOADER) 
     swap(markerBootloaded),
 #endif  // #if defined(BOOTLOADER)
-    GIT_REV_COUNT_INT,
-    ((GIT_SHORT_SHA_INT >>  0) & 0xFFFFFFFFULL),
-    ((GIT_SHORT_SHA_INT >> 32) & 0xFFFFFFFFULL),
+    GIT_REV_COUNT_INT
 };
 
 extern "C" DWORD get_fattime (void)
@@ -564,54 +562,71 @@ void SDCard::findFirmware() {
         return;
     }
 
-    FIL Fil;
-    if (f_open(&Fil, "firmware.bin", FA_READ | FA_OPEN_EXISTING) == FR_OK) {
-        printf("SDCard: Found firmware.bin!\n");
-        // search somewhere in/after the vector table
-        f_lseek(&Fil, 0x180);
-        const size_t searchLen = 0x100;
-        BYTE buffer[searchLen];
-        UINT readLen = searchLen;
-        f_read(&Fil, buffer, readLen, &readLen);
-        if (readLen == searchLen) {
-            for (size_t c = 0; c < searchLen; c += sizeof(uint32_t)) {
-                auto matchMarker = [=](uint32_t marker) {
-                    // Big-endian
-                    return  buffer[c+0] == ((marker >> 24) & 0xFF) &&
-                            buffer[c+1] == ((marker >> 16) & 0xFF) &&
-                            buffer[c+2] == ((marker >>  8) & 0xFF) &&
-                            buffer[c+3] == ((marker >>  0) & 0xFF);
-                };
-                if (matchMarker(markerBootable)) {
-                    printf("SDCard: Found valid firmware sentinel!\n");
-                    c += sizeof(uint32_t);
-                    if (matchMarker(markerTesting) ||
-                        matchMarker(markerRelease)) {
-                        firmware_release = matchMarker(markerRelease);
-                        printf("SDCard: Firmware type %d\n", firmware_release ? 1 : 0);
-                        c += sizeof(uint32_t);
-                        if (matchMarker(markerBootloader) ||
-                            matchMarker(markerBootloaded)) {
-                            firmware_bootloaded = matchMarker(markerBootloaded);
-                            printf("SDCard: Firmware variant %d\n", firmware_bootloaded ? 1 : 0);
-                            c += sizeof(uint32_t);
-                            auto readUint32 = [=](){
-                                return (uint32_t(buffer[c+0])<<24) |
-                                       (uint32_t(buffer[c+1])<<16) |
-                                       (uint32_t(buffer[c+2])<< 8) |
-                                       (uint32_t(buffer[c+3])<< 0);
-                            };
-                            firmware_revision = readUint32();
-                            firmware_sha_lo = readUint32();
-                            firmware_sha_hi = readUint32();
-                            printf("SDCard: Firmware rev %d sha 0x%08x%08x\n", int(firmware_revision), int(firmware_sha_hi), int(firmware_sha_lo));
-                        }
-                    }
-                }
-            }
-        }
-        f_close(&Fil);
+    const char *filename = "firmware.bin";
+
+    FILINFO FilInfo = { };
+    f_stat(filename, &FilInfo);
+    if (FilInfo.fsize < 32768) {
+        return;
     }
+
+    FIL Fil = { };
+    if (f_open(&Fil, filename, FA_READ | FA_OPEN_EXISTING) != FR_OK) {
+        return;
+    }
+
+    printf("SDCard: Found firmware.bin!\n");
+
+    const size_t markerSize = 16;
+
+    f_lseek(&Fil, FilInfo.fsize - markerSize);
+
+    BYTE buffer[markerSize];
+    UINT readLen = markerSize;
+    f_read(&Fil, buffer, readLen, &readLen);
+    if (readLen != markerSize) {
+        return;
+    }
+
+    auto matchMarker = [=](uint32_t pos, uint32_t marker) {
+        // Big-endian
+        return  buffer[pos*sizeof(uint32_t)+0] == ((marker >> 24) & 0xFF) &&
+                buffer[pos*sizeof(uint32_t)+1] == ((marker >> 16) & 0xFF) &&
+                buffer[pos*sizeof(uint32_t)+2] == ((marker >>  8) & 0xFF) &&
+                buffer[pos*sizeof(uint32_t)+3] == ((marker >>  0) & 0xFF);
+    };
+
+    auto readUint32 = [=](uint32_t pos){
+        return  (uint32_t(buffer[pos*sizeof(uint32_t)+0])<< 0)|
+                (uint32_t(buffer[pos*sizeof(uint32_t)+1])<< 8)|
+                (uint32_t(buffer[pos*sizeof(uint32_t)+2])<<16)|
+                (uint32_t(buffer[pos*sizeof(uint32_t)+3])<<24);
+    };
+
+    if (!matchMarker(0, markerBootable)) {
+        return;
+    }
+
+    printf("SDCard: Found valid firmware sentinel!\n");
+    if (!matchMarker(1, markerTesting) &&
+        !matchMarker(1, markerRelease)) {
+        return;
+    }
+
+    firmware_release = matchMarker(1, markerRelease);
+    printf("SDCard: Firmware type %d\n", firmware_release ? 1 : 0);
+    if (!matchMarker(2, markerBootloader) &&
+        !matchMarker(2, markerBootloaded)) {
+        return;
+    }
+
+    firmware_bootloaded = matchMarker(2, markerBootloaded);
+    printf("SDCard: Firmware variant %d\n", firmware_bootloaded ? 1 : 0);
+
+    firmware_revision = readUint32(3);
+    printf("SDCard: Firmware rev %d\n", int(firmware_revision));
+
+    f_close(&Fil);
 }
 
 void SDCard::init() {

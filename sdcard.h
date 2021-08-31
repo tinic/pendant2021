@@ -200,8 +200,6 @@ private:
     bool firmware_bootloaded = false;
 
     uint32_t firmware_revision = 0;
-    uint32_t firmware_sha_lo = 0;
-    uint32_t firmware_sha_hi = 0;
     
     bool detectCardType();
     bool setSectorSize();
