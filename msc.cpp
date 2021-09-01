@@ -1289,12 +1289,12 @@ void MSC_AckCmd(void)
 
 void MSC_ReadMedia(uint64_t addr, uint64_t size, uint8_t *buffer)
 {
-    SDCard::instance().read(addr / UDC_SECTOR_SIZE, buffer, size / UDC_SECTOR_SIZE);
+    SDCard::instance().readBlock(addr / UDC_SECTOR_SIZE, buffer, size / UDC_SECTOR_SIZE);
 }
 
 void MSC_WriteMedia(uint64_t addr, uint64_t size, uint8_t *buffer)
 {
-    SDCard::instance().write(addr / UDC_SECTOR_SIZE, buffer, size / UDC_SECTOR_SIZE);
+    SDCard::instance().writeBlock(addr / UDC_SECTOR_SIZE, buffer, size / UDC_SECTOR_SIZE);
 }
 
 void MSC_SetConfig(void)

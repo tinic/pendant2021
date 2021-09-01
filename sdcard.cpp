@@ -34,6 +34,24 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <functional>
 
 enum {
+    CMD0    = 0x40 + 0,  // GO_IDLE_STATE
+    CMD1    = 0x40 + 1,  // SEND_OP_COND (MMC) 
+    ACMD13  = 0xC0 + 13, // SD_STATUS (SDC)
+    ACMD41  = 0xC0 + 41, // SEND_OP_COND (SDC)
+    CMD8    = 0x40 + 8,  // SEND_IF_COND
+    CMD9    = 0x40 + 9,  // SEND_CSD
+    CMD10   = 0x40 + 10, // SEND_CID
+    CMD16   = 0x40 + 16, // SET_BLOCKLEN
+    CMD17   = 0x40 + 17, // READ_SINGLE_BLOCK
+    CMD24   = 0x40 + 24, // WRITE_SINGLE_BLOCK
+    CMD42   = 0x40 + 42, // LOCK_UNLOCK
+    CMD55   = 0x40 + 55, // APP_CMD
+    CMD58   = 0x40 + 58, // READ_OCR
+    CMD59   = 0x40 + 59, // CRC_ON_OFF
+    CMD
+};
+
+enum {
     markerBootable   = 0xB007AB1E,
 
     markerTesting    = 0x7E577E57,
@@ -70,72 +88,55 @@ extern "C" DWORD get_fattime (void)
 static constexpr uint8_t DEV_MMC = 0;
 
 DSTATUS disk_status(BYTE pdrv) {
-    switch (pdrv) {
-    default:
-    case DEV_MMC :
-        return 0;
+    if (pdrv != 0) {
+        return STA_NOINIT;
     }
-    return STA_NOINIT;
+
+    return 0;
 }
 
-DSTATUS disk_initialize(BYTE pdrv)
-{
-    switch (pdrv) {
-    default:
-    case DEV_MMC :
-        return 0;
+DSTATUS disk_initialize(BYTE pdrv) {
+    if (pdrv != 0) {
+        return STA_NOINIT;
     }
-    return STA_NOINIT;
+
+    return 0;
 }
 
 DRESULT disk_read(BYTE pdrv, BYTE *buff, LBA_t sector, UINT count ) {
-    switch (pdrv) {
-    case DEV_MMC :
-        SDCard::instance().read(sector, buff, count);
-        return RES_OK;
+    if (pdrv != 0) {
+        return RES_PARERR;
     }
-    return RES_PARERR;
+
+    SDCard::instance().readBlock(sector, buff, count);
+    return RES_OK;
 }
 
 #if FF_FS_READONLY == 0
-
 DRESULT disk_write(BYTE pdrv, const BYTE *buff, LBA_t sector, UINT count) {
-    switch (pdrv) {
-    case DEV_MMC :
-        SDCard::instance().write(sector, buff, count);
-        return RES_OK;
+    if (pdrv != 0) {
+        return RES_PARERR;
     }
-    return RES_PARERR;
-}
 
+    SDCard::instance().writeBlock(sector, buff, count);
+    return RES_OK;
+}
 #endif
 
 DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff) {
-    switch (pdrv) {
-    case DEV_MMC :
-        return RES_OK;
+    if (pdrv != 0) {
+        return RES_PARERR;
+    }
+    switch (cmd) {
+    	case CTRL_SYNC: {
+            printf("CTRL_SYNC\n");
+            return RES_OK;
+        } break;
     }
     return RES_PARERR;
 }
 
 #define TRIM_INIT (SYS_BASE+0x10C)
-
-enum {
-    CMD0    = 0x40 + 0,  // GO_IDLE_STATE
-    CMD1    = 0x40 + 1,  // SEND_OP_COND (MMC) 
-    ACMD41  = 0xC0 + 41, // SEND_OP_COND (SDC)
-    CMD8    = 0x40 + 8,  // SEND_IF_COND
-    CMD9    = 0x40 + 9,  // SEND_CSD
-    CMD10   = 0x40 + 10, // SEND_CID
-    CMD16   = 0x40 + 16, // SET_BLOCKLEN
-    CMD17   = 0x40 + 17, // READ_SINGLE_BLOCK
-    CMD24   = 0x40 + 24, // WRITE_SINGLE_BLOCK
-    CMD42   = 0x40 + 42, // LOCK_UNLOCK
-    CMD55   = 0x40 + 55, // APP_CMD
-    CMD58   = 0x40 + 58, // READ_OCR
-    CMD59   = 0x40 + 59, // CRC_ON_OFF
-    CMD
-};
 
 SDCard &SDCard::instance() {
     static SDCard sdcard;
@@ -180,23 +181,20 @@ void SDCard::process() {
     MSC_ProcessCmd();
 }
 
-void SDCard::read(uint32_t blockAddr, uint8_t *buffer, int32_t blockLen) {
-    QSPI_SET_SS_LOW(QSPI0);
+void SDCard::readBlock(uint32_t blockAddr, uint8_t *buffer, int32_t blockLen) {
     for (; blockLen > 0 ;) {
-        SendCmd(CMD17, blockAddr);
-        for(size_t c = 0; c < 512; c++) {
-            *buffer++ = readByte();    
-        }
+        SendCmd(CMD17, (cardType & CT_BLOCK) == 0 ? (blockAddr * 512) : blockAddr);
+        readBytes(buffer, 512);
         blockLen--;
         blockAddr++;
     }
     QSPI_SET_SS_HIGH(QSPI0);
 }
 
-void SDCard::write(uint32_t blockAddr, const uint8_t *buffer, int32_t blockLen) {
-    QSPI_SET_SS_LOW(QSPI0);
+void SDCard::writeBlock(uint32_t blockAddr, const uint8_t *buffer, int32_t blockLen) {
+#if 0
     for (; blockLen > 0 ;) {
-        SendCmd(CMD24, blockAddr);
+        SendCmd(CMD24, (cardType & CT_BLOCK) == 0 ? (blockAddr * 512) : blockAddr);
         for(size_t c = 0; c < 512; c++) {
             writeByte(*buffer++);    
         }
@@ -204,69 +202,44 @@ void SDCard::write(uint32_t blockAddr, const uint8_t *buffer, int32_t blockLen) 
         blockAddr++;
     }
     QSPI_SET_SS_HIGH(QSPI0);
+#endif  // #if 0
 }
 
-uint8_t SDCard::readByte() {
+bool SDCard::readBytes(uint8_t *buf, size_t len) {
+    double start_time = Timeline::SystemTime();
+    for ( ; QSPIReadByte() != 0xFE ;) {
+        if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
+            return false;
+        }
+    }
+    for(size_t c = 0; c < len; c++) {
+        *buf++ = QSPIReadByte();    
+    }
+    QSPIReadByte(); // crc
+    QSPIReadByte(); // crc
+    return true;
+}
+
+uint8_t SDCard::QSPIReadByte() {
     QSPI_WRITE_TX(QSPI0, 0xFF);
     while(QSPI_IS_BUSY(QSPI0));
     return QSPI_READ_RX(QSPI0);
 }
 
-void SDCard::writeByte(uint8_t byte) {
+void SDCard::QSPIWriteByte(uint8_t byte) {
     QSPI_WRITE_TX(QSPI0, byte);
     while(QSPI_IS_BUSY(QSPI0));
     QSPI_READ_RX(QSPI0);
 }
 
-std::tuple<bool, uint8_t> SDCard::GoIdle() { 
-    QSPI_SET_SS_LOW(QSPI0);
-    readByte();
-
-    writeByte(CMD0);
-    writeByte(0); 
-    writeByte(0);
-    writeByte(0);
-    writeByte(0);
-    writeByte(0x95); // Ncr
-
-    while(QSPI_IS_BUSY(QSPI0));
-
-    uint8_t res = 0;
-    for (int32_t c = 0; c < 8; c++)
-    {
-        res = readByte();
-        if (res != 0xFF) {
-            return {true, res};
+bool SDCard::waitReady() {
+    double start_time = Timeline::SystemTime();
+    for ( ; QSPIReadByte() != 0xFF ;) {
+        if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
+            return false;
         }
     }
-
-    return {false, 0};
-}
-
-std::tuple<bool, uint8_t> SDCard::CheckVoltage() { 
-
-    QSPI_SET_SS_LOW(QSPI0);
-    readByte();
-
-    writeByte(CMD8);
-    writeByte(0);
-    writeByte(0);
-    writeByte(0x01);
-    writeByte(0xAA);
-    writeByte(0x87); // Ncr
-
-    while(QSPI_IS_BUSY(QSPI0));
-
-    uint8_t res = 0;
-    for (int32_t c = 0; c < 8; c++)
-    {
-        res = readByte();
-        if (res != 0xFF) {
-            return {true, res};
-        }
-    }
-
-    return {false, 0};
+    return false;
 }
 
 std::tuple<bool, uint8_t> SDCard::SendCmd(uint8_t cmd, uint32_t data) { 
@@ -276,24 +249,26 @@ std::tuple<bool, uint8_t> SDCard::SendCmd(uint8_t cmd, uint32_t data) {
         cmd &= ~0x80;
     }
 
+    QSPI_SET_SS_HIGH(QSPI0);
+    QSPIReadByte();
     QSPI_SET_SS_LOW(QSPI0);
+    QSPIReadByte();
+    waitReady();
 
-    readByte();
-
-    writeByte(cmd);
-    writeByte((data>>24)&0xFF);
-    writeByte((data>>16)&0xFF);
-    writeByte((data>> 8)&0xFF);
-    writeByte((data>> 0)&0xFF);
-    writeByte(0xFF);
-
-    while(QSPI_IS_BUSY(QSPI0));
+    QSPIWriteByte(cmd);
+    QSPIWriteByte((data>>24)&0xFF);
+    QSPIWriteByte((data>>16)&0xFF);
+    QSPIWriteByte((data>> 8)&0xFF);
+    QSPIWriteByte((data>> 0)&0xFF);
+    uint8_t ncr = 0x01;
+	if (cmd == CMD0) ncr = 0x95;
+	if (cmd == CMD8) ncr = 0x87;
+    QSPIWriteByte(ncr);
 
     uint8_t res = 0;
-    for (int32_t c = 0; c < 8; c++)
-    {
-        res = readByte();
-        if (res != 0xFF) {
+    for (int32_t c = 0; c < 10; c++) {
+        res = QSPIReadByte();
+        if ((res & 0x80) == 0) {
             return {true, res};
         }
     }
@@ -305,47 +280,39 @@ bool SDCard::readCID() {
 
     auto [success, result] = SendCmd(CMD10, 0);
     if (!success || result != 0) {
-        QSPI_SET_SS_HIGH(QSPI0);
         return false;
 	}
 
-    double start_time = Timeline::SystemTime();
-    for ( ; readByte() != 0xFE ;) {
-        if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
-            QSPI_SET_SS_HIGH(QSPI0);
-            return false;
-        }
-    }
+    uint8_t cid[16];
+    readBytes(cid, 16);
+    uint8_t *cidPtr = cid;
 
-	sd_spi_cid.mid = readByte();
+	sd_spi_cid.mid = *cidPtr++;
 
 	uint8_t i;
 	for (i = 0; i < 2; i++) {
-		sd_spi_cid.oid[i] = readByte();
+		sd_spi_cid.oid[i] = *cidPtr++;
 	}
 
 	for (i = 0; i < 5; i++) {
-		sd_spi_cid.pnm[i] = readByte();
+		sd_spi_cid.pnm[i] = *cidPtr++;
 	}
 
-	i = readByte();
+	i = *cidPtr++;
 	sd_spi_cid.prv_n = i >> 4;
 	sd_spi_cid.prv_m = i;
 
-	sd_spi_cid.psn_high = readByte();
-	sd_spi_cid.psn_mid_high = readByte();
-	sd_spi_cid.psn_mid_low = readByte();
-	sd_spi_cid.psn_low = readByte();
+	sd_spi_cid.psn_high = *cidPtr++;
+	sd_spi_cid.psn_mid_high = *cidPtr++;
+	sd_spi_cid.psn_mid_low = *cidPtr++;
+	sd_spi_cid.psn_low = *cidPtr++;
 
-	i = readByte();
+	i = *cidPtr++;
 	sd_spi_cid.mdt_year = (i << 4) & 0xF0;
-	i = readByte();
+	i = *cidPtr++;
 	sd_spi_cid.mdt_year |= i >> 4;
 	sd_spi_cid.mdt_month = i;
-	sd_spi_cid.crc = readByte() >> 1;
-
-	readByte();
-	readByte();
+	sd_spi_cid.crc = *cidPtr++ >> 1;
 
     printf("SDCard: Read CID!\n");
 
@@ -353,35 +320,31 @@ bool SDCard::readCID() {
 }
 
 bool SDCard::readCSD() {
+
     auto [success, result] = SendCmd(CMD9, 0);
     if (!success || result != 0) {
-        QSPI_SET_SS_HIGH(QSPI0);
         return false;
 	}
 
-    double start_time = Timeline::SystemTime();
-    for ( ; readByte() != 0xFE ;) {
-        if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
-            QSPI_SET_SS_HIGH(QSPI0);
-            return false;
-        }
-    }
+    uint8_t csd[16];
+    readBytes(csd, 16);
+    uint8_t *csdPtr = csd;
 
-    uint8_t b = readByte();
+    uint8_t b = *csdPtr++;
 	sd_spi_csd.csd_structure = b >> 6;
-	b = readByte();
+	b = *csdPtr++;
 	sd_spi_csd.taac = b;
-	b = readByte();
+	b = *csdPtr++;
 	sd_spi_csd.nsac = b;
-	b = readByte();
+	b = *csdPtr++;
 	sd_spi_csd.tran_speed = b;
-	b = readByte();
+	b = *csdPtr++;
 	sd_spi_csd.ccc_high = b >> 4;
 	sd_spi_csd.ccc_low |= b << 4;
-	b = readByte();
+	b = *csdPtr++;
 	sd_spi_csd.ccc_low |= b >> 4;
 	sd_spi_csd.max_read_bl_len = b;
-	b = readByte();
+	b = *csdPtr++;
 	sd_spi_csd.read_bl_partial = b >> 7;
 	sd_spi_csd.write_bl_misalign = b >> 6;
 	sd_spi_csd.read_bl_misalign = b >> 5;
@@ -389,52 +352,49 @@ bool SDCard::readCSD() {
 
 	if (sd_spi_csd.csd_structure == 0) {
 		sd_spi_csd.cvsi.v1.c_size_high = (b << 2) & 0x0C;
-		b = readByte();
+		b = *csdPtr++;
 		sd_spi_csd.cvsi.v1.c_size_high |= b >> 6;
 		sd_spi_csd.cvsi.v1.c_size_low = b << 2;
-		b = readByte();
+		b = *csdPtr++;
 		sd_spi_csd.cvsi.v1.c_size_low |= b >> 6;
 		sd_spi_csd.cvsi.v1.vdd_r_curr_min = b >> 3;
 		sd_spi_csd.cvsi.v1.vdd_r_curr_max = b;
-		b = readByte();
+		b = *csdPtr++;
 		sd_spi_csd.cvsi.v1.vdd_w_curr_min = b >> 5;
 		sd_spi_csd.cvsi.v1.vdd_w_curr_max = b >> 2;
 		sd_spi_csd.cvsi.v1.c_size_mult = (b << 1) & 0x06;
-		b = readByte();
+		b = *csdPtr++;
 		sd_spi_csd.cvsi.v1.c_size_mult |= b >> 7;
 	} else {
-		b = readByte();
+		b = *csdPtr++;
 		sd_spi_csd.cvsi.v2.c_size_high = b;
-		b = readByte();
+		b = *csdPtr++;
 		sd_spi_csd.cvsi.v2.c_size_mid = b;
-		b = readByte();
+		b = *csdPtr++;
 		sd_spi_csd.cvsi.v2.c_size_low = b;
-		b = readByte();
+		b = *csdPtr++;
 	}
 
 	sd_spi_csd.erase_bl_en = b >> 6;
 	sd_spi_csd.erase_sector_size = (b << 1) & 0x7E;
-	b = readByte();
+	b = *csdPtr++;
 	sd_spi_csd.erase_sector_size |= b >> 7;
 	sd_spi_csd.wp_grp_size = b << 1;
-	b = readByte();
+	b = *csdPtr++;
 	sd_spi_csd.wp_grp_enable = b >> 7;
 	sd_spi_csd.r2w_factor = b >> 2;
 	sd_spi_csd.write_bl_len = (b << 2) & 0x0C;
-	b = readByte();
+	b = *csdPtr++;
 	sd_spi_csd.write_bl_len |= b >> 6;
 	sd_spi_csd.write_bl_partial = b >> 5;
-	b = readByte();
+	b = *csdPtr++;
 	sd_spi_csd.file_format_grp = b >> 7;
 	sd_spi_csd.copy = b >> 6;
 	sd_spi_csd.perm_write_protect = b >> 5;
 	sd_spi_csd.tmp_write_protect = b >> 4;
 	sd_spi_csd.file_format = b >> 2;
-	b = readByte();
+	b = *csdPtr++;
 	sd_spi_csd.crc = b >> 1;
-
-	readByte();
-	readByte();
 
     printf("SDCard: Read CSD!\n");
 
@@ -453,75 +413,85 @@ bool SDCard::readCSD() {
 }
 
 bool SDCard::inserted() const {
-    return isSdCard;   
+    return true;   
 }
 
 uint32_t SDCard::blocks() const {
     return totalBlocks;
 }
 
-bool SDCard::detectCardType() {
-
-    for (size_t c = 0; c < 10; c++) {
-        readByte();
-    }
-
-    {
-        double start_time = Timeline::SystemTime();
-        for (; std::get<1>(GoIdle()) != 1 ;) {
-            if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
-                QSPI_SET_SS_HIGH(QSPI0);
-                return false;
-            }
+bool SDCard::goIdle() {
+    uint8_t res = 0;
+    for (int32_t c = 0; c < 10; c++) {
+        res = QSPIReadByte();
+        if ((res & 0x80) == 0) {
+            break;
         }
     }
 
-    auto [success, result] = CheckVoltage();
+    double start_time = Timeline::SystemTime();
+    for (; std::get<1>(SendCmd(CMD0, 0)) != 1 ;) {
+        if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool SDCard::detectCardType() {
+
+    if (!goIdle()) {
+        return false;
+    }
+
+    bool SDv2 = false;
+    auto [success, result] = SendCmd(CMD8, 0x1AA);
     if (success) {
         if ( (result & 0x04 ) == 0) {
-            readByte();
-            readByte();
-            if (readByte() == 0x01 &&
-                readByte() == 0xAA) {
-                isSdCard = true;
+            QSPIReadByte();
+            QSPIReadByte();
+            if (QSPIReadByte() == 0x01 &&
+                QSPIReadByte() == 0xAA) {
+                SDv2 = true;
             }
             printf("SDCard: SD Card detected!\n");
         } else {
-            printf("SDCard: MMC Card detected!\n");
+            printf("SDCard: MMC Card detected! (Unsupported)\n");
         }
-        if (isSdCard) {
+        if (SDv2) {
             double start_time = Timeline::SystemTime();
             for (;std::get<1>(SendCmd(ACMD41, 0x40000000)) != 0 ;) {
                 if ( (Timeline::SystemTime() - start_time) > 0.5 ) {
-                    QSPI_SET_SS_HIGH(QSPI0);
                     return false;
                 }
             }
-
             if ((std::get<1>(SendCmd(CMD58, 0)) & 0x40) != 0) {
-                QSPI_SET_SS_HIGH(QSPI0);
                 return false;
             }
-
-            if ((readByte() & 0x40) != 0) {
+            if ((QSPIReadByte() & 0x40) != 0) {
                 printf("SDCard: SD Card is high capacity!\n");
-                isSdHcCard = true;
+                cardType = CT_SDC2 | CT_BLOCK;
+            } else {
+                printf("SDCard: SD Card is low capacity!\n");
+                cardType = CT_SDC2;
             }
-            readByte();
-            readByte();
-            readByte();
+            QSPIReadByte();
+            QSPIReadByte();
+            QSPIReadByte();
         } else {
             // Do we care?
+            return false;
         }
     }
+
     printf("SDCard: Card type determined!\n");
     return true;
 }
 
 bool SDCard::setSectorSize() {
+
     auto [success, result] = SendCmd(CMD16, 512);
     if (!success || result != 0) {
-        QSPI_SET_SS_HIGH(QSPI0);
         return false;
     }
     return true;
@@ -633,8 +603,6 @@ void SDCard::init() {
 
     QSPI_Open(QSPI0, QSPI_MASTER, QSPI_MODE_0, 8, 10000000);
 
-    QSPI_SET_SS_HIGH(QSPI0);
-
     if (!detectCardType()) {
         return;
     }
@@ -652,12 +620,11 @@ void SDCard::init() {
     }
 
 	if (f_mount(&FatFs, "", 0) == FR_OK) {
+        printf("SDCard: mounted!\n");
         mounted = true;
         findFirmware();
         findDataFile();
     }
-
-    QSPI_SET_SS_HIGH(QSPI0);
 
 #if 0
     USBD_Open(&gsInfo, MSC_ClassRequest, NULL);
