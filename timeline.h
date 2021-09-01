@@ -117,6 +117,7 @@ public:
 
     static double SystemTime();
     static uint64_t FastSystemTime();
+    static uint64_t FastSystemTimeCmp();
 
 private:
     void Process(Span::Type type);

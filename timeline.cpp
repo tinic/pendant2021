@@ -262,6 +262,10 @@ uint64_t Timeline::FastSystemTime() {
     return (uint64_t(systemSeconds) * uint64_t(TIMER0->CMP)) + uint64_t(TIMER0->CNT);
 }
 
+uint64_t Timeline::FastSystemTimeCmp() {
+    return uint64_t(TIMER0->CMP);
+}
+
 static bool idleReady = false;
 static bool backgroundReady = false;
 static bool displayReady = false;
