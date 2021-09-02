@@ -77,7 +77,8 @@ extern "C" const uint32_t __attribute__((used, section(".metadata"))) metadata[]
 #else // #if defined(BOOTLOADER)
     swap(markerBootloaded),
 #endif // #if defined(BOOTLOADER)
-    GIT_REV_COUNT_INT
+    GIT_REV_COUNT_INT,
+    0, 0, 0, 0
 };
 
 extern "C" DWORD get_fattime(void) {
@@ -564,7 +565,7 @@ void SDCard::findFirmware() {
 
     printf("SDCard: Found firmware.bin!\n");
 
-    const size_t markerSize = 16;
+    const size_t markerSize = 32;
 
     f_lseek(&Fil, FilInfo.fsize - markerSize);
 
