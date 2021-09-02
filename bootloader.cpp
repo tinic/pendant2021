@@ -24,6 +24,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./main.h"
 #include "./leds.h"
 #include "./i2cmanager.h"
+#include "./sdcard.h"
 
 #include "M480.h"
 
@@ -45,6 +46,7 @@ Bootloader &Bootloader::instance() {
 void Bootloader::init() {
     Leds::instance();
     I2CManager::instance();
+    SDCard::instance();
 }
 
 void Bootloader::Run() {

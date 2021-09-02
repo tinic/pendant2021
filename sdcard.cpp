@@ -711,7 +711,6 @@ void SDCard::findFirmware()
 
 void SDCard::init()
 {
-
     QSPI0->SSCTL = QSPI_SS_ACTIVE_LOW;
     QSPI0->CTL = QSPI_MASTER | (8 << QSPI_CTL_DWIDTH_Pos) | (QSPI_MODE_0) | QSPI_CTL_QSPIEN_Msk;
     QSPI0->CLKDIV = 0U;
@@ -743,10 +742,12 @@ void SDCard::init()
         printf("SDCard: mounted!\n");
         mounted = true;
         findFirmware();
+#ifndef BOOTLOADER
         findDataFile();
+#endif  // #ifndef BOOTLOADER
     }
 
-#if 1
+#ifndef BOOTLOADER
     USBD_Open(&gsInfo, MSC_ClassRequest, NULL);
     USBD_SetConfigCallback(MSC_SetConfig);
 
@@ -767,5 +768,5 @@ void SDCard::init()
 
     NVIC_SetPriority(USBD_IRQn, 4);
     NVIC_EnableIRQ(USBD_IRQn);
-#endif // #if 0
+#endif  // #ifndef BOOTLOADER
 }

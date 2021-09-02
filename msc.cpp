@@ -13,6 +13,8 @@
 #include "./sdcard.h"
 #include "./msc.h"
 
+#ifndef BOOTLOADER
+
 #if 1
 #define DBG_PRINTF      printf
 #else
@@ -94,7 +96,6 @@ static uint8_t g_au8ModePage_1C[8] =
 {
     0x1C, 0x06, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00
 };
-
 
 void USBD_IRQHandler(void)
 {
@@ -1323,3 +1324,5 @@ void MSC_SetConfig(void)
 
     DBG_PRINTF("Set config\n");
 }
+
+#endif // #ifndef BOOTLOADER
