@@ -26,6 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cstdint>
 #include <functional>
 #include <tuple>
+#include <random>
 
 class Quad {
 public:
@@ -55,10 +56,15 @@ public:
         enum Type {
             None,
             Effect,
-            Display
+            Display,
+            Interval
         };
 
         Type type = None;
+
+        double interval = 0.0;
+        double intervalFuzz = 0.0;
+
         double time = 0.0;
         double duration = 0.0;
 
@@ -115,6 +121,9 @@ public:
     void ProcessDisplay();
     Span &TopDisplay() const;
 
+    void ProcessInterval();
+    Span &TopInterval() const;
+
     static double SystemTime();
     static uint64_t FastSystemTime();
 
@@ -127,6 +136,8 @@ private:
 
     void init();
     bool initialized = false;
+
+    std::mt19937 gen;
 };
 
 #endif /* TIMELINE_H_ */

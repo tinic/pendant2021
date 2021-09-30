@@ -47,7 +47,9 @@ namespace color {
             b(0),
             a(0){
         }
-    
+
+        constexpr rgba(uint32_t);
+
         constexpr rgba(const rgba &from) :
             r(from.r),
             g(from.g),
@@ -99,6 +101,17 @@ namespace color {
                                 a < 384 ? ( ( a * 256 ) / 384 ) : a);
     }
 
+    template<> constexpr rgba<uint8_t>::rgba(uint32_t color) {
+        r = ( color >> 16 ) & 0xFF;
+        g = ( color >>  8 ) & 0xFF;
+        b = ( color >>  0 ) & 0xFF;
+    }
+
+    template<> constexpr rgba<uint16_t>::rgba(uint32_t color) {
+        r = ( color >> 16 ) & 0xFF; r |= r << 8;
+        g = ( color >>  8 ) & 0xFF; g |= g << 8;
+        b = ( color >>  0 ) & 0xFF; b |= b << 8;
+    }
     
     template<> __attribute__((always_inline)) inline float rgba<float>::clamp_to_type(float v) {
         return v;
@@ -114,13 +127,13 @@ namespace color {
 
     class gradient {
     public:
-        consteval gradient(const vector::float4 stops[], const size_t n) {
+        template<class T, std::size_t N> consteval gradient(const T (&stops)[N]) {
             for (size_t c = 0; c < colors_n; c++) {
-                float f = static_cast<float>(c) / static_cast<float>(colors_n - 1); 
+                float f = static_cast<float>(c) / static_cast<float>(colors_n - 1);
                 vector::float4 a = stops[0];
                 vector::float4 b = stops[1];
-                if (n > 2) {
-                    for (int32_t d = static_cast<int32_t>(n-2); d >= 0 ; d--) {
+                if (N > 2) {
+                    for (int32_t d = static_cast<int32_t>(N-2); d >= 0 ; d--) {
                         if ( f >= (stops[d].w) ) {
                             a = stops[d+0];
                             b = stops[d+1];
@@ -277,6 +290,10 @@ namespace color {
 
     constexpr vector::float4 srgb8_stop(const rgba<uint8_t> &color, float stop) {
         return vector::float4(convert().sRGB2CIELUV(color), stop);
+    }
+
+    constexpr vector::float4 srgb8_stop(uint32_t color, float stop) {
+        return vector::float4(convert().sRGB2CIELUV(rgba<uint8_t>(color)), stop);
     }
 }
 

@@ -27,6 +27,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <limits>
 #include <array>
+#include <algorithm>
 
 extern "C" {
 
@@ -144,24 +145,54 @@ void Timeline::Process(Span::Type type) {
     Span *p = 0;
     for (Span *i = head; i ; i = i->next) {
         if (i->type == type) {
-            if ((i->time) >= time && !i->active) {
+            if ((i->time) <= time && !i->active) {
                 i->active = true;
                 i->Start();
             }
-            if (i->duration != std::numeric_limits<double>::infinity() && ((i->time + i->duration) < time)) {
-                if (p) {
-                    p->next = i->next;
-                } else {
-                    head = i->next;
-                }
-                collected[collected_num++] = i;
+            switch (type) {
+                case Span::Display:
+                case Span::Effect: {
+                    if (i->duration != std::numeric_limits<double>::infinity() && ((i->time + i->duration) < time)) {
+                        if (p) {
+                            p->next = i->next;
+                        } else {
+                            head = i->next;
+                        }
+                        collected[collected_num++] = i;
+                    }
+                } break;
+                case Span::Interval: {
+                    if (i->duration != std::numeric_limits<double>::infinity() && ((i->time + i->duration) < time)) {
+                        // Reschedule
+                        if (i->intervalFuzz != 0.0) {
+                            std::uniform_real_distribution<> dis(i->interval, i->interval + i->intervalFuzz);
+                            i->time += dis(gen);
+                        } else {
+                            i->time += i->interval;
+                        }
+                        i->active = false;
+                        i->Done();
+                    }
+                } break;
+                case Span::None: {
+                } break;
             }
         }
         p = i;
     }
-    for (size_t c = 0; c < collected_num; c++) {
-        collected[c]->next = 0;
-        collected[c]->Done();
+    switch (type) {
+        case Span::Display:
+        case Span::Effect: {
+            for (size_t c = 0; c < collected_num; c++) {
+                collected[c]->active = false;
+                collected[c]->next = 0;
+                collected[c]->Done();
+            }
+        } break;
+        case Span::Interval: {
+        } break;
+        case Span::None: {
+        } break;
     }
 }
 
@@ -244,6 +275,11 @@ void Timeline::ProcessDisplay()
     return Process(Span::Display);
 }
 
+void Timeline::ProcessInterval()
+{
+    return Process(Span::Interval);
+}
+
 Timeline::Span &Timeline::TopEffect() const
 {
     return Top(Span::Effect);
@@ -252,6 +288,11 @@ Timeline::Span &Timeline::TopEffect() const
 Timeline::Span &Timeline::TopDisplay() const
 {
     return Top(Span::Display);
+}
+
+Timeline::Span &Timeline::TopInterval() const
+{
+    return Top(Span::Interval);
 }
 
 double Timeline::SystemTime() {
@@ -317,4 +358,6 @@ void Timeline::init() {
     NVIC_SetPriority(TMR1_IRQn, 2);
     NVIC_EnableIRQ(TMR1_IRQn);
     TIMER_Start(TIMER1);
+
+    gen.seed(0xDEADBEEF);
 }

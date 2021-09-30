@@ -33,15 +33,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <limits>
 #include <math.h>
 
-static constexpr vector::float4 gradient_rainbow_data[] = {
+static constexpr color::gradient gradient_rainbow({
     color::srgb8_stop({0xff,0x00,0x00}, 0.00f),
     color::srgb8_stop({0xff,0xff,0x00}, 0.16f),
     color::srgb8_stop({0x00,0xff,0x00}, 0.33f),
     color::srgb8_stop({0x00,0xff,0xff}, 0.50f),
     color::srgb8_stop({0x00,0x00,0xff}, 0.66f),
     color::srgb8_stop({0xff,0x00,0xff}, 0.83f),
-    color::srgb8_stop({0xff,0x00,0x00}, 1.00f)};
-static constexpr color::gradient gradient_rainbow(gradient_rainbow_data,7);
+    color::srgb8_stop({0xff,0x00,0x00}, 1.00f)
+});
 
 Effects &Effects::instance() {
     static Effects effects;
