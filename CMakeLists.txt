@@ -151,9 +151,9 @@ configure_file("${PROJECT_SOURCE_DIR}/version.h.in" "${CMAKE_BINARY_DIR}/version
 
 # Generate font.h
 if(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
-	execute_process(COMMAND python3 ${PROJECT_SOURCE_DIR}/font_convert.py -i ${PROJECT_SOURCE_DIR}/font.gif -o ${CMAKE_BINARY_DIR}/font.h -v font_data)
+    execute_process(COMMAND python3 ${PROJECT_SOURCE_DIR}/font_convert.py -i ${PROJECT_SOURCE_DIR}/font.gif -o ${CMAKE_BINARY_DIR}/font.h -v font_data)
 else(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
-	execute_process(COMMAND ${PROJECT_SOURCE_DIR}/font_convert.py -i ${PROJECT_SOURCE_DIR}/font.gif -o ${CMAKE_BINARY_DIR}/font.h -v font_data)
+    execute_process(COMMAND ${PROJECT_SOURCE_DIR}/font_convert.py -i ${PROJECT_SOURCE_DIR}/font.gif -o ${CMAKE_BINARY_DIR}/font.h -v font_data)
 endif(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
 
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

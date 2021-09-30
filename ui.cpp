@@ -83,69 +83,69 @@ void UI::init() {
     bootScreen.time = Timeline::SystemTime();
     bootScreen.duration = 1.0; // timeout
 
-	static Timeline::Display moveOut;
-	moveOut.time = bootScreen.time + bootScreen.duration;
-	moveOut.duration = 0.25; // timeout
+    static Timeline::Display moveOut;
+    moveOut.time = bootScreen.time + bootScreen.duration;
+    moveOut.duration = 0.25; // timeout
 
-	static Timeline::Display moveIn;
-	moveIn.time = moveOut.time + moveOut.duration;
-	moveIn.duration = 0.25; // timeout
+    static Timeline::Display moveIn;
+    moveIn.time = moveOut.time + moveOut.duration;
+    moveIn.duration = 0.25; // timeout
 
     bootScreen.startFunc = [=](Timeline::Span &) {
         SDD1306::instance().ClearChar();
         SDD1306::instance().ClearAttr();
-		SDD1306::instance().SetBootScreen(true, 100);
-		SDD1306::instance().Display();
+        SDD1306::instance().SetBootScreen(true, 100);
+        SDD1306::instance().Display();
     };
     bootScreen.calcFunc = [=](Timeline::Span &span, Timeline::Span &) {
-		double now = Timeline::SystemTime();
-		double delta = ( (span.time + span.duration) - now ) / span.duration;
-		SDD1306::instance().SetBootScreen(true, static_cast<int32_t>(100.0f * Cubic::easeIn(static_cast<float>(delta), 0.0f, 1.0f, 1.0f)));
-		SDD1306::instance().Display();
+        double now = Timeline::SystemTime();
+        double delta = ( (span.time + span.duration) - now ) / span.duration;
+        SDD1306::instance().SetBootScreen(true, static_cast<int32_t>(100.0f * Cubic::easeIn(static_cast<float>(delta), 0.0f, 1.0f, 1.0f)));
+        SDD1306::instance().Display();
     };
     bootScreen.doneFunc = [=](Timeline::Span &span) {
-		SDD1306::instance().SetBootScreen(true, 0);
-		SDD1306::instance().Display();
-		Timeline::instance().Add(moveOut);
-		Timeline::instance().Remove(span);
+        SDD1306::instance().SetBootScreen(true, 0);
+        SDD1306::instance().Display();
+        Timeline::instance().Add(moveOut);
+        Timeline::instance().Remove(span);
     };
 
-	moveOut.startFunc = [=](Timeline::Span &) {
-	};
+    moveOut.startFunc = [=](Timeline::Span &) {
+    };
 
-	moveOut.calcFunc = [=](Timeline::Span &span, Timeline::Span &) {
-		double now = Timeline::SystemTime();
-		double delta = ( (span.time + span.duration) - now ) / span.duration;
-		SDD1306::instance().SetVerticalShift(-static_cast<int8_t>(16.0f * (1.0f - Cubic::easeOut(static_cast<float>(delta), 0.0f, 1.0f, 1.0f))));
-		SDD1306::instance().Display();
-	};
-	moveOut.doneFunc = [=](Timeline::Span &span) {
-		SDD1306::instance().SetVerticalShift(0);
-		SDD1306::instance().SetBootScreen(false, 0);
-		SDD1306::instance().SetCenterFlip(48);
-		SDD1306::instance().Display();
-		Timeline::instance().Add(moveIn);
-		Timeline::instance().Remove(span);
-	};
+    moveOut.calcFunc = [=](Timeline::Span &span, Timeline::Span &) {
+        double now = Timeline::SystemTime();
+        double delta = ( (span.time + span.duration) - now ) / span.duration;
+        SDD1306::instance().SetVerticalShift(-static_cast<int8_t>(16.0f * (1.0f - Cubic::easeOut(static_cast<float>(delta), 0.0f, 1.0f, 1.0f))));
+        SDD1306::instance().Display();
+    };
+    moveOut.doneFunc = [=](Timeline::Span &span) {
+        SDD1306::instance().SetVerticalShift(0);
+        SDD1306::instance().SetBootScreen(false, 0);
+        SDD1306::instance().SetCenterFlip(48);
+        SDD1306::instance().Display();
+        Timeline::instance().Add(moveIn);
+        Timeline::instance().Remove(span);
+    };
 
-	moveIn.startFunc = [=](Timeline::Span &) {
-		SDD1306::instance().SetVerticalShift(0);
-		SDD1306::instance().SetBootScreen(false, 0);
+    moveIn.startFunc = [=](Timeline::Span &) {
+        SDD1306::instance().SetVerticalShift(0);
+        SDD1306::instance().SetBootScreen(false, 0);
         SDD1306::instance().Invalidate();
-		SDD1306::instance().Display();
-	};
-	moveIn.calcFunc = [=](Timeline::Span &span, Timeline::Span &below) {
-		below.Calc();
-		double now = Timeline::SystemTime();
-		double delta = ( (span.time + span.duration) - now ) / span.duration;
-		SDD1306::instance().SetCenterFlip(static_cast<int8_t>(48.0 * (delta)));
-		SDD1306::instance().Display();
-	};
-	moveIn.doneFunc = [=](Timeline::Span &span) {
-		SDD1306::instance().SetCenterFlip(0);
-		SDD1306::instance().Display();
-		Timeline::instance().Remove(span);
-	};
+        SDD1306::instance().Display();
+    };
+    moveIn.calcFunc = [=](Timeline::Span &span, Timeline::Span &below) {
+        below.Calc();
+        double now = Timeline::SystemTime();
+        double delta = ( (span.time + span.duration) - now ) / span.duration;
+        SDD1306::instance().SetCenterFlip(static_cast<int8_t>(48.0 * (delta)));
+        SDD1306::instance().Display();
+    };
+    moveIn.doneFunc = [=](Timeline::Span &span) {
+        SDD1306::instance().SetCenterFlip(0);
+        SDD1306::instance().Display();
+        Timeline::instance().Remove(span);
+    };
 
-	Timeline::instance().Add(bootScreen);
+    Timeline::instance().Add(bootScreen);
 }

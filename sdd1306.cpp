@@ -98,33 +98,33 @@ void SDD1306::SetCenterFlip(int8_t progression) {
 
 void SDD1306::PlaceUTF8String(uint32_t x, uint32_t y, const char *s) {
     if (y>=text_y_size || x>=text_x_size) return;
-	
-	const uint8_t *str = reinterpret_cast<const uint8_t *>(s);
+    
+    const uint8_t *str = reinterpret_cast<const uint8_t *>(s);
 
-	static uint8_t trailingBytesForUTF8[256] = {
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-		2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
-	};
+    static uint8_t trailingBytesForUTF8[256] = {
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
+    };
 
-	static const uint32_t offsetsFromUTF8[6] = {
-		0x00000000UL, 0x00003080UL, 0x000E2080UL,
-		0x03C82080UL, 0xFA082080UL, 0x82082080UL
-	};
+    static const uint32_t offsetsFromUTF8[6] = {
+        0x00000000UL, 0x00003080UL, 0x000E2080UL,
+        0x03C82080UL, 0xFA082080UL, 0x82082080UL
+    };
 
     for (uint32_t c=0;;c++) {
-    	if (*str == 0) {
-    		return;
-    	}
-    	if ((x + c) >= text_x_size) {
-    		return;
-    	}
-    	uint8_t nb  = trailingBytesForUTF8[static_cast<uint8_t>(*str)];
+        if (*str == 0) {
+            return;
+        }
+        if ((x + c) >= text_x_size) {
+            return;
+        }
+        uint8_t nb  = trailingBytesForUTF8[static_cast<uint8_t>(*str)];
         uint32_t ch = 0;
         switch (nb) {
         case 5: ch += static_cast<uint32_t>(*str++); ch <<= 6;
@@ -161,8 +161,8 @@ void SDD1306::SetAttr(uint32_t x, uint32_t y, uint8_t attr) {
 }
 
 void SDD1306::SetBootScreen(bool on, int32_t xpos) {
-	display_boot_screen = on;
-	boot_screen_offset = xpos;
+    display_boot_screen = on;
+    boot_screen_offset = xpos;
 }
     
 void SDD1306::Display() {
@@ -205,7 +205,7 @@ void SDD1306::Display() {
     
 void SDD1306::SetVerticalShift(int8_t val) {
     if (!devicePresent) return;
-	vertical_shift = static_cast<int32_t>(val);
+    vertical_shift = static_cast<int32_t>(val);
     WriteCommand(0xD3);
     if (val < 0) {
         val = 64+val;
