@@ -22,6 +22,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "./timeline.h"
 #include "./model.h"
+#include "./seed.h"
 
 #include "M480.h"
 
@@ -375,5 +376,5 @@ void Timeline::init() {
     NVIC_EnableIRQ(TMR1_IRQn);
     TIMER_Start(TIMER1);
 
-    gen.seed(0xDEADBEEF);
+    gen.seed(Seed::instance().seedU32());
 }
