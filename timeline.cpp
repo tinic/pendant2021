@@ -150,28 +150,40 @@ void Timeline::Process(Span::Type type) {
                 i->Start();
             }
             switch (type) {
-                case Span::Display:
-                case Span::Effect: {
-                    if (i->duration != std::numeric_limits<double>::infinity() && ((i->time + i->duration) < time)) {
+                case Span::Display: {
+                    Display *display = static_cast<Display *>(i);
+                    if (display->duration != std::numeric_limits<double>::infinity() && ((display->time + display->duration) < time)) {
                         if (p) {
-                            p->next = i->next;
+                            p->next = display->next;
                         } else {
-                            head = i->next;
+                            head = display->next;
                         }
-                        collected[collected_num++] = i;
+                        collected[collected_num++] = display;
+                    }
+                } break;
+                case Span::Effect: {
+                    Effect *effect = static_cast<Effect *>(i);
+                    if (effect->duration != std::numeric_limits<double>::infinity() && ((effect->time + effect->duration) < time)) {
+                        if (p) {
+                            p->next = effect->next;
+                        } else {
+                            head = effect->next;
+                        }
+                        collected[collected_num++] = effect;
                     }
                 } break;
                 case Span::Interval: {
-                    if (i->duration != std::numeric_limits<double>::infinity() && ((i->time + i->duration) < time)) {
+                    Interval *interval = static_cast<Interval *>(i);
+                    if (interval->duration != std::numeric_limits<double>::infinity() && ((interval->time + interval->duration) < time)) {
                         // Reschedule
-                        if (i->intervalFuzz != 0.0) {
-                            std::uniform_real_distribution<> dis(i->interval, i->interval + i->intervalFuzz);
-                            i->time += dis(gen);
+                        if (interval->intervalFuzz != 0.0) {
+                            std::uniform_real_distribution<> dis(interval->interval, interval->interval + interval->intervalFuzz);
+                            interval->time += dis(gen);
                         } else {
-                            i->time += i->interval;
+                            interval->time += interval->interval;
                         }
-                        i->active = false;
-                        i->Done();
+                        interval->active = false;
+                        interval->Done();
                     }
                 } break;
                 case Span::None: {
@@ -225,7 +237,7 @@ Timeline::Span &Timeline::Below(Span *context, Span::Type type) const {
     return empty;
 }
 
-std::tuple<bool, float> Timeline::Span::InAttackPeriod() const {
+std::tuple<bool, float> Timeline::Effect::InAttackPeriod() const {
     double now = Timeline::SystemTime();
     if ( (now - time) < static_cast<double>(attack)) {
         return {true, static_cast<float>((now - time) * (1.0 / static_cast<double>(attack))) };
@@ -233,7 +245,7 @@ std::tuple<bool, float> Timeline::Span::InAttackPeriod() const {
     return {false, 0.0f};
 }
 
-std::tuple<bool, float> Timeline::Span::InDecayPeriod() const {
+std::tuple<bool, float> Timeline::Effect::InDecayPeriod() const {
     double now = Timeline::SystemTime();
     if (!std::get<0>(InAttackPeriod())) {
         if ( (now - time) < static_cast<double>(attack + decay)) {
@@ -243,7 +255,7 @@ std::tuple<bool, float> Timeline::Span::InDecayPeriod() const {
     return {false, 0.0f};
 }
 
-std::tuple<bool, float> Timeline::Span::InSustainPeriod() const {
+std::tuple<bool, float> Timeline::Effect::InSustainPeriod() const {
     double now = Timeline::SystemTime();
     if (!std::get<0>(InDecayPeriod())) {
         double sustain = duration - attack - decay - release;
@@ -254,7 +266,7 @@ std::tuple<bool, float> Timeline::Span::InSustainPeriod() const {
     return {false, 0.0f};
 }
 
-std::tuple<bool, float>  Timeline::Span::InReleasePeriod() const {
+std::tuple<bool, float>  Timeline::Effect::InReleasePeriod() const {
     double now = Timeline::SystemTime();
     if (!std::get<0>(InSustainPeriod())) {
         double sustain = duration - attack - decay - release;
@@ -280,19 +292,19 @@ void Timeline::ProcessInterval()
     return Process(Span::Interval);
 }
 
-Timeline::Span &Timeline::TopEffect() const
+Timeline::Effect &Timeline::TopEffect() const
 {
-    return Top(Span::Effect);
+    return static_cast<Effect&>(Top(Span::Effect));
 }
 
-Timeline::Span &Timeline::TopDisplay() const
+Timeline::Display &Timeline::TopDisplay() const
 {
-    return Top(Span::Display);
+    return static_cast<Display&>(Top(Span::Display));
 }
 
-Timeline::Span &Timeline::TopInterval() const
+Timeline::Interval &Timeline::TopInterval() const
 {
-    return Top(Span::Interval);
+    return static_cast<Interval&>(Top(Span::Interval));
 }
 
 double Timeline::SystemTime() {

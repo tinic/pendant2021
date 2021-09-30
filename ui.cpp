@@ -38,9 +38,8 @@ UI &UI::instance() {
 }
 
 void UI::init() {
-    static Timeline::Span mainUI;
+    static Timeline::Display mainUI;
     if (!Timeline::instance().Scheduled(mainUI)) {
-        mainUI.type = Timeline::Span::Display;
         mainUI.time = Timeline::SystemTime();
         mainUI.duration = std::numeric_limits<double>::infinity();
 
@@ -80,18 +79,15 @@ void UI::init() {
         Timeline::instance().Add(mainUI);
     }
 
-    static Timeline::Span bootScreen;
-    bootScreen.type = Timeline::Span::Display;
+    static Timeline::Display bootScreen;
     bootScreen.time = Timeline::SystemTime();
     bootScreen.duration = 1.0; // timeout
 
-	static Timeline::Span moveOut;
-	moveOut.type = Timeline::Span::Display;
+	static Timeline::Display moveOut;
 	moveOut.time = bootScreen.time + bootScreen.duration;
 	moveOut.duration = 0.25; // timeout
 
-	static Timeline::Span moveIn;
-	moveIn.type = Timeline::Span::Display;
+	static Timeline::Display moveIn;
 	moveIn.time = moveOut.time + moveOut.duration;
 	moveIn.duration = 0.25; // timeout
 

@@ -77,6 +77,7 @@ void Pendant::Run() {
             STM32WL::instance().update();
         }
         if (Timeline::instance().CheckEffectReadyAndClear()) {
+            Timeline::instance().ProcessInterval();
             Timeline::instance().ProcessEffect();
             if (Timeline::instance().TopEffect().Valid()) {
                 Timeline::instance().TopEffect().Calc();
@@ -85,6 +86,7 @@ void Pendant::Run() {
         }
         if (SDD1306::instance().IsDisplayOn() && 
             Timeline::instance().CheckDisplayReadyAndClear()) {
+            Timeline::instance().ProcessInterval();
             Timeline::instance().ProcessDisplay();
             if (Timeline::instance().TopDisplay().Valid()) {
                 Timeline::instance().TopDisplay().Calc();

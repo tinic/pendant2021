@@ -46,7 +46,7 @@ public:
     void Invert();
 
     void SetCenterFlip(int8_t progression);
-	void SetBootScreen(bool on, int32_t xpos);
+    void SetBootScreen(bool on, int32_t xpos);
     void SetVerticalShift(int8_t val);
 
     void DisplayOn();

@@ -62,46 +62,62 @@ public:
 
         Type type = None;
 
-        double interval = 0.0;
-        double intervalFuzz = 0.0;
-
         double time = 0.0;
         double duration = 0.0;
-
-        double attack = 0.0;
-        double decay = 0.0;
-        double release = 0.0;
 
         std::function<void (Span &span)> startFunc;
         std::function<void (Span &span, Span &below)> calcFunc;
         std::function<void (Span &span)> commitFunc;
         std::function<void (Span &span)> doneFunc;
 
-        std::function<void (Span &span, bool down)> switch1Func;
-        std::function<void (Span &span, bool down)> switch2Func;
-        std::function<void (Span &span, bool down)> switch3Func;
-
         void Start() { if (startFunc) startFunc(*this); }
         void Calc() { if (calcFunc) calcFunc(*this, Timeline::instance().Below(this, type)); }
         void Commit() { if (commitFunc) commitFunc(*this); }
         void Done() { if (doneFunc) doneFunc(*this); }
         
-        void ProcessSwitch1(bool down) { if (switch1Func) switch1Func(*this, down); }
-        void ProcessSwitch2(bool down) { if (switch2Func) switch2Func(*this, down); }
-        void ProcessSwitch3(bool down) { if (switch3Func) switch3Func(*this, down); }
-
         bool Valid() const { return type != None; }
-
-        std::tuple<bool, float> InAttackPeriod() const;
-        std::tuple<bool, float> InDecayPeriod() const;
-        std::tuple<bool, float> InSustainPeriod() const;
-        std::tuple<bool, float> InReleasePeriod() const;
 
     private:
 
         friend class Timeline;
         bool active = false;
         Span *next = 0;
+    };
+
+    struct Interval : public Span {
+
+        Interval() : Span() { type = Type::Interval; }
+
+        double interval = 0.0;
+        double intervalFuzz = 0.0;
+
+    };
+
+    struct Effect : public Span {
+
+        Effect() : Span() { type = Type::Effect; }
+
+        double attack = 0.0;
+        double decay = 0.0;
+        double release = 0.0;
+
+        std::tuple<bool, float> InAttackPeriod() const;
+        std::tuple<bool, float> InDecayPeriod() const;
+        std::tuple<bool, float> InSustainPeriod() const;
+        std::tuple<bool, float> InReleasePeriod() const;
+    };
+
+    struct Display : public Span {
+
+        Display() : Span() { type = Type::Display; }
+
+        std::function<void (Span &span, bool down)> switch1Func;
+        std::function<void (Span &span, bool down)> switch2Func;
+        std::function<void (Span &span, bool down)> switch3Func;
+
+        void ProcessSwitch1(bool down) { if (switch1Func) switch1Func(*this, down); }
+        void ProcessSwitch2(bool down) { if (switch2Func) switch2Func(*this, down); }
+        void ProcessSwitch3(bool down) { if (switch3Func) switch3Func(*this, down); }
     };
 
     static Timeline &instance();
@@ -116,13 +132,13 @@ public:
     bool Scheduled(Timeline::Span &span);
 
     void ProcessEffect();
-    Span &TopEffect() const;
+    Effect &TopEffect() const;
 
     void ProcessDisplay();
-    Span &TopDisplay() const;
+    Display &TopDisplay() const;
 
     void ProcessInterval();
-    Span &TopInterval() const;
+    Interval &TopInterval() const;
 
     static double SystemTime();
     static uint64_t FastSystemTime();
