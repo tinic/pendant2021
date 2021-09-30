@@ -29,6 +29,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <tuple>
 
 #include "ff.h"
+#include "diskio.h"
 
 class SDCard {
 public:
@@ -39,8 +40,8 @@ public:
     bool inserted() const;
     uint32_t blocks() const;
 
-    void read(uint32_t blockAddr, uint8_t *buffer, int32_t blockLen);
-    void write(uint32_t blockAddr, const uint8_t *buffer, int32_t blockLen);
+    void readBlock(uint32_t blockAddr, uint8_t *buffer, int32_t blockLen);
+    void writeBlock(uint32_t blockAddr, const uint8_t *buffer, int32_t blockLen);
 
     bool readFromDataFile(uint8_t *outBuf, size_t offset, size_t size);
     bool dataFilePresent() const { return datafile_present; }
@@ -189,8 +190,7 @@ private:
     FATFS FatFs;
     bool mounted = false;
 
-    bool isSdCard = false;
-    bool isSdHcCard = false;
+    uint32_t cardType = 0;
     uint32_t totalBlocks = 0;
     uint32_t u32TrimInit = 0;
 
@@ -209,13 +209,17 @@ private:
     void findFirmware();
     void findDataFile();
 
-    std::tuple<bool, uint8_t> GoIdle();
-    std::tuple<bool, uint8_t> CheckVoltage();
-    std::tuple<bool, uint8_t> SendCmd(uint8_t cmd, uint32_t data);
-    std::tuple<bool, uint8_t> SendAppCmd(uint8_t cmd, uint32_t data);
+    friend DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff);
+    friend DRESULT disk_read(BYTE pdrv, BYTE *buff, LBA_t sector, UINT count );
 
-    uint8_t readByte();
-    void writeByte(uint8_t byte);
+    bool goIdle();
+    bool waitReady();
+
+    std::tuple<bool, uint8_t> SendCmd(uint8_t cmd, uint32_t data);
+    bool readBytes(uint8_t *buffer, size_t len);
+
+    uint8_t QSPIReadByte();
+    void QSPIWriteByte(uint8_t byte);
 
     void init();
     bool initialized = false;

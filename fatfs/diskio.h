@@ -68,6 +68,14 @@ DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff);
 #define ATA_GET_MODEL		21	/* Get model name */
 #define ATA_GET_SN			22	/* Get serial number */
 
+#define CT_MMC3		        0x01 /* MMC ver 3 */
+#define CT_MMC4		        0x02 /* MMC ver 4+ */
+#define CT_MMC		        0x03 /* MMC */
+#define CT_SDC1		        0x04 /* SD ver 1 */
+#define CT_SDC2		        0x08 /* SD ver 2+ */
+#define CT_SDC		        0x0C /* SD */
+#define CT_BLOCK	        0x10 /* Block addressing */
+
 #ifdef __cplusplus
 }
 #endif

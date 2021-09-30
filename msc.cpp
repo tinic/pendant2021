@@ -13,6 +13,8 @@
 #include "./sdcard.h"
 #include "./msc.h"
 
+#ifndef BOOTLOADER
+
 #if 1
 #define DBG_PRINTF      printf
 #else
@@ -94,7 +96,6 @@ static uint8_t g_au8ModePage_1C[8] =
 {
     0x1C, 0x06, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00
 };
-
 
 void USBD_IRQHandler(void)
 {
@@ -1289,12 +1290,12 @@ void MSC_AckCmd(void)
 
 void MSC_ReadMedia(uint64_t addr, uint64_t size, uint8_t *buffer)
 {
-    SDCard::instance().read(addr / UDC_SECTOR_SIZE, buffer, size / UDC_SECTOR_SIZE);
+    SDCard::instance().readBlock(addr / UDC_SECTOR_SIZE, buffer, size / UDC_SECTOR_SIZE);
 }
 
 void MSC_WriteMedia(uint64_t addr, uint64_t size, uint8_t *buffer)
 {
-    SDCard::instance().write(addr / UDC_SECTOR_SIZE, buffer, size / UDC_SECTOR_SIZE);
+    SDCard::instance().writeBlock(addr / UDC_SECTOR_SIZE, buffer, size / UDC_SECTOR_SIZE);
 }
 
 void MSC_SetConfig(void)
@@ -1323,3 +1324,5 @@ void MSC_SetConfig(void)
 
     DBG_PRINTF("Set config\n");
 }
+
+#endif // #ifndef BOOTLOADER
