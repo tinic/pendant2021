@@ -56,25 +56,23 @@ void Effects::standard_bird() {
     static float walker = 0.0f;
     walker += 0.01f;
     if (walker >= 1.0f) walker = 0.0f;
-    auto calc = [](const std::function<vector::float4 (const vector::float4 &pos)> &func) {
+    auto calc = [](const std::function<vector::float4 (const vector::float4 &pos, float walk)> &func) {
         Leds &leds(Leds::instance());
         for (size_t c = 0; c < Leds::birdLedsN; c++) {
             auto pos = Leds::instance().map.getBird(c);
-            auto col = func(pos) * walker;
+            auto col = func(pos, walker);
             leds.setBird(0,c,col);
             leds.setBird(1,c,col);
         }
     };
-    calc([=](const vector::float4 &pos) {
-        return color::srgb8(Model::instance().BirdColor()) + color::srgb8({0xff,0xff,0xff}) * fast_pow(1.0f - pos.w, 8.0f) * 0.25f;
+    calc([=](const vector::float4 &pos, float walk) {
+        return color::srgb8(Model::instance().BirdColor()) + color::srgb8({0xff,0xff,0xff}) * fast_pow(1.0f - pos.w, 8.0f) * 0.25f * walk;
     });
 }
 
 void Effects::color_walker() {
     standard_bird();
 
-    Leds &leds(Leds::instance());
-
     double now = Timeline::SystemTime();
 
     const double speed = 1.0;
@@ -82,24 +80,28 @@ void Effects::color_walker() {
     float rgb_walk = (       static_cast<float>(frac(now * (1.0 / 5.0) * speed)));
     float val_walk = (1.0f - static_cast<float>(frac(now               * speed)));
 
-    vector::float4 col(gradient_rainbow.repeat(rgb_walk));
-    for (size_t c = 0; c < Leds::circleLedsN; c++) {
-        float mod_walk = val_walk + (1.0f - (c * ( 1.0f / static_cast<float>(Leds::circleLedsN) ) ) );
-        if (mod_walk > 1.0f) {
-            mod_walk -= 1.0f;
+    auto calc = [=](const std::function<vector::float4 (const vector::float4 &pos, float walk)> &func) {
+        Leds &leds(Leds::instance());
+        for (size_t c = 0; c < Leds::circleLedsN; c++) {
+            float mod_walk = fracf(val_walk + (1.0f - (c * ( 1.0f / static_cast<float>(Leds::circleLedsN)))));
+            auto pos = Leds::instance().map.getBird(c);
+            auto col = func(pos, mod_walk);
+            leds.setCircle(0, c, col);
+            leds.setCircle(1, Leds::circleLedsN-1-c, col);
         }
-        float v = fast_pow(std::min(1.0f, mod_walk), 2.0f);;
-        leds.setCircle(0, c, col * v);
-        leds.setCircle(1, Leds::circleLedsN-1-c, col * v);
-    }
+    };
+
+    vector::float4 col(gradient_rainbow.repeat(rgb_walk));
+    calc([=](const vector::float4 &pos, float walk) {
+        float v = fast_pow(std::min(1.0f, walk), 2.0f);;
+        return col * v;
+    });
 
 }
 
 void Effects::light_walker() {
     standard_bird();
 
-    Leds &leds(Leds::instance());
-
     double now = Timeline::SystemTime();
 
     const double speed = 1.0;
@@ -107,18 +109,19 @@ void Effects::light_walker() {
     float rgb_walk = (       static_cast<float>(frac(now * (1.0 / 5.0) * speed)));
     float val_walk = (1.0f - static_cast<float>(frac(now               * speed)));
 
-    vector::float4 hsv(rgb_walk, 1.0f, 1.0f);
-    for (size_t c = 0; c < Leds::circleLedsN; c++) {
-        float mod_walk = val_walk + (1.0f - (c * ( 1.0f / static_cast<float>(Leds::circleLedsN) ) ) );
-        if (mod_walk > 1.0f) {
-            mod_walk -= 1.0f;
+    auto calc = [=](const std::function<vector::float4 (const vector::float4 &pos, float walk)> &func) {
+        Leds &leds(Leds::instance());
+        for (size_t c = 0; c < Leds::circleLedsN; c++) {
+            float mod_walk = fracf(val_walk + (1.0f - (c * ( 1.0f / static_cast<float>(Leds::circleLedsN)))));
+            auto pos = Leds::instance().map.getBird(c);
+            auto col = func(pos, mod_walk);
+            leds.setCircle(0, c, col);
+            leds.setCircle(1, Leds::circleLedsN-1-c, col);
         }
-        hsv.y = 1.0f - fast_pow(std::min(1.0f, mod_walk), 6.0f);
-        hsv.z = fast_pow(std::min(1.0f, mod_walk), 6.0f);
-        leds.setCircle(0, c, color::hsv(hsv));
-        leds.setCircle(1, Leds::circleLedsN-1-c, color::hsv(hsv));
-    }
-
+    };
+    calc([=](const vector::float4 &pos, float walk) {
+        return color::hsv({rgb_walk, 1.0f - fast_pow(std::min(1.0f, walk), 6.0f), fast_pow(std::min(1.0f, walk), 6.0f)});
+    });
 }
 
 template<const std::size_t n> static void band_mapper(std::array<float, n> &stops, float stt, float end) {
@@ -288,17 +291,19 @@ void Effects::init() {
 
             double blend_duration = 0.5;
             double now = Timeline::SystemTime();
-            
+
+            Leds &leds(Leds::instance());
+
             if ((now - switch_time) < blend_duration) {
                 calc_effect(previous_effect);
 
-                auto circleLedsPrev = Leds::instance().getCircle();
-                auto birdsLedsPrev = Leds::instance().getBird();
+                auto circleLedsPrev = leds.getCircle();
+                auto birdsLedsPrev = leds.getBird();
 
                 calc_effect(current_effect);
 
-                auto circleLedsNext = Leds::instance().getCircle();
-                auto birdsLedsNext = Leds::instance().getBird();
+                auto circleLedsNext = leds.getCircle();
+                auto birdsLedsNext = leds.getBird();
 
                 float blend = static_cast<float>(now - switch_time) * (1.0f / static_cast<float>(blend_duration));
 
@@ -308,7 +313,7 @@ void Effects::init() {
                     }
                 }
 
-                Leds::instance().setCircle(circleLedsNext);
+                leds.setCircle(circleLedsNext);
 
                 for (size_t c = 0; c < birdsLedsNext.size(); c++) {
                     for (size_t d = 0; d < birdsLedsNext[c].size(); d++) {
@@ -316,7 +321,7 @@ void Effects::init() {
                     }
                 }
 
-                Leds::instance().setBird(birdsLedsNext);
+                leds.setBird(birdsLedsNext);
 
             } else {
                 calc_effect(current_effect);

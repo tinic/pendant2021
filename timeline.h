@@ -53,15 +53,6 @@ public:
 
     struct Span {
 
-        enum Type {
-            None,
-            Effect,
-            Display,
-            Interval
-        };
-
-        Type type = None;
-
         double time = 0.0;
         double duration = 0.0;
 
@@ -76,6 +67,17 @@ public:
         void Done() { if (doneFunc) doneFunc(*this); }
         
         bool Valid() const { return type != None; }
+
+    protected:
+
+        enum Type {
+            None,
+            Effect,
+            Display,
+            Interval
+        };
+
+        Type type = None;
 
     private:
 

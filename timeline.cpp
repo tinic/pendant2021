@@ -142,40 +142,44 @@ void Timeline::Remove(Timeline::Span &span) {
 void Timeline::Process(Span::Type type) {
     static std::array<Span *, 64> collected;
     size_t collected_num = 0;
-    double time = SystemTime();
+    double now = SystemTime();
     Span *p = 0;
     for (Span *i = head; i ; i = i->next) {
         if (i->type == type) {
-            if ((i->time) <= time && !i->active) {
+            if ((i->time) <= now && !i->active) {
                 i->active = true;
                 i->Start();
             }
             switch (type) {
                 case Span::Display: {
                     Display *display = static_cast<Display *>(i);
-                    if (display->duration != std::numeric_limits<double>::infinity() && ((display->time + display->duration) < time)) {
+                    if (display->duration != std::numeric_limits<double>::infinity() && ((display->time + display->duration) < now)) {
                         if (p) {
                             p->next = display->next;
                         } else {
                             head = display->next;
                         }
-                        collected[collected_num++] = display;
+                        if (collected_num < collected.size()) {
+                            collected[collected_num++] = display;
+                        }
                     }
                 } break;
                 case Span::Effect: {
                     Effect *effect = static_cast<Effect *>(i);
-                    if (effect->duration != std::numeric_limits<double>::infinity() && ((effect->time + effect->duration) < time)) {
+                    if (effect->duration != std::numeric_limits<double>::infinity() && ((effect->time + effect->duration) < now)) {
                         if (p) {
                             p->next = effect->next;
                         } else {
                             head = effect->next;
                         }
-                        collected[collected_num++] = effect;
+                        if (collected_num < collected.size()) {
+                            collected[collected_num++] = effect;
+                        }
                     }
                 } break;
                 case Span::Interval: {
                     Interval *interval = static_cast<Interval *>(i);
-                    if (interval->duration != std::numeric_limits<double>::infinity() && ((interval->time + interval->duration) < time)) {
+                    if (interval->duration != std::numeric_limits<double>::infinity() && ((interval->time + interval->duration) < now)) {
                         // Reschedule
                         if (interval->intervalFuzz != 0.0) {
                             std::uniform_real_distribution<> dis(interval->interval, interval->interval + interval->intervalFuzz);
