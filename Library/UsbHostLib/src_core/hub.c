@@ -202,12 +202,12 @@ int hub_probe(IFACE_T *iface)
 {
     UDEV_T      *udev = iface->udev;
     ALT_IFACE_T *aif = iface->aif;
-    EP_INFO_T   *ep = 0;
-    HUB_DEV_T   *hub = 0;
-    UTR_T       *utr = 0;
-    uint32_t    read_len = 0;
-    int         i = 0, ret = 0;
-    DESC_HUB_T  desc_hub = { 0 };
+    EP_INFO_T   *ep;
+    HUB_DEV_T   *hub;
+    UTR_T       *utr;
+    uint32_t    read_len;
+    int         i, ret;
+    DESC_HUB_T  desc_hub;
     char        str[2] = "0";
 
     /* Is this interface HID class? */
@@ -421,7 +421,7 @@ static int do_port_reset(HUB_DEV_T *hub, int port)
             if (((wPortStatus & PORT_S_CONNECTION) == 0) ||
                     ((wPortStatus & (PORT_S_CONNECTION | PORT_S_ENABLE)) == (PORT_S_CONNECTION | PORT_S_ENABLE)))
             {
-                clear_port_feature(hub, PORT_C_ENABLE, port); /* clear port enable change */
+                clear_port_feature(hub, FS_C_PORT_ENABLE, port); /* clear port enable change */
                 return USBH_OK;
             }
         }
@@ -546,7 +546,7 @@ static int  port_status_change(HUB_DEV_T *hub, int port)
             return ret;                     /* class command failed                       */
     }
 
-    if (wPortChange & FS_C_PORT_RESET)     /* have port reset change?                     */
+    if (wPortChange & PORT_C_RESET)         /* have port reset change?                     */
     {
         ret = clear_port_feature(hub, FS_C_PORT_RESET, port);        /* clear port change */
         if (ret < 0)
@@ -559,9 +559,9 @@ static  volatile  uint8_t   _hub_polling_mutex = 0;
 
 static int  hub_polling(void)
 {
-    HUB_DEV_T   *hub = 0;
-    UTR_T       *utr = 0;
-    int         i = 0, ret = 0, port = 0, change = 0;
+    HUB_DEV_T   *hub;
+    UTR_T       *utr;
+    int         i, ret, port, change = 0;
 
     if (_hub_polling_mutex)                 /* do nothing                                 */
         return 0;
