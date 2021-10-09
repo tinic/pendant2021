@@ -31,8 +31,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define SPI0_MASTER_TX_DMA_CH   0
 #define SPI1_MASTER_TX_DMA_CH   1
-#define EPWM0_TX_DMA_CH         2
-#define EPWM1_TX_DMA_CH         3
+#define EPWM1_TX_DMA_CH         2
+#define EPWM0_TX_DMA_CH         3
 
 extern "C" 
 {
