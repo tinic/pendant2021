@@ -134,7 +134,7 @@ void Leds::init() {
 
 #ifdef USE_SPI_DMA
 
-    PDMA_Open(PDMA,(1UL << SPI0_MASTER_TX_DMA_CH)|(1UL << SPI1_MASTER_TX_DMA_CH)|(1UL << EPWM0_TX_DMA_CH)|(1UL << EPWM1_TX_DMA_CH));
+    PDMA_Open(PDMA,(1UL << SPI0_MASTER_TX_DMA_CH)|(1UL << SPI1_MASTER_TX_DMA_CH));
 
     PDMA_SetTransferCnt(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[0].size());
     PDMA_SetTransferAddr(PDMA, SPI0_MASTER_TX_DMA_CH, (uint32_t)circleLedsDMABuf[0].data(), PDMA_SAR_INC, (uint32_t)&SPI0->TX, PDMA_DAR_FIX);
@@ -151,6 +151,8 @@ void Leds::init() {
 #endif  // #ifdef USE_SPI_DMA
 
 #ifdef USE_PWM_DMA
+
+    PDMA_Open(PDMA,(1UL << EPWM0_TX_DMA_CH)|(1UL << EPWM1_TX_DMA_CH));
 
     PDMA_SetTransferCnt(PDMA, EPWM0_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[0].size());
     PDMA_SetTransferAddr(PDMA, EPWM0_TX_DMA_CH, (uint32_t)birdsLedsDMABuf[0].data(), PDMA_SAR_INC, (uint32_t)&EPWM0->CMPDAT[3], PDMA_DAR_FIX);
@@ -300,6 +302,8 @@ void Leds::transfer() {
     pwm0BufEnd = pwm0Buf + birdsLedsDMABuf[0].size();
 
     EPWM_SET_CMR(EPWM0, 3, *pwm0Buf++);
+#else  // #ifndef USE_PWM_DMA
+    EPWM_SET_CMR(EPWM0, 3, 0x0);
 #endif  // #ifndef USE_DMA
 
     EPWM_SET_CNR(EPWM0, 3, 0x100);
@@ -323,14 +327,23 @@ void Leds::transfer() {
     pwm1BufEnd = pwm1Buf + birdsLedsDMABuf[1].size();
 
     EPWM_SET_CMR(EPWM1, 2, *pwm1Buf++);
+#else  // #ifndef USE_PWM_DMA
+    EPWM_SET_CMR(EPWM1, 2, 0x0);
 #endif  // #ifdef USE_DMA
 
     EPWM_SET_CNR(EPWM1, 2, 0x100);
 
 #ifdef USE_PWM_DMA
-    EPWM_EnablePDMA(EPWM0, 3, 0, 0);
-    EPWM_EnablePDMA(EPWM1, 2, 0, 0);
+    EPWM0->PDMACTL = EPWM_PDMACTL_CHEN2_3_Msk | EPWM_PDMACTL_CHSEL2_3_Msk;
+    EPWM1->PDMACTL = EPWM_PDMACTL_CHEN2_3_Msk;
 
+    PDMA_SetTransferCnt(PDMA,EPWM0_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[0].size());
+    PDMA_SetTransferMode(PDMA,EPWM0_TX_DMA_CH, PDMA_EPWM0_CH3_TX, FALSE, 0);
+
+    PDMA_SetTransferCnt(PDMA,EPWM1_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[1].size());
+    PDMA_SetTransferMode(PDMA,EPWM1_TX_DMA_CH, PDMA_EPWM0_CH2_TX, FALSE, 0);
+
+    // Note: Nothing happens. I assume the chip does not support DMA transfer like STM32s/NXPs.
     EPWM_Start(EPWM0, EPWM_CH_3_MASK);
     EPWM_Start(EPWM1, EPWM_CH_2_MASK);
 #else  // #ifdef USE_DMA

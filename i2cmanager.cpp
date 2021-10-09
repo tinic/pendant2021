@@ -134,6 +134,14 @@ void I2CManager::PDMA_IRQHandler(void) {
         PDMA->TDSTS = 0x1 << I2C0_PDMA_TX_CH;
         pdmaDone = true;
     }
+    if(u32Status & (0x1 << 2)) {
+        PDMA->TDSTS = 0x1 << 2;
+        printf("2!!!\n");
+    }
+    if(u32Status & (0x1 << 3)) {
+        PDMA->TDSTS = 0x1 << 3;
+        printf("2!!!\n");
+    }
 }
 
 void I2CManager::performBatchWrite() {
