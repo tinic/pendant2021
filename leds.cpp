@@ -31,10 +31,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define SPI0_MASTER_TX_DMA_CH   0
 #define SPI1_MASTER_TX_DMA_CH   1
+#define EPWM0_TX_DMA_CH         2
+#define EPWM1_TX_DMA_CH         3
 
 extern "C" 
 {
 
+#ifndef USE_PWM_DMA
 static uint8_t *pwm0Buf = 0;
 static uint8_t *pwm0BufEnd = 0;
 
@@ -81,6 +84,7 @@ void EPWM1P1_IRQHandler(void) {
         *gpb_mfpl = (*gpb_mfpl & ~(SYS_GPB_MFPH_PB13MFP_Msk)) | (SYS_GPB_MFPH_PB13MFP_GPIO);
     }
 }
+#endif  // #ifndef USE_DMA
 
 }
 
@@ -110,24 +114,6 @@ void Leds::init() {
     SPI_Open(SPI0, SPI_MASTER, SPI_MODE_0, 8, 4000000);
     SPI_Open(SPI1, SPI_MASTER, SPI_MODE_0, 8, 4000000);
 
-#ifdef USE_DMA
-
-    PDMA_Open(PDMA,(1UL << SPI0_MASTER_TX_DMA_CH)|(1UL << SPI1_MASTER_TX_DMA_CH));
-
-    PDMA_SetTransferCnt(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[0].size());
-    PDMA_SetTransferAddr(PDMA, SPI0_MASTER_TX_DMA_CH, (uint32_t)circleLedsDMABuf[0].data(), PDMA_SAR_INC, (uint32_t)&SPI0->TX, PDMA_DAR_FIX);
-    PDMA_SetTransferMode(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_SPI0_TX, FALSE, 0);
-    PDMA_SetBurstType(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
-    PDMA->DSCT[SPI0_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
-
-    PDMA_SetTransferCnt(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[1].size());
-    PDMA_SetTransferAddr(PDMA, SPI1_MASTER_TX_DMA_CH, (uint32_t)circleLedsDMABuf[1].data(), PDMA_SAR_INC, (uint32_t)&SPI1->TX, PDMA_DAR_FIX);
-    PDMA_SetTransferMode(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_SPI1_TX, FALSE, 0);
-    PDMA_SetBurstType(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
-    PDMA->DSCT[SPI1_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
-
-#endif  // #ifdef USE_DMA
-
     GPIO_SetMode(PB, BIT2, GPIO_MODE_OUTPUT);
     PB2 = 0;
 
@@ -145,6 +131,40 @@ void Leds::init() {
     CLK_EnableModuleClock(EPWM1_MODULE);
 
 #endif // #ifdef USE_PWM
+
+#ifdef USE_SPI_DMA
+
+    PDMA_Open(PDMA,(1UL << SPI0_MASTER_TX_DMA_CH)|(1UL << SPI1_MASTER_TX_DMA_CH)|(1UL << EPWM0_TX_DMA_CH)|(1UL << EPWM1_TX_DMA_CH));
+
+    PDMA_SetTransferCnt(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[0].size());
+    PDMA_SetTransferAddr(PDMA, SPI0_MASTER_TX_DMA_CH, (uint32_t)circleLedsDMABuf[0].data(), PDMA_SAR_INC, (uint32_t)&SPI0->TX, PDMA_DAR_FIX);
+    PDMA_SetTransferMode(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_SPI0_TX, FALSE, 0);
+    PDMA_SetBurstType(PDMA, SPI0_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
+    PDMA->DSCT[SPI0_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
+
+    PDMA_SetTransferCnt(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[1].size());
+    PDMA_SetTransferAddr(PDMA, SPI1_MASTER_TX_DMA_CH, (uint32_t)circleLedsDMABuf[1].data(), PDMA_SAR_INC, (uint32_t)&SPI1->TX, PDMA_DAR_FIX);
+    PDMA_SetTransferMode(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_SPI1_TX, FALSE, 0);
+    PDMA_SetBurstType(PDMA, SPI1_MASTER_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
+    PDMA->DSCT[SPI1_MASTER_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
+
+#endif  // #ifdef USE_SPI_DMA
+
+#ifdef USE_PWM_DMA
+
+    PDMA_SetTransferCnt(PDMA, EPWM0_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[0].size());
+    PDMA_SetTransferAddr(PDMA, EPWM0_TX_DMA_CH, (uint32_t)birdsLedsDMABuf[0].data(), PDMA_SAR_INC, (uint32_t)&EPWM0->CMPDAT[3], PDMA_DAR_FIX);
+    PDMA_SetTransferMode(PDMA, EPWM0_TX_DMA_CH, PDMA_EPWM0_CH3_TX, FALSE, 0);
+    PDMA_SetBurstType(PDMA, EPWM0_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
+    PDMA->DSCT[EPWM0_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
+
+    PDMA_SetTransferCnt(PDMA, EPWM1_TX_DMA_CH, PDMA_WIDTH_8, birdsLedsDMABuf[1].size());
+    PDMA_SetTransferAddr(PDMA, EPWM1_TX_DMA_CH, (uint32_t)birdsLedsDMABuf[1].data(), PDMA_SAR_INC, (uint32_t)&EPWM1->CMPDAT[2], PDMA_DAR_FIX);
+    PDMA_SetTransferMode(PDMA, EPWM1_TX_DMA_CH, PDMA_EPWM1_CH2_TX, FALSE, 0);
+    PDMA_SetBurstType(PDMA, EPWM1_TX_DMA_CH, PDMA_REQ_SINGLE, 0);
+    PDMA->DSCT[EPWM1_TX_DMA_CH].CTL |= PDMA_DSCT_CTL_TBINTDIS_Msk;
+
+#endif // #ifdef USE_PWM_DMA
 
 }
 
@@ -186,7 +206,6 @@ void Leds::prepare() {
         color::rgba<uint16_t> pixel1(color::rgba<uint16_t>(converter.CIELUV2sRGB(birdLeds[1][c]*brightness)).fix_for_ws2816());
 
 #ifdef USE_PWM
-
         auto convert_to_one_wire_pwm = [] (uint8_t *p, uint16_t v) {
             for (uint32_t b = 0; b < 16; b++) {
                 if ( ((1<<(15-b)) & v) != 0 ) {
@@ -205,7 +224,6 @@ void Leds::prepare() {
         ptr3 = convert_to_one_wire_pwm(ptr3, pixel1.r);
         ptr3 = convert_to_one_wire_pwm(ptr3, pixel1.b);
 #else  // #ifdef USE_PWM
-
         auto convert_to_one_wire_spi = [] (uint32_t *p, uint16_t v) {
             *p++ = lut[(v>>8)&0xFF];
             *p++ = lut[(v>>0)&0xFF];
@@ -220,6 +238,13 @@ void Leds::prepare() {
         ptr3 = convert_to_one_wire_spi(ptr3, pixel1.b);
 #endif  // #ifdef USE_PWM
     }
+
+#ifdef USE_PWM
+    for (size_t c = 0; c < extraBirdPadding; c++) {
+        *ptr2++ = 0;
+        *ptr3++ = 0;
+    }
+#endif  // #ifdef USE_PWM
 }
 
 void Leds::forceStop() {
@@ -231,7 +256,7 @@ __attribute__ ((hot, optimize("Os"), flatten))
 void Leds::transfer() {
     prepare();
 
-#ifdef USE_DMA
+#ifdef USE_SPI_DMA
 
     PDMA_SetTransferCnt(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_WIDTH_8, circleLedsDMABuf[0].size());
     PDMA_SetTransferMode(PDMA,SPI0_MASTER_TX_DMA_CH, PDMA_SPI0_TX, FALSE, 0);
@@ -256,7 +281,6 @@ void Leds::transfer() {
 #endif  // #ifdef USE_DMA
 
 #ifdef USE_PWM
-
     // TOP_LED_BIRD
     PB2 = 0;
 
@@ -266,6 +290,8 @@ void Leds::transfer() {
     EPWM_ConfigOutputChannel(EPWM0, 3, 800000, 0);
     EPWM_SET_PRESCALER(EPWM0, 3, 0);
     EPWM_EnableOutput(EPWM0, EPWM_CH_3_MASK);
+
+#ifndef USE_PWM_DMA
     EPWM_EnableZeroInt(EPWM0, 3);
     NVIC_SetPriority(EPWM0P1_IRQn, 0);
     NVIC_EnableIRQ(EPWM0P1_IRQn);
@@ -273,8 +299,10 @@ void Leds::transfer() {
     pwm0Buf = birdsLedsDMABuf[0].data();
     pwm0BufEnd = pwm0Buf + birdsLedsDMABuf[0].size();
 
-    EPWM_SET_CNR(EPWM0, 3, 0x100);
     EPWM_SET_CMR(EPWM0, 3, *pwm0Buf++);
+#endif  // #ifndef USE_DMA
+
+    EPWM_SET_CNR(EPWM0, 3, 0x100);
 
     // BOTTOM_LED_BIRD
     PB13 = 0;
@@ -284,7 +312,9 @@ void Leds::transfer() {
 
     EPWM_ConfigOutputChannel(EPWM1, 2, 800000, 0);
     EPWM_SET_PRESCALER(EPWM1, 2, 0);
-    EPWM_EnableOutput(EPWM1, BPWM_CH_2_MASK);
+    EPWM_EnableOutput(EPWM1, EPWM_CH_2_MASK);
+
+#ifndef USE_PWM_DMA
     EPWM_EnableZeroInt(EPWM1, 2);
     NVIC_SetPriority(EPWM1P1_IRQn, 0);
     NVIC_EnableIRQ(EPWM1P1_IRQn);
@@ -292,11 +322,21 @@ void Leds::transfer() {
     pwm1Buf = birdsLedsDMABuf[1].data();
     pwm1BufEnd = pwm1Buf + birdsLedsDMABuf[1].size();
 
-    EPWM_SET_CNR(EPWM1, 2, 0x100);
     EPWM_SET_CMR(EPWM1, 2, *pwm1Buf++);
+#endif  // #ifdef USE_DMA
 
+    EPWM_SET_CNR(EPWM1, 2, 0x100);
+
+#ifdef USE_PWM_DMA
+    EPWM_EnablePDMA(EPWM0, 3, 0, 0);
+    EPWM_EnablePDMA(EPWM1, 2, 0, 0);
+
+    EPWM_Start(EPWM0, EPWM_CH_3_MASK);
+    EPWM_Start(EPWM1, EPWM_CH_2_MASK);
+#else  // #ifdef USE_DMA
     // Start Top
     EPWM_Start(EPWM0, EPWM_CH_3_MASK);
+#endif  // #ifdef USE_DMA
 
 #else  // #ifdef USE_PWM
 

@@ -208,7 +208,7 @@ void I2CManager::init() {
     PDMA_EnableInt(PDMA, I2C0_PDMA_TX_CH, 0);
     PDMA_SetBurstType(PDMA, I2C0_PDMA_TX_CH, PDMA_REQ_SINGLE, 0);
 
-    I2C_Open(I2C0, 400000);
+    I2C_Open(I2C0, 600000);
 
     uint32_t STCTL = 0;
     uint32_t HTCTL = 2;

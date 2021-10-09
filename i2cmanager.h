@@ -55,7 +55,7 @@ private:
 
     bool initialized = false;
 
-    static constexpr uint32_t I2C0_PDMA_TX_CH = 2;
+    static constexpr uint32_t I2C0_PDMA_TX_CH = 4;
 
     uint8_t qBufSeq[2048];
     uint8_t *qBufPtr = 0;

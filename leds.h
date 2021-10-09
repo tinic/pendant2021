@@ -28,7 +28,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <numbers>
 #include <cmath>
 
-#define USE_DMA 1
+#define USE_SPI_DMA 1
+//#define USE_PWM_DMA 1
 #define USE_PWM 1
 
 extern "C" {
@@ -182,7 +183,7 @@ private:
     static constexpr size_t bitsPerLed = bitsPerComponent * 3;
 
 #ifdef USE_PWM
-    static constexpr size_t extraBirdPadding = 1; // Need padding for PWM
+    static constexpr size_t extraBirdPadding = bitsPerLed * 2; // Need padding for PWM
     std::array<std::array<uint8_t, birdLedsN * bitsPerLed + extraBirdPadding>, sidesN> birdsLedsDMABuf __attribute__ ((aligned (16)));
 #else  // #ifdef USE_PWM
     std::array<std::array<uint8_t, (birdLedsN * bitsPerLed) / 2>, sidesN> birdsLedsDMABuf __attribute__ ((aligned (16)));
