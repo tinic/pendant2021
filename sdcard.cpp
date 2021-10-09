@@ -641,6 +641,8 @@ void SDCard::init() {
 #endif // #ifndef BOOTLOADER
     }
 
+    return;
+
 #ifndef BOOTLOADER
     USBD_Open(&gsInfo, MSC_ClassRequest, NULL);
     USBD_SetConfigCallback(MSC_SetConfig);

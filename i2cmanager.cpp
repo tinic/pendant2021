@@ -29,94 +29,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <memory.h>
 
-#define ENABLE_TIMEOUT 1
-//#define DEBUG_TIMEOUT 1
-//#define LOG_TIMEOUT 1
-
 extern "C" {
-
-static void nullIRQHandler(void) {
-
-#ifdef ENABLE_TIMEOUT
-    volatile size_t retry_count = 0;
-    I2C_WAIT_READY(I2C0) { 
-        if (retry_count++ == size_t(10'000'000)) {
-            break;
-        }
-        if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
-            I2C_ClearTimeoutFlag(I2C0);
-            return;
-        }
+    void I2C0_IRQHandler(void) {
+        I2CManager::instance().I2C0_IRQHandler();
     }
-#endif  // #ifdef ENABLE_TIMEOUT
-}
-
-typedef void (*I2C_FUNC)(void);
-static I2C_FUNC s_I2C0HandlerFn = nullIRQHandler;
-
-void I2C0_IRQHandler(void)
-{
-    s_I2C0HandlerFn();
-}
-
+    void PDMA_IRQHandler(void) {
+        I2CManager::instance().PDMA_IRQHandler();
+    }
 }
 
 bool I2CManager::deviceReady(uint8_t _u8PeripheralAddr) {
-
-    I2C_DisableInt(I2C0);
-
-#ifdef ENABLE_TIMEOUT
-retry:
-#endif  // #ifdef ENABLE_TIMEOUT
-    I2C_START(I2C0);                                                    /* Send START */
-
-    uint8_t ctrl = 0u;
-    bool done = false;
-    bool error = true;
-
-    while(!done) {
-#ifdef ENABLE_TIMEOUT
-        volatile size_t retry_count = 0;
-        I2C_WAIT_READY(I2C0) { 
-            if (retry_count++ == size_t(10'000'000)) {
-                break;
-            }
-            if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
-                I2C_ClearTimeoutFlag(I2C0);
-#ifdef LOG_TIMEOUT
-                printf("deviceReady I2C timeout!\n");
-#endif  // #ifdef LOG_TIMEOUT
-                goto retry;
-            }
-        }
-#endif  // #ifdef ENABLE_TIMEOUT
-
-        uint32_t status = I2C_GET_STATUS(I2C0);
-        switch(status) {
-        case 0x08u:
-            I2C_SET_DATA(I2C0, (uint8_t)((_u8PeripheralAddr << 1u) | 0x01u)); /* Write SLA+R to Register I2CDAT */
-            ctrl = I2C_CTL_SI;                                          /* Clear SI */
-            break;
-        case 0x40u:                                                     /* Peripheral Address ACK */
-            ctrl = I2C_CTL_SI;                                          /* Clear SI */
-            break;
-        case 0x58u:                                                     /* Receive Data */
-            ctrl = I2C_CTL_STO_SI;                                      /* Clear SI and STOP */
-            error = false;
-            done = true;
-            break;
-        default:                                                        /* Unknow status */
-            ctrl = I2C_CTL_STO_SI;                                      /* Clear SI and STOP */
-            done = true;
-            break;
-        }
-
-        I2C_SET_CONTROL_REG(I2C0, ctrl);                                /* Write controlbit to I2C_CTL register */
+    if ( I2C_WriteByte(I2C0, _u8PeripheralAddr, 0) == 0 ) {
+        return true;
     }
-
-    I2C_EnableInt(I2C0);
-
-    return !error;
+    return false;
 }
 
 I2CManager &I2CManager::instance() {
@@ -131,11 +57,11 @@ I2CManager &I2CManager::instance() {
 void I2CManager::reprobeCritial() {
     if (!SDD1306::devicePresent) {
         SDD1306::devicePresent = deviceReady(SDD1306::i2c_addr);
-        printf("SDD1306 is ready on reprobe.\n");
+        if (SDD1306::devicePresent) printf("SDD1306 is ready on reprobe.\n");
     }
     if (!STM32WL::devicePresent) {
         STM32WL::devicePresent = deviceReady(STM32WL::i2c_addr);
-        printf("STM32WL is ready on reprobe.\n");
+        if (STM32WL::devicePresent) printf("STM32WL is ready on reprobe.\n");
     }
 }
 
@@ -162,44 +88,12 @@ void I2CManager::probe() {
     }
 }
 
-void I2CManager::waitForFinish() {
-
-    static constexpr uint64_t max_wait_time = 250ull; // 0.025s
-    uint64_t now = Timeline::FastSystemTime();
-    while((u8Xfering) && 
-          (u8Err == 0u) && 
-          ((Timeline::FastSystemTime() - now) < max_wait_time)) { 
-        __WFI(); 
-    }
-
-#ifdef DEBUG_TIMEOUT
-    static size_t retry_period_max = 0;
-    if ((Timeline::FastSystemTime() - now) > retry_period_max) {
-        retry_period_max = (Timeline::FastSystemTime() - now);
-        printf("%08x %08x %02x %d\n",int(I2C_GET_STATUS(I2C0)), int(u8Ctrl), u8TransferType,int(retry_period_max));
-        fflush(stdout);
-    }
-    if ((Timeline::FastSystemTime() - now) >= max_wait_time) {
-        printf("Hit at %08x %08x %02x %f\n", int(I2C_GET_STATUS(I2C0)), int(u8Ctrl), u8TransferType, Timeline::SystemTime());
-        fflush(stdout);
-    }
-#endif  // #ifdef DEBUG_TIMEOUT
-
-    u8TransferType = 0;
-
-}
-
 void I2CManager::prepareBatchWrite() {
-
-    waitForFinish();
-
     qBufEnd = qBufSeq;
     qBufPtr = qBufSeq;
 }
 
 void I2CManager::queueBatchWrite(uint8_t peripheralAddr, uint8_t data[], size_t len) {
-
-    waitForFinish();
 
     if (!qBufEnd || !qBufPtr) {
         printf("Not in batch mode!\n");
@@ -211,444 +105,80 @@ void I2CManager::queueBatchWrite(uint8_t peripheralAddr, uint8_t data[], size_t 
         return;
     }
 
-    *qBufEnd++ = peripheralAddr;
     *qBufEnd++ = len;
+    *qBufEnd++ = peripheralAddr << 1;
     memcpy(qBufEnd, data, len);
     qBufEnd += len;
 }
 
-void I2CManager::performBatchWrite() {
+void I2CManager::I2C0_IRQHandler(void) {
+    if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
+        I2C_ClearTimeoutFlag(I2C0);
+    } else {
+        uint32_t u32Status = I2C_GET_STATUS(I2C0);
+        if(u32Status == 0x08) {        /* START has been transmitted */
+        } else if(u32Status == 0x10) { /* Repeat START has been transmitted */
+        } else if(u32Status == 0x18) { /* SLA+W has been transmitted and ACK has been received */
+        } else if(u32Status == 0x20) { /* SLA+W has been transmitted and NACK has been received */
+            I2C_STOP(I2C0);
+            I2C_START(I2C0);
+        } else if(u32Status == 0x28) { /* DATA has been transmitted and ACK has been received */
+        } else {
+        }
+    }
+}
 
-    waitForFinish();
+void I2CManager::PDMA_IRQHandler(void) {
+    uint32_t u32Status = PDMA->TDSTS;
+    if(u32Status & (0x1 << I2C0_PDMA_TX_CH)) {
+        PDMA->TDSTS = 0x1 << I2C0_PDMA_TX_CH;
+        pdmaDone = true;
+    }
+}
+
+void I2CManager::performBatchWrite() {
 
     if (!qBufEnd || !qBufPtr) {
         printf("Not in batch mode!\n");
         return;
     }
 
-    u8Xfering = 1u;
-    u8Err = 0u;
-    u8Ctrl = 0u;
-    u32txLen = 0u;
+    I2C_EnableInt(I2C0);
+    I2C_ENABLE_TX_PDMA(I2C0);
+    I2C_DISABLE_RX_PDMA(I2C0);
+
+    for (; qBufPtr < qBufEnd;) {
+        pdmaDone = false;
+        uint8_t u32wLen = *qBufPtr++;
+        PDMA_SetTransferMode(PDMA, I2C0_PDMA_TX_CH, PDMA_I2C0_TX, 0, 0);
+        PDMA_SetTransferCnt(PDMA, I2C0_PDMA_TX_CH, PDMA_WIDTH_8, u32wLen + 1);
+        PDMA_SetTransferAddr(PDMA, I2C0_PDMA_TX_CH, ((uint32_t) (&qBufPtr[0])), PDMA_SAR_INC, (uint32_t)(&(I2C0->DAT)), PDMA_DAR_FIX);
+        I2C_START(I2C0);
+        for (; !pdmaDone ;) { __WFI(); }
+        for (; (I2C0->STATUS1 & I2C_STATUS1_ONBUSY_Msk) != 0 ;) { }
+        qBufPtr += u32wLen + 1;
+    }
     
-    u8PeripheralAddr = *qBufPtr++;
-    u32wLen = *qBufPtr++;
-
-    u8TransferType = 1;
-
-    s_I2C0HandlerFn = batchWriteIRQHandler;
-
-    I2C_START(I2C0);
-
-    // Do NOT wait for write
-    //waitForFinish();
+    I2C_DISABLE_TX_PDMA(I2C0);
+    I2C_DISABLE_RX_PDMA(I2C0);
+    I2C_DisableInt(I2C0);
 }
 
-void I2CManager::batchWriteIRQHandler(void) {
-    I2CManager::instance().batchWriteIRQ();
-}
-
-void I2CManager::batchWriteIRQ() {
-
-#ifdef ENABLE_TIMEOUT
-    if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
-        I2C_ClearTimeoutFlag(I2C0);
-#ifdef LOG_TIMEOUT
-        printf("batchWrite I2C timeout %d %d\n", int(u32wLen), int(qBufEnd-qBufPtr));
-#endif  // #ifdef LOG_TIMEOUT
-        u32txLen = 0;
-        u8Ctrl = I2C_CTL_STA | I2C_CTL_STO | I2C_CTL_SI;            /* Clear SI and send START&STOP */
-        I2C_SET_CONTROL_REG(I2C0, u8Ctrl);
-        return;
-    }
-#endif  // #ifdef ENABLE_TIMEOUT
-
-    uint32_t status = I2C_GET_STATUS(I2C0);
-    if (status == 0x28) {
-        if(u32txLen < u32wLen) {
-            I2C_SET_DATA(I2C0, qBufPtr[u32txLen++]);                /* Write Data to I2CDAT */
-            u8Ctrl = I2C_CTL_SI;                                    /* Clear SI */
-        } else {
-            u8Ctrl = I2C_CTL_STO_SI;                                /* Clear SI and send STOP */
-            u32txLen = 0u;
-            qBufPtr += u32wLen;
-            u8PeripheralAddr = *qBufPtr++;
-            u32wLen = *qBufPtr++;
-            if (qBufPtr < qBufEnd) {
-                u32txLen = 0;
-                u8Ctrl = I2C_CTL_STA | I2C_CTL_STO | I2C_CTL_SI;    /* Clear SI and send START&STOP */
-                I2C_SET_CONTROL_REG(I2C0, u8Ctrl);
-                return;
-            } else {
-                u8Xfering = 0u;
-                qBufEnd = 0;
-                qBufPtr = 0;
-            }
-        }
-        I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                              /* Write controlbit to I2C_CTL register */
-        return;
-    } else {
-        switch(status) {
-        case 0x08u:
-            I2C_SET_DATA(I2C0, (uint8_t)(u8PeripheralAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
-            u8Ctrl = I2C_CTL_SI;                                        /* Clear SI */
-            break;
-        case 0x18u:                                                     /* Peripheral Address ACK */
-        [[likely]] case 0x28u:
-            if(u32txLen < u32wLen) {
-                I2C_SET_DATA(I2C0, qBufPtr[u32txLen++]);                /* Write Data to I2CDAT */
-                u8Ctrl = I2C_CTL_SI;                                    /* Clear SI */
-            } else {
-                u8Ctrl = I2C_CTL_STO_SI;                                /* Clear SI and send STOP */
-                u32txLen = 0u;
-                qBufPtr += u32wLen;
-                u8PeripheralAddr = *qBufPtr++;
-                u32wLen = *qBufPtr++;
-                if (qBufPtr < qBufEnd) {
-                    u32txLen = 0;
-                    u8Ctrl = I2C_CTL_STA | I2C_CTL_STO | I2C_CTL_SI;    /* Clear SI and send START&STOP */
-                    I2C_SET_CONTROL_REG(I2C0, u8Ctrl);
-                    return;
-                } else {
-                    u8Xfering = 0u;
-                    qBufEnd = 0;
-                    qBufPtr = 0;
-                }
-            }
-            break;
-        case 0x20u:                                                     /* Peripheral Address NACK */
-        case 0x30u:                                                     /* Controller transmit data NACK */
-            u8Ctrl = I2C_CTL_STO_SI;                                    /* Clear SI and send STOP */
-            u8Err = 1u;
-            break;
-        case 0x38u:                                                     /* Arbitration Lost */
-        default:                                                        /* Unknow status */
-            u8Ctrl = I2C_CTL_STO_SI;
-            u8Err = 1u;
-            break;
-        }
-    }
-    I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                              /* Write controlbit to I2C_CTL register */
-}
 
 void I2CManager::write(uint8_t _u8PeripheralAddr, uint8_t data[], size_t _u32wLen) {
-
-    // Wait for pending write
-    waitForFinish();
-
-    if (_u32wLen > sizeof(txBuf)) {
-        return;
-    }
-
-    u8Xfering = 1u;
-    u8Err = 0u;
-    u8Ctrl = 0u;
-    u32txLen = 0u;
-    u32wLen = _u32wLen;
-    u8PeripheralAddr = _u8PeripheralAddr;
-
-    memcpy(txBuf, data, u32wLen);
-
-    u8TransferType = 2;
-
-    s_I2C0HandlerFn = writeIRQHandler;
-
-    I2C_START(I2C0);                                              /* Send START */
-
-    // Do NOT wait for write
-    // waitForFinish();
-}
-
-void I2CManager::writeIRQHandler(void) {
-    I2CManager::instance().writeIRQ();
-}
-
-void I2CManager::writeIRQ() {
-
-#ifdef ENABLE_TIMEOUT
-    if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
-        I2C_ClearTimeoutFlag(I2C0);
-#ifdef LOG_TIMEOUT
-        printf("write I2C timeout %d\n", int(u32wLen));
-#endif  // #ifdef LOG_TIMEOUT
-        u32txLen = 0; // Start again
-        u8Ctrl = I2C_CTL_STA | I2C_CTL_STO | I2C_CTL_SI;            /* Clear SI and send START&STOP */
-        I2C_SET_CONTROL_REG(I2C0, u8Ctrl);
-        return;
-    }
-#endif  // #ifdef ENABLE_TIMEOUT
-
-    switch(I2C_GET_STATUS(I2C0)) {
-    case 0x08u:
-        I2C_SET_DATA(I2C0, (uint8_t)(u8PeripheralAddr << 1u | 0x00u));   /* Write SLA+W to Register I2CDAT */
-        u8Ctrl = I2C_CTL_SI;                                        /* Clear SI */
-        break;
-    [[likely]] case 0x18u:                                          /* Peripheral Address ACK */
-    [[likely]] case 0x28u:
-        if(u32txLen < u32wLen)
-        {
-            I2C_SET_DATA(I2C0, txBuf[u32txLen++]);                  /* Write Data to I2CDAT */
-            u8Ctrl = I2C_CTL_SI;                                    /* Clear SI */
-        }
-        else
-        {
-            u8Ctrl = I2C_CTL_STO_SI;                                /* Clear SI and send STOP */
-            u8Xfering = 0u;
-        }
-        break;
-    case 0x20u:                                                     /* Peripheral Address NACK */
-    case 0x30u:                                                     /* Controller transmit data NACK */
-        u8Ctrl = I2C_CTL_STO_SI;
-        u8Err = 1u;
-        break;
-    case 0x38u:                                                     /* Arbitration Lost */
-    default:                                                        /* Unknow status */
-        u8Ctrl = I2C_CTL_STO_SI;
-        u8Err = 1u;
-        break;
-    }
-    I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                              /* Write controlbit to I2C_CTL register */
+    I2C_WriteMultiBytes(I2C0, _u8PeripheralAddr, data, _u32wLen);
 }
 
 uint8_t I2CManager::read(uint8_t _u8PeripheralAddr, uint8_t rdata[], size_t _u32rLen) {
-
-    // Wait for pending write
-    waitForFinish();
-
-    if (_u32rLen > sizeof(rxBuf)) {
-        return 0;
-    }
-
-    u8Xfering = 1u;
-    u8Err = 0u;
-    u8Ctrl = 0u;
-    u32rxLen = 0u;
-    u32rLen = _u32rLen;
-    u8PeripheralAddr = _u8PeripheralAddr;
-
-    u8TransferType = 3;
-
-    s_I2C0HandlerFn = readIRQHandler;
-
-    I2C_START(I2C0);                                                /* Send START */
-
-    // Wait for read
-    waitForFinish();
-
-    memcpy(rdata, rxBuf, u32rxLen);
-
-    return u32rxLen;                                                /* Return bytes length that have been received */
-}
-
-void I2CManager::readIRQHandler(void) {
-    I2CManager::instance().readIRQ();
-}
-
-void I2CManager::readIRQ() {
-
-#ifdef ENABLE_TIMEOUT
-    if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
-        I2C_ClearTimeoutFlag(I2C0);
-#ifdef LOG_TIMEOUT
-        printf("read I2C timeout!\n");
-#endif  // #ifdef LOG_TIMEOUT
-        u8Ctrl = I2C_CTL_STA | I2C_CTL_STO | I2C_CTL_SI;            /* Clear SI and send START&STOP */
-        I2C_SET_CONTROL_REG(I2C0, u8Ctrl);
-        return;
-    }
-#endif  // #ifdef ENABLE_TIMEOUT
-
-    switch(I2C_GET_STATUS(I2C0)) {
-    case 0x08u:
-        I2C_SET_DATA(I2C0, (uint8_t)((u8PeripheralAddr << 1u) | 0x01u));    /* Write SLA+R to Register I2CDAT */
-        u8Ctrl = I2C_CTL_SI;                                    /* Clear SI */
-        break;
-    case 0x40u:                                                 /* Peripheral Address ACK */
-        u8Ctrl = I2C_CTL_SI_AA;                                 /* Clear SI and set ACK */
-        break;
-    case 0x48u:                                                 /* Peripheral Address NACK */
-        u8Ctrl = I2C_CTL_STO_SI;                                /* Clear SI and send STOP */
-        u8Err = 1u;
-        break;
-    [[likely]] case 0x50u:
-        rxBuf[u32rxLen++] = (unsigned char) I2C_GET_DATA(I2C0); /* Receive Data */
-        if(u32rxLen < (u32rLen - 1u)) {
-            u8Ctrl = I2C_CTL_SI_AA;                             /* Clear SI and set ACK */
-        } else {
-            u8Ctrl = I2C_CTL_SI;                                /* Clear SI */
-        }
-        break;
-    case 0x58u:
-        rxBuf[u32rxLen++] = (unsigned char) I2C_GET_DATA(I2C0); /* Receive Data */
-        u8Ctrl = I2C_CTL_STO_SI;                                /* Clear SI and send STOP */
-        u8Xfering = 0u;
-        break;
-    case 0x38u:                                                 /* Arbitration Lost */
-    default:                                                    /* Unknow status */
-        u8Ctrl = I2C_CTL_STO_SI;
-        u8Err = 1u;
-        break;
-    }
-    I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                                 /* Write controlbit to I2C_CTL register */
+    return I2C_ReadMultiBytes(I2C0, _u8PeripheralAddr, rdata, _u32rLen);
 }
 
 uint8_t I2CManager::getReg8(uint8_t _u8PeripheralAddr, uint8_t _u8DataAddr) {
-
-    // Wait for pending write
-    waitForFinish();
-
-    u8Xfering = 1u;
-    u8Err = 0u;
-    u8RData = 0u; 
-    u8Ctrl = 0u;
-    u8DataAddr = _u8DataAddr;
-    u8PeripheralAddr = _u8PeripheralAddr;
-
-    u8TransferType = 4;
-
-    s_I2C0HandlerFn = getReg8IRQHandler;
-
-    I2C_START(I2C0);                                                /* Send START */
-
-    // Wait for read
-    waitForFinish();
-
-    return u8RData;
-}
-
-void I2CManager::getReg8IRQHandler(void) {
-    I2CManager::instance().getReg8IRQ();
-}
-
-void I2CManager::getReg8IRQ() {
-
-#ifdef ENABLE_TIMEOUT
-    if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
-        I2C_ClearTimeoutFlag(I2C0);
-#ifdef LOG_TIMEOUT
-        printf("getReg8 I2C timeout!\n");
-#endif  // #ifdef LOG_TIMEOUT
-        u8Ctrl = I2C_CTL_STA | I2C_CTL_STO | I2C_CTL_SI;    /* Clear SI and send START&STOP */
-        I2C_SET_CONTROL_REG(I2C0, u8Ctrl);
-        return;
-    }
-#endif  // #ifdef ENABLE_TIMEOUT
-
-    switch(I2C_GET_STATUS(I2C0)) {
-    case 0x08u:
-        I2C_SET_DATA(I2C0, (uint8_t)(u8PeripheralAddr << 1u | 0x00u));      /* Write SLA+W to Register I2CDAT */
-        u8Ctrl = I2C_CTL_SI;                                /* Clear SI */
-        break;
-    case 0x18u:                                             /* Peripheral Address ACK */
-        I2C_SET_DATA(I2C0, u8DataAddr);                     /* Write Lo byte address of register */
-        break;
-    case 0x20u:                                             /* Peripheral Address NACK */
-    case 0x30u:                                             /* Controller transmit data NACK */
-        u8Ctrl = I2C_CTL_STO_SI;                            /* Clear SI and send STOP */
-        u8Err = 1u;
-        break;
-    case 0x28u:
-        u8Ctrl = I2C_CTL_STA_SI;                           /* Send repeat START */
-        break;
-    case 0x10u:
-        I2C_SET_DATA(I2C0, (uint8_t)((u8PeripheralAddr << 1u) | 0x01u));    /* Write SLA+R to Register I2CDAT */
-        u8Ctrl = I2C_CTL_SI;                               /* Clear SI */
-        break;
-    case 0x40u:                                            /* Peripheral Address ACK */
-        u8Ctrl = I2C_CTL_SI;                               /* Clear SI */
-        break;
-    case 0x48u:                                            /* Peripheral Address NACK */
-        u8Ctrl = I2C_CTL_STO_SI;                           /* Clear SI and send STOP */
-        u8Err = 1u;
-        break;
-    [[likely]] case 0x58u:
-        u8RData = (uint8_t) I2C_GET_DATA(I2C0);            /* Receive Data */
-        u8Ctrl = I2C_CTL_STO_SI;                           /* Clear SI and send STOP */
-        u8Xfering = 0u;
-        break;
-    case 0x38u:                                            /* Arbitration Lost */
-    default:                                               /* Unknow status */
-        u8Ctrl = I2C_CTL_STO_SI;
-        u8Err = 1u;
-        break;
-    }
-    I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                     /* Write controlbit to I2C_CTL register */
+    return I2C_ReadByteOneReg(I2C0, _u8PeripheralAddr, _u8DataAddr);
 }
 
 void I2CManager::setReg8(uint8_t _u8PeripheralAddr, uint8_t _u8DataAddr, uint8_t _u8WData) {
-
-    // Wait for pending write
-    waitForFinish();
-
-    u8Xfering = 1u;
-    u8Err = 0u;
-    u8Ctrl = 0u;
-    u32txLen = 0u;
-    u8DataAddr = _u8DataAddr;
-    u8PeripheralAddr = _u8PeripheralAddr;
-    u8WData = _u8WData; 
-
-    u8TransferType = 5;
-
-    s_I2C0HandlerFn = setReg8IRQHandler;
-
-    I2C_START(I2C0);                                             /* Send START */
-
-    // Do NOT wait for write
-    // waitForFinish();
-}
-
-void I2CManager::setReg8IRQHandler(void) {
-    I2CManager::instance().setReg8IRQ();
-}
-
-void I2CManager::setReg8IRQ() {
-
-#ifdef ENABLE_TIMEOUT
-    if (I2C_GET_TIMEOUT_FLAG(I2C0)) {
-        I2C_ClearTimeoutFlag(I2C0);
-#ifdef LOG_TIMEOUT
-        printf("setReg8 I2C timeout!\n");
-#endif  // #ifdef LOG_TIMEOUT
-        u8Ctrl = I2C_CTL_STA | I2C_CTL_STO | I2C_CTL_SI;  /* Clear SI and send START&STOP */
-        I2C_SET_CONTROL_REG(I2C0, u8Ctrl);
-        return;
-    }
-#endif  // #ifdef ENABLE_TIMEOUT
-
-    switch(I2C_GET_STATUS(I2C0)) {
-    case 0x08u:
-        I2C_SET_DATA(I2C0, (uint8_t)(u8PeripheralAddr << 1u | 0x00u));    /* Send Peripheral address with write bit */
-        u8Ctrl = I2C_CTL_SI;                              /* Clear SI */
-        break;
-    case 0x18u:                                           /* Peripheral Address ACK */
-        I2C_SET_DATA(I2C0, u8DataAddr);                   /* Write Lo byte address of register */
-        break;
-    case 0x20u:                                           /* Peripheral Address NACK */
-    case 0x30u:                                           /* Controller transmit data NACK */
-        u8Ctrl = I2C_CTL_STO_SI;                          /* Clear SI and send STOP */
-        u8Err = 1u;
-        break;
-    [[likely]] case 0x28u:
-        if(u32txLen < 1u)
-        {
-            I2C_SET_DATA(I2C0, u8WData);
-            u8Ctrl = I2C_CTL_SI;
-            u32txLen++;
-        }
-        else
-        {
-            u8Ctrl = I2C_CTL_STO_SI;                      /* Clear SI and send STOP */
-            u8Xfering = 0u;
-        }
-        break;
-    case 0x38u:                                           /* Arbitration Lost */
-    default:                                              /* Unknow status */
-        u8Ctrl = I2C_CTL_STO_SI;
-        u8Err = 1u;
-        break;
-    }
-    I2C_SET_CONTROL_REG(I2C0, u8Ctrl);                    /* Write controlbit to I2C_CTL register */
+    I2C_WriteByteOneReg(I2C0, _u8PeripheralAddr, _u8DataAddr, _u8WData);
 }
 
 void I2CManager::setReg8Bits(uint8_t peripheralAddr, uint8_t reg, uint8_t mask) {
@@ -664,6 +194,20 @@ void I2CManager::clearReg8Bits(uint8_t peripheralAddr, uint8_t reg, uint8_t mask
 }
 
 void I2CManager::init() {
+
+    GPIO_SetMode(PA, BIT4, GPIO_MODE_OPEN_DRAIN);
+    GPIO_SetMode(PA, BIT5, GPIO_MODE_OPEN_DRAIN);
+
+    PA4 = 1;
+    PA5 = 1;
+
+    PA->SMTEN |= GPIO_SMTEN_SMTEN4_Msk | GPIO_SMTEN_SMTEN5_Msk;
+
+    PDMA_Open(PDMA, 1 << I2C0_PDMA_TX_CH);
+
+    PDMA_EnableInt(PDMA, I2C0_PDMA_TX_CH, 0);
+    PDMA_SetBurstType(PDMA, I2C0_PDMA_TX_CH, PDMA_REQ_SINGLE, 0);
+
     I2C_Open(I2C0, 400000);
 
     uint32_t STCTL = 0;
@@ -672,11 +216,9 @@ void I2CManager::init() {
     I2C0->TMCTL = ( ( STCTL << I2C_TMCTL_STCTL_Pos) & I2C_TMCTL_STCTL_Msk ) |
                   ( ( HTCTL << I2C_TMCTL_HTCTL_Pos) & I2C_TMCTL_HTCTL_Msk );
 
-#ifdef ENABLE_TIMEOUT
-    I2C_EnableTimeout(I2C0, 1);
-#endif  // #ifdef ENABLE_TIMEOUT
 
-    I2C_EnableInt(I2C0);
+    NVIC_SetPriority(PDMA_IRQn, 3);
+    NVIC_EnableIRQ(PDMA_IRQn);
 
     NVIC_SetPriority(I2C0_IRQn, 3);
     NVIC_EnableIRQ(I2C0_IRQn);
