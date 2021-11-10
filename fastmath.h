@@ -67,6 +67,11 @@ static inline float fast_log2(const float x) {
 }
 
 __attribute__ ((hot, optimize("Os"), flatten))
+static inline float fast_log(const float x) {
+    return fast_log2(x) * 0.69314718f;
+}
+
+__attribute__ ((hot, optimize("Os"), flatten))
 static inline float fast_pow(const float x, const float p) {
     return fast_exp2(p * fast_log2(x));
 }
