@@ -534,7 +534,11 @@ extern "C"
 #define CLK_DISABLE_RTCWK(void)       (CLK->PMUCTL &= ~CLK_PMUCTL_RTCWKEN_Msk)    /*!< Disable RTC Wake-up at Standby or Deep Power-down mode \hideinitializer */
 #define CLK_ENABLE_RTCWK(void)        (CLK->PMUCTL |= CLK_PMUCTL_RTCWKEN_Msk)     /*!< Enable RTC Wake-up at Standby or Deep Power-down mode \hideinitializer */
 
+#define CLK_TIMEOUT_ERR            (-1)     /*!< Clock timeout error value \hideinitializer */
+
 /*@}*/ /* end of group CLK_EXPORTED_CONSTANTS */
+
+extern int32_t g_CLK_i32ErrCode;
 
 /** @addtogroup CLK_EXPORTED_FUNCTIONS CLK Exported Functions
   @{
@@ -560,7 +564,7 @@ extern "C"
  * @return      None
  *
  * @details     This function set Wake-up Timer Time-out Interval.
- *
+ * @note        Only M48xGC/M48xG8 support CLK_PMUCTL_WKTMRIS_131072 ~ CLK_PMUCTL_WKTMRIS_1048576
  * \hideinitializer
  */
 #define CLK_SET_WKTMR_INTERVAL(u32Interval)   (CLK->PMUCTL |= (u32Interval))
